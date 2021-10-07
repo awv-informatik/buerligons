@@ -1,6 +1,6 @@
 # buerligons
 
-buerli's open source CAD application.
+buerli's CAD application.
 
 ## Getting Started
 
