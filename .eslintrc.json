@@ -1,0 +1,44 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "jsx": true,
+    "useJSXTextNode": true
+  },
+  "extends": [
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "prettier",
+    "plugin:promise/recommended",
+    "react-app"
+  ],
+  "plugins": ["@typescript-eslint", "react-hooks", "react", "promise"],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+
+    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/prefer-for-of": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "none",
+        "ignoreRestSiblings": false
+      }
+    ],
+
+    "max-lines": ["error", { "max": 500, "skipComments": true }],
+    "no-console": ["error", { "allow": ["info", "warn", "error"] }],
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+    "no-shadow": ["error", { "builtinGlobals": false, "hoist": "all", "allow": [] }],
+
+    "react/prop-types": "off"
+  }
+}

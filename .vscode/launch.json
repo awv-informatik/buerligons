@@ -1,0 +1,28 @@
+{
+  // Use IntelliSense to learn about possible Node.js debug attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // https://github.com/Microsoft/vscode-chrome-debug/issues/75
+      "name": "Run chrome buerligons",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "sourceMaps": true,
+      "webRoot": "${workspaceRoot}/dist",
+      "userDataDir": "${workspaceRoot}/.vscode/chrome", //Can be any directory. Makes chrome load in a different directory so that it opens in a new instance.
+      "port": 9222,
+      "smartStep": true,
+      "sourceMapPathOverrides": {},
+      "runtimeArgs": [
+        "--new-window", //Open in new window,
+        "--max-active-webgl-contexts=16"
+      ]
+      //"trace": true,
+      //"diagnosticLogging": true,
+      //"verboseDiagnosticLogging": true
+    }
+  ]
+}
