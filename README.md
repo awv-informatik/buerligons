@@ -43,3 +43,5 @@ Just start the development server and open the URL http://localhost:3000. Please
 ```
 yarn start
 ```
+
+After that, you can directly load the sample models contained in this repository (`samples` folder) for a quick and uncomplicated start.
