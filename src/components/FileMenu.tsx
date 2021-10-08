@@ -1,11 +1,10 @@
-import React from 'react'
-import 'antd/dist/antd.css'
-import { Space } from 'antd'
-import { MenuOutlined, FolderOpenOutlined, AppstoreOutlined, FileOutlined } from '@ant-design/icons'
-
+import { AppstoreOutlined, FileOutlined, FolderOpenOutlined, MenuOutlined } from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
-import { DrawingID } from '@buerli.io/core'
-import { Readfile, Menu, MenuItems } from '@buerli.io/react-cad'
+import { api as buerliApi, DrawingID } from '@buerli.io/core'
+import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
+import { Space } from 'antd'
+import 'antd/dist/antd.css'
+import React from 'react'
 
 const WideDiv: any = ({ children, ...props }: any) => {
   return (
@@ -16,6 +15,36 @@ const WideDiv: any = ({ children, ...props }: any) => {
 }
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
+  const createNewDrawing = React.useCallback(
+    (type: 'Part' | 'Assembly') => {
+      const run = async () => {
+        try {
+          const oldDrawingId = drawingId
+          const newDrawingId = await ccAPI.base.createCCDrawing(type)
+          if (newDrawingId) {
+            switch (type) {
+              case 'Assembly':
+                await ccAPI.assemblyBuilder.createRootAssembly(newDrawingId, type)
+                break
+              case 'Part':
+              default:
+                await ccAPI.feature.newPart(newDrawingId, type)
+                break
+            }
+            buerliApi.getState().api.setActiveDrawing(newDrawingId)
+          }
+          if (oldDrawingId) {
+            buerliApi.getState().api.removeDrawing(oldDrawingId)
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      run()
+    },
+    [drawingId],
+  )
+
   return React.useMemo(() => {
     return {
       new: {
@@ -25,20 +54,12 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           part: {
             caption: 'part',
             icon: <FileOutlined />,
-            callback: async () => {
-              // TODO: ask name
-              await ccAPI.common.clear(drawingId)
-              await ccAPI.feature.newPart(drawingId, 'Part')
-            },
+            callback: () => createNewDrawing('Part'),
           },
           assembly: {
             caption: 'assembly',
             icon: <AppstoreOutlined />,
-            callback: async () => {
-              // TODO: ask name
-              await ccAPI.common.clear(drawingId)
-              await ccAPI.assemblyBuilder.createRootAssembly(drawingId, 'Assembly').catch(console.info)
-            },
+            callback: () => createNewDrawing('Assembly'),
           },
         },
       },
@@ -52,7 +73,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
         callback: () => null,
       },
     }
-  }, [drawingId])
+  }, [createNewDrawing])
 }
 
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
