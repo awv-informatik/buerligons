@@ -16,25 +16,31 @@ yarn install
 
 To be able to use buerligons, you need a running ClassCAD Server which offers the CAD service via WebSockets.
 
-> ⚠️ This package provides a default setup for Windows systems. To get started with the linux server please follow the instructions here [@classcad/linux-x64](https://www.npmjs.com/package/@classcad/linux-x64).
-
-**Download ccapp**
+#### Download ccapp
 
 Go to [buerli.io](https://buerli.io), sign up for a **user account** and download the required application package. Copy the downloaded `ccapp` side by side to this REAMDE in the root folder of the project and rename it to `BaseModeling.ccapp`
 
-**Start the server**
+#### Start the server
+
+**Windows:**
+
+If you are on Windows, you can start the classcad server from this package.
 
 ```
 yarn classcad
 ```
-
 The server should now be available at http://localhost:8182. Please check the status:
 
 ```
 http://localhost:8182/status
 ```
 
-Now, you are ready to start and use buerligons.
+
+
+**Linux/OSX:**
+
+You need to run the ClassCAD Server in Docker. Please follow the instructions here [@classcad/linux-x64](https://www.npmjs.com/package/@classcad/linux-x64).
+
 
 ### Client
 
