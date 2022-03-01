@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redeclare */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable max-lines */
 /* eslint-disable no-shadow */
