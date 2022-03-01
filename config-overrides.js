@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const fs = require('fs')
-const verifyTypeScriptSetup = require('react-scripts/scripts/utils/verifyTypeScriptSetup')
 const {
   addWebpackAlias,
   removeModuleScopePlugin,
@@ -16,14 +15,12 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 // keep the original content of tsconfig.json
 const originalTSConfigStr = fs.readFileSync('./tsconfig.json')
-require.cache[require.resolve('react-scripts/scripts/utils/verifyTypeScriptSetup')].exports = function () {
-  verifyTypeScriptSetup()
-  // write the original content to tsconfig.json
-  fs.writeFileSync('tsconfig.json', originalTSConfigStr)
-}
 
-module.exports = (config, env) =>
-  override(
+module.exports = (config, env) => {
+  // Write the original content to tsconfig.json
+  fs.writeFileSync('./tsconfig.json', originalTSConfigStr)
+
+  return override(
     addWebpackModuleRule({ test: /\.(of1|stp)$/, use: 'arraybuffer-loader' }),
     disableEsLint(),
     removeModuleScopePlugin(),
@@ -38,5 +35,7 @@ module.exports = (config, env) =>
       'styled-components': path.resolve(`node_modules/styled-components`),
       three: path.resolve('node_modules/three'),
       '@react-three/fiber': path.resolve('node_modules/@react-three/fiber'),
+      '@react-three/drei': path.resolve('node_modules/@react-three/drei'),
     }),
   )(config, env)
+}
