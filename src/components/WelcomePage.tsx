@@ -7,6 +7,8 @@ import React from 'react'
 import styled from 'styled-components'
 
 export const WelcomePage: React.FC = () => {
+  const rfRef = React.useRef<HTMLInputElement>()
+
   const createPart = React.useCallback(async () => {
     const newDrawingId = await ccAPI.base.createCCDrawing()
     newDrawingId && (await ccAPI.feature.newPart(newDrawingId, 'Part').catch(console.info))
@@ -15,6 +17,10 @@ export const WelcomePage: React.FC = () => {
   const createAssembly = React.useCallback(async () => {
     const newDrawingId = await ccAPI.base.createCCDrawing()
     newDrawingId && (await ccAPI.assemblyBuilder.createRootAssembly(newDrawingId, 'New Assembly').catch(console.info))
+  }, [])
+
+  const openFile = React.useCallback(() => {
+    rfRef.current && rfRef.current.click()
   }, [])
 
   const menu = (
@@ -37,9 +43,10 @@ export const WelcomePage: React.FC = () => {
             <Space>Create New ...</Space>
           </WideButton>
         </Dropdown>
-        <Readfile el={WideButton} singleDrawingApp>
-          Open File
-        </Readfile>
+        <WideButton onClick={openFile}>
+          <Space>Open File</Space>
+        </WideButton>
+        <Readfile ref={rfRef} singleDrawingApp />
       </Main>
     </>
   )

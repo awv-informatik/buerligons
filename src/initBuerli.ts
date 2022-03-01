@@ -1,4 +1,5 @@
-import { api, getDrawing, init } from '@buerli.io/core'
+import { CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { api, getDrawing } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
@@ -50,8 +51,7 @@ export const initBuerli = () => {
     wnd.getDrawing = () => (api.getState().drawing.active ? getDrawing(api.getState().drawing.active || '') : null)
   }
 
-  init({
-    url: CCSERVERURL,
+  init(id => new SocketIOClient(CCSERVERURL, id), {
     theme: {
       primary: '#e36b7c',
       secondary: '#fcc7cb',
@@ -70,36 +70,36 @@ export const initBuerli = () => {
     elements,
     globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement],
     plugins: {
-      CC_Sketch: Sketch,
-      CC_Extrusion: Extrusion,
-      CC_Revolve: Revolve,
-      CC_Box: Box,
-      CC_Sphere: Sphere,
-      CC_Cylinder: Cylinder,
-      CC_Cone: Cone,
-      CC_WorkPoint: WorkPoint,
-      CC_WorkPlane: WorkPlane,
-      CC_WorkAxis: WorkAxis,
-      CC_WorkCoordSystem: WorkCoordSystem,
-      CC_Union: BooleanPlg,
-      CC_Intersection: BooleanPlg,
-      CC_Subtraction: BooleanPlg,
-      CC_ConstantRadiusFillet: Fillet,
-      CC_Chamfer: Chamfer,
-      CC_Slice: Slice,
-      CC_LinearPattern: LinearPattern,
-      CC_CircularPattern: CircularPattern,
-      CC_TransformationByCSys: TransformByCsys,
-      CC_Translation: Translate,
-      CC_Rotation: Rotate,
-      CC_Import: Import,
-      CC_FastenedOriginConstraint: FastenedOrigin,
-      CC_FastenedConstraint: Fastened,
-      CC_SliderConstraint: Slider,
-      CC_RevoluteConstraint: Revolute,
-      CC_CylindricalConstraint: Cylindrical,
-      CC_PlanarConstraint: Planar,
-      CC_ParallelConstraint: Parallel,
+      [CCClasses.CCSketch]: Sketch,
+      [CCClasses.CCExtrusion]: Extrusion,
+      [CCClasses.CCChamfer]: Chamfer,
+      [CCClasses.CCConstantRadiusFillet]: Fillet,
+      [CCClasses.CCUnion]: BooleanPlg,
+      [CCClasses.CCWorkAxis]: WorkAxis,
+      [CCClasses.CCWorkPlane]: WorkPlane,
+      [CCClasses.CCWorkPoint]: WorkPoint,
+      [CCClasses.CCRevolve]: Revolve,
+      [CCClasses.CCBox]: Box,
+      [CCClasses.CCSphere]: Sphere,
+      [CCClasses.CCCylinder]: Cylinder,
+      [CCClasses.CCCone]: Cone,
+      [CCClasses.CCWorkCoordSystem]: WorkCoordSystem,
+      [CCClasses.CCIntersection]: BooleanPlg,
+      [CCClasses.CCSubtraction]: BooleanPlg,
+      [CCClasses.CCSlice]: Slice,
+      [CCClasses.CCLinearPattern]: LinearPattern,
+      [CCClasses.CCCircularPattern]: CircularPattern,
+      [CCClasses.CCTransformationByCSys]: TransformByCsys,
+      [CCClasses.CCTranslation]: Translate,
+      [CCClasses.CCRotation]: Rotate,
+      [CCClasses.CCFastenedOriginConstraint]: FastenedOrigin,
+      [CCClasses.CCFastenedConstraint]: Fastened,
+      [CCClasses.CCSliderConstraint]: Slider,
+      [CCClasses.CCRevoluteConstraint]: Revolute,
+      [CCClasses.CCCylindricalConstraint]: Cylindrical,
+      [CCClasses.CCPlanarConstraint]: Planar,
+      [CCClasses.CCParallelConstraint]: Parallel,
+      [CCClasses.CCImport]: Import,
     },
   })
 }

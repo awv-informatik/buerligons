@@ -6,15 +6,9 @@ import { Space } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 
-const WideDiv: any = ({ children, ...props }: any) => {
-  return (
-    <div {...props} style={{ display: 'inline-block', width: '90%' }}>
-      {children}
-    </div>
-  )
-}
-
 function useMenuItems(drawingId: DrawingID): MenuItems {
+  const rfRef = React.useRef<HTMLInputElement>()
+
   const createNewDrawing = React.useCallback(
     (type: 'Part' | 'Assembly') => {
       const run = async () => {
@@ -65,12 +59,13 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
       },
       open: {
         caption: (
-          <Readfile el={WideDiv} singleDrawingApp>
+          <>
             open
-          </Readfile>
+            <Readfile ref={rfRef} singleDrawingApp />
+          </>
         ),
         icon: <FolderOpenOutlined />,
-        callback: () => null,
+        callback: () => rfRef.current && rfRef.current.click(),
       },
     }
   }, [createNewDrawing])
