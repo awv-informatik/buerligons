@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-redeclare */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable max-lines */
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable no-var */
-/* eslint-disable @typescript-eslint/no-use-before-define */
 
 // Copied from https://github.com/mrdoob/three.js/blob/r108/examples/jsm/controls/OrthographicTrackballControls.js
 // TODO: convert to typescript
@@ -310,7 +308,6 @@ export class OrthographicTrackballControls extends EventDispatcher {
 
       if (_changed) {
         _this.dispatchEvent(changeEvent)
-
         _changed = false
       }
     }
@@ -335,6 +332,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       _this.dispatchEvent(changeEvent)
 
       _changed = false
+      _this.update()
     }
 
     // listeners
@@ -355,6 +353,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       } else if (keyCode === _this.keys[STATE.PAN] && !_this.noPan) {
         _state = STATE.PAN
       }
+      _this.update()
     }
 
     function keyup() {
@@ -363,6 +362,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       _state = _prevState
 
       window.addEventListener('keydown', keydown, false)
+      _this.update()
     }
 
     function mousedown(event) {
@@ -390,6 +390,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       document.addEventListener('mouseup', mouseup, false)
 
       _this.dispatchEvent(startEvent)
+      _this.update()
     }
 
     function mousemove(event) {
@@ -405,6 +406,8 @@ export class OrthographicTrackballControls extends EventDispatcher {
       } else if (_state === STATE.PAN && !_this.noPan) {
         _panEnd.copy(getMouseOnScreen(event.pageX, event.pageY))
       }
+
+      _this.update()
     }
 
     function mouseup(event) {
@@ -418,6 +421,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       document.removeEventListener('mousemove', mousemove)
       document.removeEventListener('mouseup', mouseup)
       _this.dispatchEvent(endEvent)
+      _this.update()
     }
 
     function mousewheel(event) {
@@ -448,6 +452,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
 
       _this.dispatchEvent(startEvent)
       _this.dispatchEvent(endEvent)
+      _this.update()
     }
 
     function touchstart({ touches }) {
@@ -476,6 +481,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
           _state = STATE.NONE
       }
       _this.dispatchEvent(startEvent)
+      _this.update()
     }
 
     function touchmove(event) {
@@ -502,6 +508,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
         default:
           _state = STATE.NONE
       }
+      _this.update()
     }
 
     function touchend({ touches }) {
@@ -525,6 +532,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
 
       _state = STATE.NONE
       _this.dispatchEvent(endEvent)
+      _this.update()
     }
 
     function contextmenu(event) {

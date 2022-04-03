@@ -6,6 +6,10 @@
     "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext"],
     "outDir": "build/",
+    "paths": {
+      "@buerli.io/react": ["./../../../buerli/packages/react/build/index"],
+      "@buerli.io/react-cad": ["./../../../buerli-react-cad/build/index"]
+    },
     "jsx": "react",
     "allowJs": false,
     "declaration": true,
@@ -20,8 +24,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "noEmit": true
+    "isolatedModules": true
   },
-  "include": ["./src/**/*"]
-}
+  "include": ["./src/**/*"],
+  "exclude": ["./src/index.tsx", "./src/App.tsx", "./src/initBuerli.ts"]}

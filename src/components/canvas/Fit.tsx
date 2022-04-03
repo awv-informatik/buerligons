@@ -1,7 +1,8 @@
 import { DrawingID, GeometryBounds } from '@buerli.io/core'
-import { CameraHelper, useBuerli, useDrawing } from '@buerli.io/react'
-import { Bounds, useBounds } from '@react-three/drei'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useBuerli, useDrawing } from '@buerli.io/react'
+import { useIsLoading } from '@buerli.io/react-cad'
+import { Bounds, SizeProps, useBounds } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 import React from 'react'
 
 /**
@@ -57,34 +58,21 @@ function DblClick() {
 export function Fit({
   drawingId,
   children,
-  lineWidth = 3,
-  pointSize = 6,
+  onFit,
 }: {
   drawingId: DrawingID
   children?: React.ReactNode
-  lineWidth?: number
-  pointSize?: number
+  onFit?: (bounds: SizeProps) => void
 }) {
+  const isLoading = useIsLoading(drawingId)
   const ccBounds = useDrawing(drawingId, d => d.geometry.bounds) as GeometryBounds
-  const { camera, raycaster, size } = useThree()
-
-  const updateRaycasterSettings = React.useCallback(() => {
-    Object.assign(raycaster.params.Line, {
-      threshold: CameraHelper.calculateScaleFactor(camera.position, lineWidth / 2.0, camera, size),
-    })
-    Object.assign(raycaster.params.Points, {
-      threshold: CameraHelper.calculateScaleFactor(camera.position, pointSize, camera, size),
-    })
-  }, [camera, lineWidth, pointSize, raycaster.params.Line, raycaster.params.Points, size])
-
-  useFrame(updateRaycasterSettings)
 
   return (
-    <Bounds>
+    <Bounds onFit={onFit}>
       {children}
       <DblClick />
       <SwitchDrawing />
-      <Refresh ccBounds={ccBounds} />
+      {isLoading && <Refresh ccBounds={ccBounds} />}
     </Bounds>
   )
 }
