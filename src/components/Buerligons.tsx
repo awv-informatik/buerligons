@@ -4,16 +4,17 @@ import {
   BuerliGeometry,
   BuerliPluginsGeometry,
   PluginManager,
-  raycastFilter,
   useBuerli,
   useDrawing,
+  raycastFilter,
 } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay, InteractionInfo } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
 import create from 'zustand'
-import { Composer, Controls, Fit, Lights, OutlinesSelector, Threshold } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold } from './canvas'
+import {  ViewInteraction } from './canvas/ViewInteraction'
 import { FileMenu } from './FileMenu'
 import { WelcomePage } from './WelcomePage'
 
@@ -56,38 +57,10 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
       raycaster={{ filter: raycastFilter }}
       camera={{ position: [0, 0, 10], zoom: 50 }}
       onPointerMissed={handleMiss}>
+      <ViewInteraction drawingId={drawingId} />
       <HoveredConstraintDisplay drawingId={drawingId} hoveredId={hoveredConstrId} />
       <React.Suspense fallback={null}>{children}</React.Suspense>
     </Canvas>
-  )
-}
-
-function Geometry({ node, object }: { node: React.ReactNode; object: IStructureObject }) {
-  const hovered = useStore(state => state.hovered)
-  const selected = useStore(state => state.selected)
-  const setSelected = useStore(state => state.setSelected)
-
-  const isHovered = (hovered?.highlightedIds || emptyArr).indexOf(object.id) !== -1
-  const isSelected = (selected?.highlightedIds || emptyArr).indexOf(object.id) !== -1
-
-  const isAssemblyNode =
-    object.class === CCClasses.CCProductReference || object.class === CCClasses.CCProductReferenceET
-  const type = isAssemblyNode ? 'AssemblyNode' : 'Solid'
-
-  const onClick = React.useCallback(
-    e => {
-      e.stopPropagation()
-      if (e.delta < 3) {
-        setSelected(isSelected ? null : { objectId: object.id, highlightedIds: [object.id], type })
-      }
-    },
-    [object, isSelected],
-  )
-
-  return (
-    <OutlinesSelector objectId={object.id} isHovered={isHovered} isSelected={isSelected} onClick={onClick}>
-      {node}
-    </OutlinesSelector>
   )
 }
 
@@ -130,15 +103,16 @@ export const Buerligons: React.FC = () => {
 
               <Fit drawingId={drawingId}>
                 <Composer
+                  drawingId={drawingId}
+                  hovered={hovered}
                   radius={0.1}
                   blendFunction={2}
-                  hoveredColor="green"
-                  selectedColor="red"
+                  color="green"
                   width={800}
                   edgeStrength={100}>
-                  <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
-                    {props => <Geometry {...props} />}
-                  </BuerliGeometry>
+                  <>
+                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
+                  </>
                 </Composer>
                 <BuerliPluginsGeometry drawingId={drawingId} />
               </Fit>

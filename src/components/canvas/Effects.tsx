@@ -2,111 +2,123 @@ import React from 'react'
 import * as THREE from 'three'
 import create from 'zustand'
 
-import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, SSAO } from '@react-three/postprocessing'
-import { ObjectID } from '@buerli.io/core'
-import { useBuerli } from '@buerli.io/react'
+import { ObjectID, DrawingID, getPlugin, GeometryElement, ContainerGeometryT } from '@buerli.io/core'
 import { CCClasses } from '@buerli.io/classcad'
+import { useBuerli, Product, GlobalTransform, Point, Mesh, Entity, Plugin } from '@buerli.io/react'
+import { findObject, getMateRefIds, InteractionInfo } from '@buerli.io/react-cad'
 
 import { AutoClear } from '../../components'
 
 const useOutlinesStore = create<{
-  hoveredMeshes: { [key: number]: THREE.Object3D[] }
-  selectedMeshes: { [key: number]: THREE.Object3D[] }
-  setHoveredMeshes: (id: ObjectID, hoveredMeshes: THREE.Object3D[]) => void
-  setSelectedMeshes: (id: ObjectID, selectedMeshes: THREE.Object3D[]) => void
-  unhoverMesh: (id: ObjectID) => void
-  unselectMesh: (id: ObjectID) => void
+  outlinedMeshes: { [key: number]: THREE.Object3D[]}
+  setOutlinedMeshes: (id: ObjectID, outlinedMeshes: THREE.Object3D[]) => void
+  removeMesh: (id: ObjectID) => void
 }>((set, get) => ({
-  hoveredMeshes: {},
-  selectedMeshes: {},
-  setHoveredMeshes: (id: ObjectID, hoveredMeshes_: THREE.Object3D[]) =>
-    set(state => ({ hoveredMeshes: { ...state.hoveredMeshes, [id]: hoveredMeshes_ } })),
-  setSelectedMeshes: (id: ObjectID, selectedMeshes_: THREE.Object3D[]) =>
-    set(state => ({ selectedMeshes: { ...state.selectedMeshes, [id]: selectedMeshes_ } })),
-  unhoverMesh: (id: ObjectID) =>
+  outlinedMeshes: {},
+  setOutlinedMeshes: (id: ObjectID, outlinedMeshes_: THREE.Object3D[]) =>
+    set(state => ({ outlinedMeshes: { ...state.outlinedMeshes, [id]: outlinedMeshes_ } })),
+  removeMesh: (id: ObjectID) =>
     set(state => {
-      const hoveredMeshes_ = { ...state.hoveredMeshes }
-      delete hoveredMeshes_[id]
-      return { hoveredMeshes: hoveredMeshes_ }
-    }),
-  unselectMesh: (id: ObjectID) =>
-    set(state => {
-      const selectedMeshes_ = { ...state.selectedMeshes }
-      delete selectedMeshes_[id]
-      return { selectedMeshes: selectedMeshes_ }
+      const outlinedMeshes_ = { ...state.outlinedMeshes }
+      delete outlinedMeshes_[id]
+      return { outlinedMeshes: outlinedMeshes_ }
     }),
 }))
 
-export function OutlinesSelector({
-  objectId,
-  isHovered,
-  isSelected,
-  children,
-  ...props
-}: JSX.IntrinsicElements['group'] & { objectId: ObjectID; isHovered: boolean; isSelected: boolean }) {
-  const hoveredMeshes = useOutlinesStore(s => s.hoveredMeshes)
-  const selectedMeshes = useOutlinesStore(s => s.selectedMeshes)
-  const setHoveredMeshes = useOutlinesStore(s => s.setHoveredMeshes)
-  const setSelectedMeshes = useOutlinesStore(s => s.setSelectedMeshes)
-  const unhoverMesh = useOutlinesStore(s => s.unhoverMesh)
-  const unselectMesh = useOutlinesStore(s => s.unselectMesh)
-
-  const group = React.useRef<THREE.Group>(null!)
-
-  React.useEffect(() => {
-    if (isHovered) {
-      let changed = false
-      if (!hoveredMeshes[objectId]) changed = true
-
-      const current: THREE.Object3D[] = []
-      group.current.traverse(o => {
-        o.type === 'Mesh' && current.push(o)
-        if (hoveredMeshes[objectId]?.indexOf(o) === -1) changed = true
-      })
-
-      if (changed) {
-        setHoveredMeshes(objectId, current)
-        return () => {
-          unhoverMesh(objectId)
-        }
+function useOutlinedObjects(drawingId: DrawingID, hovered: InteractionInfo) {
+  const outlinedObjects = React.useMemo(() => {
+    switch(hovered?.type) {
+      case 'AssemblyNode': {
+        return [(<Product drawingId={drawingId} productId={hovered.objectId} isRoot />)]
+      }
+      case 'Constraint': {
+        const mateRefIds = getMateRefIds(drawingId, hovered.objectId)
+        return mateRefIds?.map(id => (<Product drawingId={drawingId} productId={id} isRoot />)) || []
+      }
+      case 'Feature': {
+        return [(<Plugin drawingId={drawingId} pluginId={hovered.objectId} view />)]
+      }
+      case 'Solid':
+      case 'Graphic': {
+        const geom = findObject(drawingId, hovered.objectId) as ContainerGeometryT | GeometryElement | undefined
+        return [(
+          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+            {(geom as ContainerGeometryT)?.type === 'brep' && (
+              <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
+            )}
+            {((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') && (
+              <Mesh elem={geom as any} opacity={0} />
+            )}
+            {(geom as GeometryElement)?.type === 'line' && (
+              <lineSegments geometry={(geom as GeometryElement).geometry as THREE.BufferGeometry} renderOrder={100}>
+                <lineBasicMaterial transparent opacity={0} />
+              </lineSegments>
+            )}
+            {(geom as GeometryElement)?.type === 'point' && (
+              /* TODO: not use buerli element? use a smaller point / mesh? */
+              <Point elem={geom as any} opacity={0} />
+            )}
+          </GlobalTransform>
+        )]
       }
     }
-  }, [isHovered])
+  
+    return []
+  }, [drawingId, hovered])
+
+  return outlinedObjects
+}
+
+const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
+  const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
+  const removeMesh = useOutlinesStore(s => s.removeMesh)
+
+  const groupRef = React.useRef<THREE.Group>(null!)
 
   React.useEffect(() => {
-    if (isSelected) {
-      let changed = false
-      if (!selectedMeshes[objectId]) changed = true
+    const meshes_: THREE.Object3D[] = []
 
-      const current: THREE.Object3D[] = []
-      group.current.traverse(o => {
-        o.type === 'Mesh' && current.push(o)
-        if (selectedMeshes[objectId]?.indexOf(o) === -1) changed = true
-      })
-
-      if (changed) {
-        setSelectedMeshes(objectId, current)
-        return () => {
-          unselectMesh(objectId)
-        }
+    groupRef.current?.traverse(o => {
+      if (o.type === 'Mesh' || o.type === 'LineSegments') {
+        meshes_.push(o)
       }
-    }
-  }, [isSelected])
+    })
+
+    setOutlinedMeshes(id, meshes_)
+
+    return () => removeMesh(id)
+  }, [children])
 
   return (
-    <group ref={group} {...props}>
+    <group ref={groupRef}>
       {children}
     </group>
   )
 }
 
+function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
+  const outlinedObjects = useOutlinedObjects(drawingId, hovered)
+  const id = hovered?.objectId || 0
+
+  return (
+    <>
+      {outlinedObjects.map((obj, i) => (
+        <OutlinedObject key={i} id={id + i}>
+          {obj}
+        </OutlinedObject>
+      ))}
+    </>
+  )
+}
+
 export function Composer({
   children,
+  drawingId,
+  hovered,
   xRay = true,
   blur = true,
-  hoveredColor = 'white',
-  selectedColor = 'white',
+  color = 'white',
   hiddenColor = undefined,
   edgeStrength = 100,
   width = 1000,
@@ -114,7 +126,8 @@ export function Composer({
   blendFunction = 2,
   ...props
 }: any) {
-  const { size, invalidate } = useThree()
+  const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
+
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
@@ -127,44 +140,26 @@ export function Composer({
   // Decide if effects-chain is active or not
   const enabled = !sketchActive
 
-  const hoveredMeshes = useOutlinesStore(s => s.hoveredMeshes)
-  const selectedMeshes = useOutlinesStore(s => s.selectedMeshes)
-
   return (
     <>
       <EffectComposer enabled={enabled} multisampling={8} autoClear={false} {...props}>
         <SSAO radius={radius} intensity={85} luminanceInfluence={0.2} color="black" />
-        {Object.values(hoveredMeshes).map((hovArray, i) => (
+        {Object.values(outlinedMeshes).map((meshes, i) => (
           <Outline
-            key={10 + i}
-            selection={hovArray}
+            key={i}
+            selection={meshes}
             selectionLayer={10 + i}
             blendFunction={blendFunction}
-            //blendFunction={selectionActive ? 0 : blendFunction}
             xRay={xRay}
             blur={blur}
-            hiddenEdgeColor={hiddenColor || hoveredColor}
-            visibleEdgeColor={hoveredColor}
-            edgeStrength={edgeStrength}
-            width={width}
-          />
-        ))}
-        {Object.values(selectedMeshes).map((selArray, i) => (
-          <Outline
-            key={100 + i}
-            selection={selArray}
-            selectionLayer={100 + i}
-            blendFunction={blendFunction}
-            //blendFunction={selectionActive ? 0 : blendFunction}
-            xRay={xRay}
-            blur={blur}
-            hiddenEdgeColor={hiddenColor || selectedColor}
-            visibleEdgeColor={selectedColor}
+            hiddenEdgeColor={color as any}
+            visibleEdgeColor={color as any}
             edgeStrength={edgeStrength}
             width={width}
           />
         ))}
       </EffectComposer>
+      <OutlinedObjects drawingId={drawingId} hovered={hovered} />
       {!enabled && <AutoClear />}
       {children}
     </>
