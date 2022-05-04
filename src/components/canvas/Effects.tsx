@@ -3,10 +3,10 @@ import * as THREE from 'three'
 import create from 'zustand'
 
 import { EffectComposer, Outline, SSAO } from '@react-three/postprocessing'
-import { ObjectID, DrawingID, getPlugin, GeometryElement, ContainerGeometryT } from '@buerli.io/core'
+import { ObjectID, DrawingID, getDrawing, GeometryElement, ContainerGeometryT } from '@buerli.io/core'
 import { CCClasses } from '@buerli.io/classcad'
-import { useBuerli, Product, GlobalTransform, Point, Mesh, Entity, Plugin } from '@buerli.io/react'
-import { findObject, getMateRefIds, InteractionInfo } from '@buerli.io/react-cad'
+import { useBuerli, Product, GlobalTransform, Point, Mesh, Entity } from '@buerli.io/react'
+import { findObject, getMateRefIds, InteractionInfo, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
 
 import { AutoClear } from '../../components'
 
@@ -30,20 +30,37 @@ function useOutlinedObjects(drawingId: DrawingID, hovered: InteractionInfo) {
   const outlinedObjects = React.useMemo(() => {
     switch(hovered?.type) {
       case 'AssemblyNode': {
-        return [(<Product drawingId={drawingId} productId={hovered.objectId} isRoot />)]
+        return [(<Product key={hovered.objectId} drawingId={drawingId} productId={hovered.objectId} isRoot />)]
       }
       case 'Constraint': {
         const mateRefIds = getMateRefIds(drawingId, hovered.objectId)
-        return mateRefIds?.map(id => (<Product drawingId={drawingId} productId={id} isRoot />)) || []
+        return mateRefIds?.map(id => (<Product key={id} drawingId={drawingId} productId={id} isRoot />)) || []
       }
       case 'Feature': {
-        return [(<Plugin drawingId={drawingId} pluginId={hovered.objectId} view />)]
+        const objClass = getDrawing(drawingId).structure.tree[hovered.objectId]?.class
+
+        switch (objClass) {
+          case CCClasses.CCWorkPoint: {
+            return [(<WorkPointObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
+          }
+          case CCClasses.CCWorkAxis: {
+            return [(<WorkAxisObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
+          }
+          case CCClasses.CCWorkPlane: {
+            return [(<WorkPlaneObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
+          }
+          case CCClasses.CCWorkCoordSystem: {
+            return [(<WorkCoordSystemObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
+          }
+        }
+
+        return []
       }
       case 'Solid':
       case 'Graphic': {
         const geom = findObject(drawingId, hovered.objectId) as ContainerGeometryT | GeometryElement | undefined
         return [(
-          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+          <GlobalTransform key={hovered.objectId} drawingId={drawingId} objectId={hovered.productId}>
             {(geom as ContainerGeometryT)?.type === 'brep' && (
               <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
             )}
@@ -97,6 +114,119 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
   )
 }
 
+// This approach is somehow very prone to app freezing and crashing
+/* function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
+  if (hovered?.type === 'AssemblyNode') {
+    return (
+      <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+        <Product drawingId={drawingId} productId={hovered.objectId} isRoot />
+      </OutlinedObject>
+    )
+  }
+
+  if (hovered?.type === 'Constraint') {
+    const mateRefIds = getMateRefIds(drawingId, hovered.objectId)
+    return (
+      <>
+        {mateRefIds?.map(id => (
+          <OutlinedObject key={id} id={id}>
+            <Product drawingId={drawingId} productId={id} isRoot />
+          </OutlinedObject>
+        )) || null}
+      </>
+    )
+  }
+
+  if (hovered?.type === 'Feature') {
+    const objClass = getDrawing(drawingId).structure.tree[hovered.objectId]?.class
+
+    if (objClass === CCClasses.CCWorkPoint) {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <WorkPointObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        </OutlinedObject>
+      )
+    }
+
+    if (objClass === CCClasses.CCWorkAxis) {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <WorkAxisObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        </OutlinedObject>
+      )
+    }
+
+    if (objClass === CCClasses.CCWorkPlane) {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <WorkPlaneObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        </OutlinedObject>
+      )
+    }
+
+    if (objClass === CCClasses.CCWorkCoordSystem) {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <WorkCoordSystemObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        </OutlinedObject>
+      )
+    }
+
+    return null
+  }
+
+  if (hovered?.type === 'Solid' || hovered?.type === 'Graphic') {
+    const geom = findObject(drawingId, hovered.objectId) as ContainerGeometryT | GeometryElement | undefined
+
+    if ((geom as ContainerGeometryT)?.type === 'brep') {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+            <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    if ((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+            <Mesh elem={geom as any} opacity={0} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    if ((geom as GeometryElement)?.type === 'line') {
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+            <lineSegments geometry={(geom as GeometryElement).geometry as THREE.BufferGeometry} renderOrder={100}>
+              <lineBasicMaterial transparent opacity={0} />
+            </lineSegments>
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    if ((geom as GeometryElement)?.type === 'point') {
+      // TODO: not use buerli element? use a smaller point / mesh?
+      return (
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+            <Point elem={geom as any} opacity={0} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    return null
+  }
+
+  return null
+} */
+
 function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
   const outlinedObjects = useOutlinedObjects(drawingId, hovered)
   const id = hovered?.objectId || 0
@@ -104,7 +234,7 @@ function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered:
   return (
     <>
       {outlinedObjects.map((obj, i) => (
-        <OutlinedObject key={i} id={id + i}>
+        <OutlinedObject key={id + i} id={id + i}>
           {obj}
         </OutlinedObject>
       ))}
