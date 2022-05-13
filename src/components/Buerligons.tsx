@@ -1,24 +1,20 @@
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject, ObjectID } from '@buerli.io/core'
+import { DrawingID, getDrawing } from '@buerli.io/core'
 import {
   BuerliGeometry,
   BuerliPluginsGeometry,
   PluginManager,
   useBuerli,
   useDrawing,
-  raycastFilter,
 } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay, InteractionInfo } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
 import create from 'zustand'
-import { Composer, Controls, Fit, Lights, Threshold } from './canvas'
-import {  ViewInteraction } from './canvas/ViewInteraction'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter } from './canvas'
 import { FileMenu } from './FileMenu'
 import { WelcomePage } from './WelcomePage'
-
-const emptyArr: ObjectID[] = []
 
 const useStore = create<{
   hovered: InteractionInfo
@@ -57,7 +53,6 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
       raycaster={{ filter: raycastFilter }}
       camera={{ position: [0, 0, 10], zoom: 50 }}
       onPointerMissed={handleMiss}>
-      <ViewInteraction drawingId={drawingId} />
       <HoveredConstraintDisplay drawingId={drawingId} hoveredId={hoveredConstrId} />
       <React.Suspense fallback={null}>{children}</React.Suspense>
     </Canvas>
