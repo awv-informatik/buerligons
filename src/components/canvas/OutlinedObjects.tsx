@@ -222,7 +222,7 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
 
     if ((geom as ContainerGeometryT)?.type === 'brep') {
       return (
-        <OutlinedObject id={hovered.objectId}>
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -232,7 +232,7 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
 
     if ((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') {
       return (
-        <OutlinedObject id={hovered.objectId}>
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <Mesh elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -242,7 +242,7 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
 
     if ((geom as GeometryElement)?.type === 'line') {
       return (
-        <OutlinedObject id={hovered.objectId}>
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <LineMesh start={(geom as any).start} end={(geom as any).end} />
           </GlobalTransform>
@@ -253,7 +253,7 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
     if ((geom as GeometryElement)?.type === 'point') {
       // TODO: not use buerli element? use a smaller point / mesh?
       return (
-        <OutlinedObject id={hovered.objectId}>
+        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <PointMesh position={(geom as any).position} />
           </GlobalTransform>
