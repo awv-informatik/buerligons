@@ -125,24 +125,29 @@ function useOutlinedObjects(drawingId: DrawingID, hovered: InteractionInfo) {
 }
 
 const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
+  const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)
 
   const groupRef = React.useRef<THREE.Group>(null!)
 
+  useFrame(() => {
+    if (!outlinedMeshes[id] && groupRef.current) {
+      const meshes_: THREE.Object3D[] = []
+  
+      groupRef.current.traverse(o => {
+        if (o.type === 'Mesh') {
+          meshes_.push(o)
+        }
+      })
+  
+      setOutlinedMeshes(id, meshes_)
+    }
+  })
+
   React.useEffect(() => {
-    const meshes_: THREE.Object3D[] = []
-
-    groupRef.current?.traverse(o => {
-      if (o.type === 'Mesh') {
-        meshes_.push(o)
-      }
-    })
-
-    setOutlinedMeshes(id, meshes_)
-
     return () => removeMesh(id)
-  }, [children])
+  }, [])
 
   return (
     <group ref={groupRef}>
@@ -152,7 +157,7 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
 }
 
 // This approach is somehow very prone to app freezing and crashing
-/* export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
+export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
   if (hovered?.type === 'AssemblyNode') {
     return (
       <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
@@ -217,7 +222,7 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
 
     if ((geom as ContainerGeometryT)?.type === 'brep') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+        <OutlinedObject id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -227,7 +232,7 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
 
     if ((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+        <OutlinedObject id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <Mesh elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -237,7 +242,7 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
 
     if ((geom as GeometryElement)?.type === 'line') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+        <OutlinedObject id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
             <LineMesh start={(geom as any).start} end={(geom as any).end} />
           </GlobalTransform>
@@ -248,9 +253,9 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
     if ((geom as GeometryElement)?.type === 'point') {
       // TODO: not use buerli element? use a smaller point / mesh?
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
+        <OutlinedObject id={hovered.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
-            <Point elem={geom as any} opacity={0} />
+            <PointMesh position={(geom as any).position} />
           </GlobalTransform>
         </OutlinedObject>
       )
@@ -260,9 +265,9 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
   }
 
   return null
-} */
+}
 
-export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
+/* export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
   const outlinedObjects = useOutlinedObjects(drawingId, hovered)
   const id = hovered?.objectId || 0
 
@@ -275,4 +280,4 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
       ))}
     </>
   )
-}
+} */
