@@ -2,13 +2,12 @@ import React from 'react'
 import * as THREE from 'three'
 import create from 'zustand'
 
-import { useThree } from '@react-three/fiber'
 import { EffectComposer, Outline, SSAO } from '@react-three/postprocessing'
 import { ObjectID } from '@buerli.io/core'
 import { useBuerli } from '@buerli.io/react'
 import { CCClasses } from '@buerli.io/classcad'
 
-import { AutoClear } from '../../components'
+import { AutoClear } from './AutoClear'
 
 const useOutlinesStore = create<{
   hoveredMeshes: { [key: number]: THREE.Object3D[] }
@@ -72,7 +71,7 @@ export function OutlinesSelector({
         }
       }
     }
-  }, [isHovered])
+  }, [hoveredMeshes, isHovered, objectId, setHoveredMeshes, unhoverMesh])
 
   React.useEffect(() => {
     if (isSelected) {
@@ -92,7 +91,7 @@ export function OutlinesSelector({
         }
       }
     }
-  }, [isSelected])
+  }, [isSelected, objectId, selectedMeshes, setSelectedMeshes, unselectMesh])
 
   return (
     <group ref={group} {...props}>
@@ -114,14 +113,11 @@ export function Composer({
   blendFunction = 2,
   ...props
 }: any) {
-  const { size, invalidate } = useThree()
-  // Skip outlines when selection is active
-  // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
   const sketchActive = useBuerli(s => {
     const drawing = s.drawing.refs[s.drawing.active!]
-    const plugin = drawing?.plugin.refs[drawing?.plugin.active.feature!]
-    return drawing?.structure.tree[plugin?.id]?.class === CCClasses.CCSketch ?? false
+    const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
+    return plugin ? drawing.structure.tree[plugin.id]?.class === CCClasses.CCSketch : false
   })
 
   // Decide if effects-chain is active or not

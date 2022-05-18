@@ -6,10 +6,7 @@
     "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext"],
     "outDir": "build/",
-    "paths": {
-      "@buerli.io/react": ["./../../../buerli/packages/react/build/index"],
-      "@buerli.io/react-cad": ["./../../../buerli-react-cad/build/index"]
-    },
+    "paths": {},
     "jsx": "react",
     "allowJs": false,
     "declaration": true,
@@ -27,4 +24,5 @@
     "isolatedModules": true
   },
   "include": ["./src/**/*"],
-  "exclude": ["./src/index.tsx", "./src/App.tsx", "./src/initBuerli.ts"]}
+  "exclude": ["./src/index.tsx", "./src/App.tsx", "./src/initBuerli.ts"]
+}

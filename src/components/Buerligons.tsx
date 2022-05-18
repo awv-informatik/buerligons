@@ -39,14 +39,14 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
   const handleMiss = React.useCallback(() => {
     setSelected(null)
     getDrawing(drawingId)?.api.selection?.unselectAll()
-  }, [drawingId])
+  }, [drawingId, setSelected])
 
   // Remove selection on ESC
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [handleMiss])
 
   return (
     <Canvas
@@ -81,7 +81,7 @@ function Geometry({ node, object }: { node: React.ReactNode; object: IStructureO
         setSelected(isSelected ? null : { objectId: object.id, highlightedIds: [object.id], type })
       }
     },
-    [object, isSelected],
+    [setSelected, isSelected, object.id, type],
   )
 
   return (
@@ -107,7 +107,7 @@ export const Buerligons: React.FC = () => {
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 
   // Reset selection when switching nodes
-  React.useEffect(() => setSelected(null), [currentNode])
+  React.useEffect(() => setSelected(null), [currentNode, setSelected])
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
