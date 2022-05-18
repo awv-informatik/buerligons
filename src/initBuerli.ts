@@ -37,7 +37,7 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
-const CCSERVERURL = 'ws://localhost:8182'
+const CCSERVERURL = 'wss://04.service.classcad.ch'
 const isDev = process.env.NODE_ENV === 'development'
 
 export const initBuerli = () => {
@@ -103,5 +103,3 @@ export const initBuerli = () => {
     },
   })
 }
-
-export default initBuerli
