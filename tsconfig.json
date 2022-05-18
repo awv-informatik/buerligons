@@ -6,6 +6,7 @@
     "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext"],
     "outDir": "build/",
+    "paths": {},
     "jsx": "react",
     "allowJs": false,
     "declaration": true,
@@ -20,8 +21,8 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "noEmit": true
+    "isolatedModules": true
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*"],
+  "exclude": ["./src/index.tsx", "./src/App.tsx", "./src/initBuerli.ts"]
 }
