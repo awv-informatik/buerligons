@@ -27,6 +27,7 @@ import {
   Rotate,
   Sketch,
   Slice,
+  SliceBySheet,
   Slider,
   Sphere,
   TransformByCsys,
@@ -37,7 +38,7 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
-const CCSERVERURL = 'wss://04.service.classcad.ch'
+const CCSERVERURL = 'ws://localhost:9091'
 const isDev = process.env.NODE_ENV === 'development'
 
 export const initBuerli = () => {
@@ -87,6 +88,7 @@ export const initBuerli = () => {
       [CCClasses.CCIntersection]: BooleanPlg,
       [CCClasses.CCSubtraction]: BooleanPlg,
       [CCClasses.CCSlice]: Slice,
+      [CCClasses.CCSliceBySheet]: SliceBySheet,
       [CCClasses.CCLinearPattern]: LinearPattern,
       [CCClasses.CCCircularPattern]: CircularPattern,
       [CCClasses.CCTransformationByCSys]: TransformByCsys,
