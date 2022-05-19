@@ -15,6 +15,7 @@ import React from 'react'
 import create from 'zustand'
 import { Composer, Controls, Fit, Lights, OutlinesSelector, Threshold } from './canvas'
 import { FileMenu } from './FileMenu'
+import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 
 const emptyArr: ObjectID[] = []
@@ -161,6 +162,7 @@ export const Buerligons: React.FC = () => {
                 </group>
               </GizmoHelper>
             </CanvasImpl>
+            <UndoRedoKeyHandler />
           </Drawing>
         </>
       )}
