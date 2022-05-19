@@ -71,7 +71,7 @@ export function OutlinesSelector({
         }
       }
     }
-  }, [hoveredMeshes, isHovered, objectId, setHoveredMeshes, unhoverMesh])
+  }, [isHovered])
 
   React.useEffect(() => {
     if (isSelected) {
@@ -91,7 +91,7 @@ export function OutlinesSelector({
         }
       }
     }
-  }, [isSelected, objectId, selectedMeshes, setSelectedMeshes, unselectMesh])
+  }, [isSelected])
 
   return (
     <group ref={group} {...props}>
