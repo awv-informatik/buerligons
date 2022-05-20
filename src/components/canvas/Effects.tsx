@@ -6,7 +6,7 @@ import { useBuerli } from '@buerli.io/react'
 
 import { useOutlinesStore } from './OutlinesStore'
 import { OutlinedObjects } from './OutlinedObjects'
-import { AutoClear } from '../../components'
+import { AutoClear } from './AutoClear'
 
 export function Composer({
   children,
