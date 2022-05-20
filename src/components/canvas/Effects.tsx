@@ -29,8 +29,8 @@ export function Composer({
   // Skip AO when sketch is active
   const sketchActive = useBuerli(s => {
     const drawing = s.drawing.refs[s.drawing.active!]
-    const plugin = drawing?.plugin.refs[drawing?.plugin.active.feature!]
-    return drawing?.structure.tree[plugin?.id]?.class === CCClasses.CCSketch ?? false
+    const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
+    return plugin ? drawing.structure.tree[plugin.id]?.class === CCClasses.CCSketch : false
   })
 
   // Decide if effects-chain is active or not

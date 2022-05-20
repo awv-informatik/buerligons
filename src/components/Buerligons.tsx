@@ -14,6 +14,7 @@ import React from 'react'
 import create from 'zustand'
 import { Composer, Controls, Fit, Lights, Threshold, raycastFilter } from './canvas'
 import { FileMenu } from './FileMenu'
+import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 
 const useStore = create<{
@@ -36,14 +37,14 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
   const handleMiss = React.useCallback(() => {
     setSelected(null)
     getDrawing(drawingId)?.api.selection?.unselectAll()
-  }, [drawingId])
+  }, [drawingId, setSelected])
 
   // Remove selection on ESC
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [handleMiss])
 
   return (
     <Canvas
@@ -75,7 +76,7 @@ export const Buerligons: React.FC = () => {
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 
   // Reset selection when switching nodes
-  React.useEffect(() => setSelected(null), [currentNode])
+  React.useEffect(() => setSelected(null), [currentNode, setSelected])
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
@@ -130,6 +131,7 @@ export const Buerligons: React.FC = () => {
                 </group>
               </GizmoHelper>
             </CanvasImpl>
+            <UndoRedoKeyHandler />
           </Drawing>
         </>
       )}

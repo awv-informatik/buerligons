@@ -27,6 +27,7 @@ import {
   Rotate,
   Sketch,
   Slice,
+  SliceBySheet,
   Slider,
   Sphere,
   TransformByCsys,
@@ -87,6 +88,7 @@ export const initBuerli = () => {
       [CCClasses.CCIntersection]: BooleanPlg,
       [CCClasses.CCSubtraction]: BooleanPlg,
       [CCClasses.CCSlice]: Slice,
+      [CCClasses.CCSliceBySheet]: SliceBySheet,
       [CCClasses.CCLinearPattern]: LinearPattern,
       [CCClasses.CCCircularPattern]: CircularPattern,
       [CCClasses.CCTransformationByCSys]: TransformByCsys,
@@ -103,5 +105,3 @@ export const initBuerli = () => {
     },
   })
 }
-
-export default initBuerli

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-redeclare */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable no-var */

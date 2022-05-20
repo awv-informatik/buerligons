@@ -3,7 +3,7 @@ import 'antd/dist/antd.less'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { App } from './App'
-import initBuerli from './initBuerli'
+import { initBuerli } from './initBuerli'
 import Global from './styles/Global'
 
 initBuerli()
