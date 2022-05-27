@@ -19,14 +19,24 @@ import { WelcomePage } from './WelcomePage'
 
 const useStore = create<{
   hovered: InteractionInfo
-  selected: InteractionInfo
+  selected: InteractionInfo[]
   setHovered: (hovered: InteractionInfo) => void
   setSelected: (selected: InteractionInfo) => void
 }>((set, get) => ({
   hovered: null,
-  selected: null,
+  selected: [],
   setHovered: (hovered: InteractionInfo) => set({ hovered }),
-  setSelected: (selected: InteractionInfo) => set({ selected }),
+  setSelected: (selected: InteractionInfo) => 
+    set(state => {
+      if (selected === null) {
+        return { selected: [] }
+      }
+      if (state.selected.findIndex(info => info?.objectId === selected?.objectId) !== -1) {
+        return { selected: state.selected.filter(info => info?.objectId !== selected?.objectId) }
+      }
+      
+      return { selected: [...state.selected, selected] }
+    }),
 }))
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId }) => {
@@ -87,7 +97,7 @@ export const Buerligons: React.FC = () => {
           <PluginManager />
           <Drawing
             hoveredId={hovered?.objectId}
-            selectedId={selected?.objectId}
+            selectedIds={selected?.map(info => info.objectId)}
             drawingId={drawingId}
             Menu={<FileMenu drawingId={drawingId} />}
             onHover={setHovered}
@@ -101,11 +111,11 @@ export const Buerligons: React.FC = () => {
                 <Composer
                   drawingId={drawingId}
                   hovered={hovered}
+                  selected={selected}
                   radius={0.1}
-                  blendFunction={2}
-                  color="green"
-                  width={800}
-                  edgeStrength={100}>
+                  hoveredColor="green"
+                  selectedColor="red"
+                  edgeStrength={3}>
                   <>
                     <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
                   </>

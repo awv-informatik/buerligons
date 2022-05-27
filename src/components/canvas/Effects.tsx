@@ -1,9 +1,10 @@
 import React from 'react'
 
-import { EffectComposer, Outline, SSAO } from '@react-three/postprocessing'
+import { EffectComposer, SSAO } from '@react-three/postprocessing'
 import { CCClasses } from '@buerli.io/classcad'
 import { useBuerli } from '@buerli.io/react'
 
+import { Outline } from './Outlines/Outline'
 import { useOutlinesStore } from './OutlinesStore'
 import { OutlinedObjects } from './OutlinedObjects'
 import { AutoClear } from './AutoClear'
@@ -12,17 +13,31 @@ export function Composer({
   children,
   drawingId,
   hovered,
-  xRay = true,
-  blur = true,
-  color = 'white',
-  hiddenColor = undefined,
+  selected,
+  hoveredColor = 'white',
+  selectedColor = 'white',
   edgeStrength = 100,
-  width = 1000,
   radius = 0.1,
-  blendFunction = 2,
   ...props
 }: any) {
-  const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
+  const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
+  const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
+
+  const selections1 = React.useMemo(() => selectedMeshes? Object.values(selectedMeshes) : [], [selectedMeshes])
+  const selections2 = React.useMemo(() => hoveredMeshes? Object.values(hoveredMeshes) : [], [hoveredMeshes])
+
+  /* const merged = React.useMemo(() => {
+    const selectedArr = Object.values(selectedMeshes || {})
+
+    if (selectedArr.length > 3) {
+      const merged_: THREE.Object3D[] = []
+      selectedArr.forEach(selected => merged_.push(...selected))
+
+      return merged_
+    }
+
+    return []
+  }, [selectedMeshes]) */
 
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
@@ -40,22 +55,19 @@ export function Composer({
     <>
       <EffectComposer enabled={enabled} multisampling={8} autoClear={false} {...props}>
         <SSAO radius={radius} intensity={85} luminanceInfluence={0.2} color="black" />
-        {Object.values(outlinedMeshes).map((meshes, i) => (
-          <Outline
-            key={i}
-            selection={meshes}
-            selectionLayer={10 + i}
-            blendFunction={blendFunction}
-            xRay={xRay}
-            blur={blur}
-            hiddenEdgeColor={color as any}
-            visibleEdgeColor={color as any}
-            edgeStrength={edgeStrength}
-            width={width}
-          />
-        ))}
+        <Outline
+          selections1={selections1}
+          selections2={selections2}
+          selectionLayer={10}
+          edgeColor1={selectedColor as any}
+          edgeColor2={hoveredColor as any}
+          edgeStrength={edgeStrength}
+        />
       </EffectComposer>
-      <OutlinedObjects drawingId={drawingId} hovered={hovered} />
+      <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />
+      {selected?.map(info => (
+        <OutlinedObjects key={info.objectId} drawingId={drawingId} info={info} group="selected" />
+      ))}
       {!enabled && <AutoClear />}
       {children}
     </>

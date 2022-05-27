@@ -124,7 +124,7 @@ function useOutlinedObjects(drawingId: DrawingID, hovered: InteractionInfo) {
   return outlinedObjects
 }
 
-const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
+const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, group, id }) => {
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)
@@ -141,12 +141,12 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
         }
       })
   
-      setOutlinedMeshes(id, meshes_)
+      setOutlinedMeshes(group, id, meshes_)
     }
   })
 
   React.useEffect(() => {
-    return () => removeMesh(id)
+    return () => removeMesh(group, id)
   }, [])
 
   return (
@@ -156,22 +156,21 @@ const OutlinedObject: React.FC<{ id: number }> = ({ children, id }) => {
   )
 }
 
-// This approach is somehow very prone to app freezing and crashing
-export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
-  if (hovered?.type === 'AssemblyNode') {
+export function OutlinedObjects({ drawingId, info, group }: { drawingId: DrawingID, info: InteractionInfo, group: string }) {
+  if (info?.type === 'AssemblyNode') {
     return (
-      <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-        <Product drawingId={drawingId} productId={hovered.objectId} isRoot />
+      <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <Product drawingId={drawingId} productId={info.objectId} isRoot />
       </OutlinedObject>
     )
   }
 
-  if (hovered?.type === 'Constraint') {
-    const mateRefIds = getMateRefIds(drawingId, hovered.objectId)
+  if (info?.type === 'Constraint') {
+    const mateRefIds = getMateRefIds(drawingId, info.objectId)
     return (
       <>
         {mateRefIds?.map(id => (
-          <OutlinedObject key={id} id={id}>
+          <OutlinedObject key={id} group={group} id={id}>
             <Product drawingId={drawingId} productId={id} isRoot />
           </OutlinedObject>
         )) || null}
@@ -179,37 +178,37 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
     )
   }
 
-  if (hovered?.type === 'Feature') {
-    const objClass = getDrawing(drawingId).structure.tree[hovered.objectId]?.class
+  if (info?.type === 'Feature') {
+    const objClass = getDrawing(drawingId).structure.tree[info.objectId]?.class
 
     if (objClass === CCClasses.CCWorkPoint) {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <WorkPointObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <WorkPointObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
         </OutlinedObject>
       )
     }
 
     if (objClass === CCClasses.CCWorkAxis) {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <WorkAxisObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
         </OutlinedObject>
       )
     }
 
     if (objClass === CCClasses.CCWorkPlane) {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <WorkPlaneObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
         </OutlinedObject>
       )
     }
 
     if (objClass === CCClasses.CCWorkCoordSystem) {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <WorkCoordSystemObj drawingId={drawingId} objectId={hovered.objectId} opacity={0} />
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
         </OutlinedObject>
       )
     }
@@ -217,13 +216,13 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
     return null
   }
 
-  if (hovered?.type === 'Solid' || hovered?.type === 'Graphic') {
-    const geom = findObject(drawingId, hovered.objectId) as ContainerGeometryT | GeometryElement | undefined
+  if (info?.type === 'Solid' || info?.type === 'Graphic') {
+    const geom = findObject(drawingId, info.objectId) as ContainerGeometryT | GeometryElement | undefined
 
     if ((geom as ContainerGeometryT)?.type === 'brep') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.productId}>
             <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
           </GlobalTransform>
         </OutlinedObject>
@@ -232,8 +231,8 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
 
     if ((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.productId}>
             <Mesh elem={geom as any} opacity={0} />
           </GlobalTransform>
         </OutlinedObject>
@@ -242,8 +241,8 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
 
     if ((geom as GeometryElement)?.type === 'line') {
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.productId}>
             <LineMesh start={(geom as any).start} end={(geom as any).end} />
           </GlobalTransform>
         </OutlinedObject>
@@ -253,8 +252,8 @@ export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, h
     if ((geom as GeometryElement)?.type === 'point') {
       // TODO: not use buerli element? use a smaller point / mesh?
       return (
-        <OutlinedObject key={hovered.objectId} id={hovered.objectId}>
-          <GlobalTransform drawingId={drawingId} objectId={hovered.productId}>
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.productId}>
             <PointMesh position={(geom as any).position} />
           </GlobalTransform>
         </OutlinedObject>
