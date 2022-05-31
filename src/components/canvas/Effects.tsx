@@ -64,7 +64,7 @@ export function Composer({
           edgeStrength={edgeStrength}
         />
       </EffectComposer>
-      <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />
+      {hovered && <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />}
       {selected?.map(info => (
         <OutlinedObjects key={info.objectId} drawingId={drawingId} info={info} group="selected" />
       ))}

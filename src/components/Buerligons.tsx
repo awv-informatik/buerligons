@@ -1,5 +1,5 @@
-import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing } from '@buerli.io/core'
+import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import {
   BuerliGeometry,
   BuerliPluginsGeometry,
@@ -7,7 +7,7 @@ import {
   useBuerli,
   useDrawing,
 } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay, InteractionInfo } from '@buerli.io/react-cad'
+import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
@@ -17,37 +17,16 @@ import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 
-const useStore = create<{
-  hovered: InteractionInfo
-  selected: InteractionInfo[]
-  setHovered: (hovered: InteractionInfo) => void
-  setSelected: (selected: InteractionInfo) => void
-}>((set, get) => ({
-  hovered: null,
-  selected: [],
-  setHovered: (hovered: InteractionInfo) => set({ hovered }),
-  setSelected: (selected: InteractionInfo) => 
-    set(state => {
-      if (selected === null) {
-        return { selected: [] }
-      }
-      if (state.selected.findIndex(info => info?.objectId === selected?.objectId) !== -1) {
-        return { selected: state.selected.filter(info => info?.objectId !== selected?.objectId) }
-      }
-      
-      return { selected: [...state.selected, selected] }
-    }),
-}))
-
 const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId }) => {
-  const hovered = useStore(state => state.hovered) as any
-  const hoveredConstrId = hovered?.type === 'Constraint' ? hovered.objectId : null
-  const setSelected = useStore(state => state.setSelected)
+  const hoveredId = useDrawing(drawingId, d => d.interaction.hovered?.objectId)
+  const hoveredObj = getDrawing(drawingId).structure.tree[hoveredId || -1]
+  const hoveredConstrId = ccUtils.base.isA(hoveredObj?.class || '', CCClasses.CCHLConstraint) ? hoveredId as ObjectID : null
 
   const handleMiss = React.useCallback(() => {
-    setSelected(null)
+    const setSelected = getDrawing(drawingId).api.interaction.setSelected
+    setSelected([])
     getDrawing(drawingId)?.api.selection?.unselectAll()
-  }, [drawingId, setSelected])
+  }, [drawingId])
 
   // Remove selection on ESC
   React.useEffect(() => {
@@ -78,15 +57,16 @@ export const Buerligons: React.FC = () => {
   const curProdClass = useDrawing(drawingId, d => (currentProduct && d.structure.tree[currentProduct]?.class) || '')
   const isPart = curProdClass === CCClasses.CCPart
 
-  const hovered = useStore(state => state.hovered) as any
-  const selected = useStore(state => state.selected) as any
-  const setHovered = useStore(state => state.setHovered) as any
-  const setSelected = useStore(state => state.setSelected) as any
+  const hovered = useDrawing(drawingId, d => d.interaction.hovered)
+  const selected = useDrawing(drawingId, d => d.interaction.selected)
 
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 
   // Reset selection when switching nodes
-  React.useEffect(() => setSelected(null), [currentNode, setSelected])
+  React.useEffect(() => {
+    const setSelected = getDrawing(drawingId)?.api.interaction.setSelected
+    setSelected && setSelected([])
+  }, [drawingId, currentNode])
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
@@ -95,13 +75,7 @@ export const Buerligons: React.FC = () => {
       ) : (
         <>
           <PluginManager />
-          <Drawing
-            hoveredId={hovered?.objectId}
-            selectedIds={selected?.map(info => info.objectId)}
-            drawingId={drawingId}
-            Menu={<FileMenu drawingId={drawingId} />}
-            onHover={setHovered}
-            onClick={setSelected}>
+          <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
             <CanvasImpl drawingId={drawingId}>
               <Controls makeDefault staticMoving rotateSpeed={2} />
               <Lights drawingId={drawingId} />
