@@ -9,7 +9,7 @@ import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, Wor
 
 import { useOutlinesStore } from './OutlinesStore'
 
-const pointSize = 0.6
+const pointSize = 1.2
 const sphereGeom = new THREE.SphereGeometry(1, 12, 12)
 const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
   const ref = React.useRef<THREE.Object3D>()
@@ -25,13 +25,13 @@ const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
   })
 
   return (
-    <mesh ref={ref} position={position} geometry={sphereGeom}>
+    <mesh ref={ref} position={position} geometry={sphereGeom} renderOrder={1000}>
       <meshBasicMaterial transparent opacity={0} />
     </mesh>
   )
 }
 
-const lineWidth = 0.25
+const lineWidth = 0.75
 const cylGeom = new THREE.CylinderGeometry(1, 1, 1, 6)
 const LineMesh: React.FC<{
   start: THREE.Vector3
@@ -60,7 +60,7 @@ const LineMesh: React.FC<{
   })
 
   return (
-    <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom}>
+    <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom} renderOrder={1000}>
       <meshBasicMaterial transparent opacity={0} />
     </mesh>
   )
