@@ -11,7 +11,7 @@ import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -89,9 +89,9 @@ export const Buerligons: React.FC = () => {
                   hoveredColor="green"
                   selectedColor="red"
                   edgeStrength={3}>
-                  <>
+                  <GeometryInteraction drawingId={drawingId}>
                     <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
-                  </>
+                  </GeometryInteraction>
                 </Composer>
                 <BuerliPluginsGeometry drawingId={drawingId} />
               </Fit>
