@@ -126,6 +126,10 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }, [drawingId])
     
   const onGeometryClick = React.useCallback((e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > 0) {
+      return
+    }
+    
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
