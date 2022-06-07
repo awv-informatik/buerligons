@@ -19,15 +19,15 @@ class Background extends THREE.Object3D {
   }
 }
   
-  extend({ Background })
-  
-  declare global {
-    namespace JSX {
-      interface IntrinsicElements {
-        background: Object3DNode<Background, typeof Background>
-      }
+extend({ Background })
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      background: Object3DNode<Background, typeof Background>
     }
   }
+}
 
 const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
   const drawing = getDrawing(drawingId)
@@ -92,7 +92,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
       return
     }
 
-    const objectId = isPartMode ? object.userData.containerId : findInteractableParent(drawingId, object.userData.productId)
+    const objectId = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive && objectId !== hoveredId) {
       e.stopPropagation()
 
@@ -129,7 +129,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     if (e.delta > 0) {
       return
     }
-    
+
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
@@ -139,7 +139,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
       return
     }
 
-    const objectId = isPartMode ? object.userData.containerId : findInteractableParent(drawingId, object.userData.productId)
+    const objectId = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive) {
       e.stopPropagation()
 
