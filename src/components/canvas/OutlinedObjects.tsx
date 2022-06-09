@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { useDrawing, Product, GlobalTransform, CameraHelper, Mesh, Entity } from '@buerli.io/react'
+import { useDrawing, Product, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
 import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
@@ -224,7 +224,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-            <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
+            <Overlay.Entity drawingId={drawingId} elem={geom as any} opacity={0} />
           </GlobalTransform>
         </OutlinedObject>
       )
@@ -235,7 +235,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-            <Mesh elem={geom as any} opacity={0} />
+            <Overlay.Mesh elem={geom as any} opacity={0} />
           </GlobalTransform>
         </OutlinedObject>
       )
