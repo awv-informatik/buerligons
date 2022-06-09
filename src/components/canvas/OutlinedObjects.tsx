@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { useDrawing, Product, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
+import { useDrawing, BuerliGeometry, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
 import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
@@ -164,7 +164,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
     if (ccUtils.base.isA(objClass, CCClasses.IProductReference)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
-          <Product drawingId={drawingId} productId={info.objectId} isRoot />
+          <BuerliGeometry drawingId={drawingId} productId={info.objectId} />
         </OutlinedObject>
       )
     }
@@ -176,7 +176,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
         <>
           {mateRefIds?.map(id => (
             <OutlinedObject key={id} group={group} id={id}>
-              <Product drawingId={drawingId} productId={id} isRoot />
+              <BuerliGeometry drawingId={drawingId} productId={id} />
             </OutlinedObject>
           )) || null}
         </>
