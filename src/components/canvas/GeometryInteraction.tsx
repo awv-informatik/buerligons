@@ -81,11 +81,22 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }) */
   
   const onGeometryMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
     const hovered = drawing.interaction.hovered
     const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
+
+    if (e.buttons !== 0) {
+      if (!isSelActive && hoveredId) {
+        const setHovered = drawing.api.interaction.setHovered
+        setHovered(null)
+      }
+
+      return
+    }
 
     const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
     if (!object) {
@@ -94,9 +105,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
 
     const objectId = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive && objectId !== hoveredId) {
-      e.stopPropagation()
-
       const setHovered = drawing.api.interaction.setHovered
+
       isPartMode && setHovered({
         objectId: objectId,
         graphicId: objectId,
@@ -109,6 +119,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }, [drawingId])
 
   const onBackgroundMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
@@ -118,14 +130,14 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
 
     if (!isSelActive && !object && hoveredId) {
-      e.stopPropagation()
-
       const setHovered = drawing.api.interaction.setHovered
       setHovered(null)
     }
   }, [drawingId])
     
   const onGeometryClick = React.useCallback((e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+
     if (e.delta > 0) {
       return
     }
@@ -141,7 +153,6 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
 
     const objectId = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive) {
-      e.stopPropagation()
 
       const select = drawing.api.interaction.select
       const multi = e.shiftKey
@@ -158,6 +169,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }, [drawingId])
 
   const onBackgroundClick = React.useCallback((e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    
     if (e.delta === 0) {
       const drawing = getDrawing(drawingId)
       drawing?.api.interaction.setSelected([])
