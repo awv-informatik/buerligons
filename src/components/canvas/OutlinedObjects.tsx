@@ -132,7 +132,7 @@ const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, gro
   const groupRef = React.useRef<THREE.Group>(null!)
 
   useFrame(() => {
-    if (!outlinedMeshes[id] && groupRef.current) {
+    if (!outlinedMeshes[group]?.[id] && groupRef.current) {
       const meshes_: THREE.Object3D[] = []
   
       groupRef.current.traverse(o => {
