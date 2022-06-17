@@ -1,5 +1,5 @@
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject, ObjectID } from '@buerli.io/core'
+import { CCClasses } from '@buerli.io/classcad'
+import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
 import {
   BuerliGeometry,
   BuerliPluginsGeometry,
@@ -17,10 +17,6 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId }) => {
-  const hoveredId = useDrawing(drawingId, d => d.interaction.hovered?.objectId)
-  const hoveredObj = getDrawing(drawingId).structure.tree[hoveredId || -1]
-  const hoveredConstrId = ccUtils.base.isA(hoveredObj?.class || '', CCClasses.CCHLConstraint) ? hoveredId as ObjectID : null
-
   const handleMiss = React.useCallback(() => {
     const setSelected = getDrawing(drawingId).api.interaction.setSelected
     setSelected([])
@@ -42,7 +38,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
       raycaster={{ filter: raycastFilter }}
       camera={{ position: [0, 0, 10], zoom: 50 }}
       onPointerMissed={handleMiss}>
-      <HoveredConstraintDisplay drawingId={drawingId} hoveredId={hoveredConstrId} />
+      <HoveredConstraintDisplay drawingId={drawingId} />
       <React.Suspense fallback={null}>{children}</React.Suspense>
     </Canvas>
   )
@@ -63,9 +59,6 @@ export const Buerligons: React.FC = () => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => (currentProduct && d.structure.tree[currentProduct]?.class) || '')
   const isPart = curProdClass === CCClasses.CCPart
-
-  const hovered = useDrawing(drawingId, d => d.interaction.hovered)
-  const selected = useDrawing(drawingId, d => d.interaction.selected)
 
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 
@@ -91,8 +84,6 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer
                   drawingId={drawingId}
-                  hovered={hovered}
-                  selected={selected}
                   radius={0.1}
                   hoveredColor="green"
                   selectedColor="red"

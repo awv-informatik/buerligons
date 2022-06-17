@@ -2,7 +2,7 @@ import React from 'react'
 
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
 import { CCClasses } from '@buerli.io/classcad'
-import { useBuerli } from '@buerli.io/react'
+import { useBuerli, useDrawing } from '@buerli.io/react'
 import { Outline } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
@@ -12,14 +12,15 @@ import { AutoClear } from './AutoClear'
 export function Composer({
   children,
   drawingId,
-  hovered,
-  selected,
   hoveredColor = 'white',
   selectedColor = 'white',
   edgeStrength = 100,
   radius = 0.1,
   ...props
 }: any) {
+  const hovered = useDrawing(drawingId, d => d.interaction.hovered)
+  const selected = useDrawing(drawingId, d => d.interaction.selected)
+
   const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
   const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
 
