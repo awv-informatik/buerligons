@@ -1,5 +1,5 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { DrawingID, getDrawing, IStructureObject, ObjectID } from '@buerli.io/core'
 import {
   BuerliGeometry,
   BuerliPluginsGeometry,
@@ -48,6 +48,14 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
   )
 }
 
+const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
+  return (
+    <group name={object.id.toString()}>
+      {node}
+    </group>
+  )
+}
+
 export const Buerligons: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
@@ -90,7 +98,9 @@ export const Buerligons: React.FC = () => {
                   selectedColor="red"
                   edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
+                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
+                      {props => <GeometryWrapper {...props} />}
+                    </BuerliGeometry>
                   </GeometryInteraction>
                 </Composer>
                 <BuerliPluginsGeometry drawingId={drawingId} />

@@ -1,7 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { useFrame } from '@react-three/fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, BuerliGeometry, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
@@ -156,6 +156,35 @@ const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, gro
   )
 }
 
+const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id }) => {
+  const { scene } = useThree()
+  
+  const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
+  const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
+  const removeMesh = useOutlinesStore(s => s.removeMesh)
+
+  useFrame(() => {
+    if (!outlinedMeshes[group]?.[id]) {
+      const obj = scene?.getObjectByName(id.toString())
+      const meshes_: THREE.Object3D[] = []
+  
+      obj?.traverse(o => {
+        if (o.type === 'Mesh') {
+          meshes_.push(o)
+        }
+      })
+  
+      setOutlinedMeshes(group, id, meshes_)
+    }
+  })
+
+  React.useEffect(() => {
+    return () => removeMesh(group, id)
+  }, [])
+
+  return null
+}
+
 export function OutlinedObjects({ drawingId, info, group }: { drawingId: DrawingID, info: InteractionInfo, group: string }) {
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class)
 
@@ -163,9 +192,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
     // Assembly node
     if (ccUtils.base.isA(objClass, CCClasses.IProductReference)) {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
-          <BuerliGeometry drawingId={drawingId} productId={info.objectId} />
-        </OutlinedObject>
+        <OutlinedProduct key={info.objectId} group={group} id={info.objectId} />
       )
     }
   
@@ -175,9 +202,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       return (
         <>
           {mateRefIds?.map(id => (
-            <OutlinedObject key={id} group={group} id={id}>
-              <BuerliGeometry drawingId={drawingId} productId={id} />
-            </OutlinedObject>
+            <OutlinedProduct key={id} group={group} id={id} />
           )) || null}
         </>
       )
