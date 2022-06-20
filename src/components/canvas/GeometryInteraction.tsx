@@ -81,16 +81,23 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }) */
   
   const onGeometryMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()
-
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
+    const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
+    const isSketchActive = drawing.structure.tree[active?.id || -1]?.class === CCClasses.CCSketch
+
+    if (isSelActive || isSketchActive) {
+      return
+    }
+
+    e.stopPropagation()
+
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
     const hovered = drawing.interaction.hovered
     const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
 
     if (e.buttons !== 0) {
-      if (!isSelActive && hoveredId) {
+      if (hoveredId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
       }
@@ -104,7 +111,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     }
 
     const objectId = isPartMode ? object.userData.containerId : object.userData.productId
-    if (!isSelActive && objectId !== hoveredId) {
+    if (objectId !== hoveredId) {
       const setHovered = drawing.api.interaction.setHovered
 
       isPartMode && setHovered({
@@ -136,14 +143,21 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
   }, [drawingId])
     
   const onGeometryClick = React.useCallback((e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation()
-
     if (e.delta > 0) {
       return
     }
 
     const drawing = getDrawing(drawingId)
     const isSelActive = drawing.selection.active !== null
+    const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
+    const isSketchActive = drawing.structure.tree[active?.id || -1]?.class === CCClasses.CCSketch
+
+    if (isSelActive || isSketchActive) {
+      return
+    }
+
+    e.stopPropagation()
+
     const isPartMode = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class === CCClasses.CCPart
 
     const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
