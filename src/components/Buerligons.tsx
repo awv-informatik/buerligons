@@ -74,7 +74,7 @@ export const Buerligons: React.FC = () => {
         <WelcomePage />
       ) : (
         <>
-          
+          <PluginManager />
           <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
             <CanvasImpl drawingId={drawingId}>
               <Controls makeDefault staticMoving rotateSpeed={2} />
