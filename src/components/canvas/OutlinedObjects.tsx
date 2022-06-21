@@ -5,7 +5,7 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, BuerliGeometry, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
-import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
+import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, SelectedMateObj } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
 
@@ -234,11 +234,29 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
     }
   
     if (objClass === CCClasses.CCWorkCoordSystem) {
-      return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
-          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
-        </OutlinedObject>
-      )
+      // If there is a userData in info, we actually have to outline a mate...
+      if (info.userData) {
+        return (
+          <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+            <SelectedMateObj
+              drawingId={drawingId}
+              csysId={info.userData.csys.id}
+              matePath={info.userData.matePath}
+              flip={info.userData.flip}
+              reoriented={info.userData.reoriented}
+              opacity={0}
+            />
+          </OutlinedObject>
+        )
+      }
+      // Otherwise - a simple WorkCoordSystem
+      else {
+        return (
+          <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+            <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
+          </OutlinedObject>
+        )
+      }
     }
   }
   else if (info.graphicId && info.prodRefId) {
