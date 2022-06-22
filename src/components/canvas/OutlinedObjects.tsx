@@ -2,9 +2,9 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { useThree, useFrame } from '@react-three/fiber'
-import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
+import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { useDrawing, BuerliGeometry, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
+import { useDrawing, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
 import { getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, SelectedMateObj } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
@@ -212,64 +212,6 @@ const CircleMesh: React.FC<{
     <mesh position={center} quaternion={quaternion} geometry={torusGeometry} material={transparentMaterial} renderOrder={1000} />
   )
 }
-
-/* function useOutlinedObjects(drawingId: DrawingID, hovered: InteractionInfo) {
-  const outlinedObjects = React.useMemo(() => {
-    switch(hovered?.type) {
-      case 'AssemblyNode': {
-        return [(<Product key={hovered.objectId} drawingId={drawingId} productId={hovered.objectId} isRoot />)]
-      }
-      case 'Constraint': {
-        const mateRefIds = getMateRefIds(drawingId, hovered.objectId)
-        return mateRefIds?.map(id => (<Product key={id} drawingId={drawingId} productId={id} isRoot />)) || []
-      }
-      case 'Feature': {
-        const objClass = getDrawing(drawingId).structure.tree[hovered.objectId]?.class
-
-        switch (objClass) {
-          case CCClasses.CCWorkPoint: {
-            return [(<WorkPointObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
-          }
-          case CCClasses.CCWorkAxis: {
-            return [(<WorkAxisObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
-          }
-          case CCClasses.CCWorkPlane: {
-            return [(<WorkPlaneObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
-          }
-          case CCClasses.CCWorkCoordSystem: {
-            return [(<WorkCoordSystemObj key={hovered.objectId} drawingId={drawingId} objectId={hovered.objectId} opacity={0} />)]
-          }
-        }
-
-        return []
-      }
-      case 'Solid':
-      case 'Graphic': {
-        const geom = findObject(drawingId, hovered.objectId) as ContainerGeometryT | GeometryElement | undefined
-        return [(
-          <GlobalTransform key={hovered.objectId} drawingId={drawingId} objectId={hovered.prodRefId as ObjectID}>
-            {(geom as ContainerGeometryT)?.type === 'brep' && (
-              <Entity drawingId={drawingId} elem={geom as any} opacity={0} />
-            )}
-            {((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') && (
-              <Mesh elem={geom as any} opacity={0} />
-            )}
-            {(geom as GeometryElement)?.type === 'line' && (
-              <LineMesh start={(geom as any).start} end={(geom as any).end} />
-            )}
-            {(geom as GeometryElement)?.type === 'point' && (
-              <PointMesh position={(geom as any).position} />
-            )}
-          </GlobalTransform>
-        )]
-      }
-    }
-  
-    return []
-  }, [drawingId, hovered])
-
-  return outlinedObjects
-} */
 
 const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, group, id }) => {
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
@@ -481,7 +423,6 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
 
     // Point
     if ((geom as GeometryElement)?.type === 'point') {
-      // TODO: not use buerli element? use a smaller point / mesh?
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -494,18 +435,3 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
 
   return null
 }
-
-/* export function OutlinedObjects({drawingId, hovered }: { drawingId: DrawingID, hovered: InteractionInfo }) {
-  const outlinedObjects = useOutlinedObjects(drawingId, hovered)
-  const id = hovered?.objectId || 0
-
-  return (
-    <>
-      {outlinedObjects.map((obj, i) => (
-        <OutlinedObject key={id + i} id={id + i}>
-          {obj}
-        </OutlinedObject>
-      ))}
-    </>
-  )
-} */
