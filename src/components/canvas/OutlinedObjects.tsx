@@ -5,7 +5,7 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, BuerliGeometry, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
-import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, SelectedMateObj } from '@buerli.io/react-cad'
+import { getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, SelectedMateObj } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
 
@@ -406,8 +406,12 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       }
     }
   }
-  else if (info.graphicId && info.prodRefId) {
-    const geom = findObject(drawingId, info.graphicId) as ContainerGeometryT | GeometryElement | undefined
+  else if (info.graphicId && info.prodRefId && info.containerId) {
+    const cache = getDrawing(drawingId).geometry.cache
+    const geom = 
+      cache[info.graphicId] as ContainerGeometryT | undefined ||
+      cache[info.containerId]?.map[info.graphicId] as GeometryElement | undefined ||
+      cache[info.containerId]?.points.find(pt => pt.graphicId === info.graphicId) as GeometryElement | undefined
 
     // Solid
     if ((geom as ContainerGeometryT)?.type === 'brep') {
