@@ -68,15 +68,13 @@ const LineMesh: React.FC<{
 
 class EdgeApproxCurve extends THREE.Curve<THREE.Vector3> {
   points: number[]
-  size: number
   step: number
 
   constructor(points_: number[]) {
     super()
 
     this.points = points_
-    this.size = points_.length / 3
-    this.step = 1.0 / (this.size - 1)
+    this.step = 1.0 / (points_.length / 3 - 1)
   }
 
   getPoint(t: number, optionalTarget: THREE.Vector3 = new THREE.Vector3()) {
