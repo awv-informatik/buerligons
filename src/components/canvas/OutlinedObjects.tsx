@@ -9,6 +9,8 @@ import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, Wor
 
 import { useOutlinesStore } from './OutlinesStore'
 
+const transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.0 })
+
 const pointSize = 1.0
 const sphereGeom = new THREE.SphereGeometry(1, 12, 12)
 const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
@@ -25,9 +27,7 @@ const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
   })
 
   return (
-    <mesh ref={ref} position={position} geometry={sphereGeom} renderOrder={1000}>
-      <meshBasicMaterial transparent opacity={0} />
-    </mesh>
+    <mesh ref={ref} position={position} geometry={sphereGeom} material={transparentMaterial} renderOrder={1000} />
   )
 }
 
@@ -60,9 +60,7 @@ const LineMesh: React.FC<{
   })
 
   return (
-    <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom} renderOrder={1000}>
-      <meshBasicMaterial transparent opacity={0} />
-    </mesh>
+    <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom} material={transparentMaterial} renderOrder={1000} />
   )
 }
 
@@ -125,15 +123,9 @@ const EdgeMesh: React.FC<{
 
   return (
     <>
-      <mesh geometry={tubeGeometry} renderOrder={1000}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
-      <mesh position={start} geometry={sphereGeometry} renderOrder={1000}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
-      <mesh position={end} geometry={sphereGeometry} renderOrder={1000}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
+      <mesh geometry={tubeGeometry} material={transparentMaterial} renderOrder={1000} />
+      <mesh position={start} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
+      <mesh position={end} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
     </>
   )
 }
@@ -179,15 +171,9 @@ const ArcMesh: React.FC<{
 
   return (
     <>
-      <mesh position={center} quaternion={quaternion} geometry={torusGeometry}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
-      <mesh position={start} geometry={sphereGeometry} renderOrder={1000}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
-      <mesh position={end} geometry={sphereGeometry} renderOrder={1000}>
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
+      <mesh position={center} quaternion={quaternion} geometry={torusGeometry} material={transparentMaterial} renderOrder={1000} />
+      <mesh position={start} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
+      <mesh position={end} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
     </>
   )
 }
@@ -223,9 +209,7 @@ const CircleMesh: React.FC<{
   }, [radius, scale])
 
   return (
-    <mesh position={center} quaternion={quaternion} geometry={torusGeometry}>
-      <meshBasicMaterial transparent opacity={0} />
-    </mesh>
+    <mesh position={center} quaternion={quaternion} geometry={torusGeometry} material={transparentMaterial} renderOrder={1000} />
   )
 }
 
