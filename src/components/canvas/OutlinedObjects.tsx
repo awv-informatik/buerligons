@@ -9,7 +9,7 @@ import { findObject, getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, Wor
 
 import { useOutlinesStore } from './OutlinesStore'
 
-const pointSize = 1.2
+const pointSize = 1.0
 const sphereGeom = new THREE.SphereGeometry(1, 12, 12)
 const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
   const ref = React.useRef<THREE.Object3D>()
@@ -31,7 +31,7 @@ const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
   )
 }
 
-const lineWidth = 0.75
+const lineWidth = 0.5
 const cylGeom = new THREE.CylinderGeometry(1, 1, 1, 6)
 const LineMesh: React.FC<{
   start: THREE.Vector3
@@ -61,6 +61,171 @@ const LineMesh: React.FC<{
 
   return (
     <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom} renderOrder={1000}>
+      <meshBasicMaterial transparent opacity={0} />
+    </mesh>
+  )
+}
+
+class EdgeApproxCurve extends THREE.Curve<THREE.Vector3> {
+  points: number[]
+  size: number
+  step: number
+
+  constructor(points_: number[]) {
+    super()
+
+    this.points = points_
+    this.size = points_.length / 3
+    this.step = 1.0 / (this.size - 1)
+  }
+
+  getPoint(t: number, optionalTarget: THREE.Vector3 = new THREE.Vector3()) {
+    const l = t / this.step
+    const index = Math.floor(l)
+    const k = l - index
+
+    if (t >= 1.0) {
+      return optionalTarget.set(
+        this.points[this.points.length - 3],
+        this.points[this.points.length - 2],
+        this.points[this.points.length - 1],
+      )
+    }
+
+    const tx = (1 - k) * this.points[index * 3] + k * this.points[(index + 1) * 3]
+    const ty = (1 - k) * this.points[index * 3 + 1] + k * this.points[(index + 1) * 3 + 1]
+    const tz = (1 - k) * this.points[index * 3 + 2] + k * this.points[(index + 1) * 3 + 2]
+
+    return optionalTarget.set(tx, ty, tz)
+  }
+}
+
+const edgeWidth = 0.5
+const EdgeMesh: React.FC<{
+  points: number[]
+}> = ({ points }) => {
+  const [scale, setScale] = React.useState<number>(1.0)
+  
+  useFrame(args => {
+    const newScale = CameraHelper.calculateScaleFactor(new THREE.Vector3(points[0], points[1], points[2]), 7, args.camera, args.size)
+    if (newScale !== scale) {
+      setScale(newScale)
+      args.invalidate()
+    }
+  })
+
+  const { path, start, end } = React.useMemo(() => ({
+    path: new EdgeApproxCurve(points),
+    start: new THREE.Vector3(points[0], points[1], points[2]),
+    end: new THREE.Vector3(points[points.length - 3], points[points.length - 2], points[points.length - 1]),
+  }), [points])
+
+  const { tubeGeometry, sphereGeometry } = React.useMemo(() => ({
+    tubeGeometry: new THREE.TubeGeometry(path, points.length / 3, edgeWidth * scale, 6, false),
+    sphereGeometry: new THREE.SphereGeometry(edgeWidth * scale, 12, 12),
+  }), [path, points.length, scale])
+
+  return (
+    <>
+      <mesh geometry={tubeGeometry} renderOrder={1000}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      <mesh position={start} geometry={sphereGeometry} renderOrder={1000}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      <mesh position={end} geometry={sphereGeometry} renderOrder={1000}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+    </>
+  )
+}
+
+const arcWidth = 0.5
+const ArcMesh: React.FC<{
+  center: THREE.Vector3
+  xAxis: [number, number, number]
+  zAxis: [number, number, number]
+  radius: number
+  angle: number
+}> = ({ center, xAxis, zAxis, radius, angle }) => {
+  const [scale, setScale] = React.useState<number>(1.0)
+  
+  useFrame(args => {
+    const newScale = CameraHelper.calculateScaleFactor(center, 7, args.camera, args.size)
+    if (newScale !== scale) {
+      setScale(newScale)
+      args.invalidate()
+    }
+  })
+
+  const { quaternion, start, end } = React.useMemo(() => {
+    const xAxisV = new THREE.Vector3(...xAxis)
+    const zAxisV = new THREE.Vector3(...zAxis)
+    const yAxisV = zAxisV.clone().cross(xAxisV).normalize()
+    const rotationMatrix = new THREE.Matrix4().makeBasis(xAxisV, yAxisV, zAxisV)
+
+    const startL = new THREE.Vector3(radius, 0.0, 0.0)
+    const endL = new THREE.Vector3(radius * Math.cos(angle), radius * Math.sin(angle), 0.0)
+
+    return {
+      quaternion: new THREE.Quaternion().setFromRotationMatrix(rotationMatrix),
+      start: center.clone().add(startL.applyMatrix4(rotationMatrix)),
+      end: center.clone().add(endL.applyMatrix4(rotationMatrix)),
+    }
+  }, [center, xAxis, zAxis, radius, angle])
+
+  const { torusGeometry, sphereGeometry } = React.useMemo(() => ({
+    torusGeometry: new THREE.TorusGeometry(radius, arcWidth * scale, 6, 60, angle),
+    sphereGeometry: new THREE.SphereGeometry(arcWidth * scale, 12, 12),
+  }), [radius, angle, scale])
+
+  return (
+    <>
+      <mesh position={center} quaternion={quaternion} geometry={torusGeometry}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      <mesh position={start} geometry={sphereGeometry} renderOrder={1000}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      <mesh position={end} geometry={sphereGeometry} renderOrder={1000}>
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+    </>
+  )
+}
+
+const circleWidth = 0.5
+const CircleMesh: React.FC<{
+  center: THREE.Vector3
+  xAxis: [number, number, number]
+  zAxis: [number, number, number]
+  radius: number
+}> = ({ center, xAxis, zAxis, radius }) => {
+  const [scale, setScale] = React.useState<number>(1.0)
+  
+  useFrame(args => {
+    const newScale = CameraHelper.calculateScaleFactor(center, 7, args.camera, args.size)
+    if (newScale !== scale) {
+      setScale(newScale)
+      args.invalidate()
+    }
+  })
+
+  const quaternion = React.useMemo(() => {
+    const xAxisV = new THREE.Vector3(...xAxis)
+    const zAxisV = new THREE.Vector3(...zAxis)
+    const yAxisV = zAxisV.clone().cross(xAxisV).normalize()
+    const rotationMatrix = new THREE.Matrix4().makeBasis(xAxisV, yAxisV, zAxisV)
+
+    return new THREE.Quaternion().setFromRotationMatrix(rotationMatrix)
+  }, [xAxis, zAxis])
+
+  const torusGeometry = React.useMemo(() => {
+    return new THREE.TorusGeometry(radius, circleWidth * scale, 6, 60)
+  }, [radius, scale])
+
+  return (
+    <mesh position={center} quaternion={quaternion} geometry={torusGeometry}>
       <meshBasicMaterial transparent opacity={0} />
     </mesh>
   )
@@ -284,12 +449,45 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       )
     }
 
-    // Edge / line / etc
+    // Line
     if ((geom as GeometryElement)?.type === 'line') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <LineMesh start={(geom as any).start} end={(geom as any).end} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    // Edge
+    if ((geom as GeometryElement)?.type === 'edge') {
+      return (
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <EdgeMesh points={(geom as any).rawGraphic.points} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    // Arc
+    if ((geom as GeometryElement)?.type === 'arc') {
+      return (
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <ArcMesh center={(geom as any).center} xAxis={(geom as any).rawGraphic.xAxis} zAxis={(geom as any).rawGraphic.zAxis} radius={(geom as any).radius} angle={(geom as any).angle} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+
+    // Circle
+    if ((geom as GeometryElement)?.type === 'circle') {
+      return (
+        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <CircleMesh center={(geom as any).center} xAxis={(geom as any).rawGraphic.xAxis} zAxis={(geom as any).rawGraphic.zAxis} radius={(geom as any).radius} />
           </GlobalTransform>
         </OutlinedObject>
       )
