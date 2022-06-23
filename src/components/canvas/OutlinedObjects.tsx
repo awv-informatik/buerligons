@@ -277,7 +277,7 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
 export function OutlinedObjects({ drawingId, info, group }: { drawingId: DrawingID, info: InteractionInfo, group: string }) {
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class)
 
-  if (objClass) {
+  if (objClass && !info.graphicId) {
     // Assembly node
     if (ccUtils.base.isA(objClass, CCClasses.IProductReference)) {
       return (

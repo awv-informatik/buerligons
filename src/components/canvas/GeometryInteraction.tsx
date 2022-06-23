@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing } from '@buerli.io/core'
+import { createInfo, DrawingID, getDrawing } from '@buerli.io/core'
 import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
 
 class Background extends THREE.Object3D {
@@ -62,18 +62,17 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
       return
     }
 
-    const objectId = isPartMode ? object.userData.containerId : object.userData.productId
-    if (objectId !== hoveredId) {
+    const id = isPartMode ? object.userData.containerId : object.userData.productId
+    if (id !== hoveredId) {
       const setHovered = drawing.api.interaction.setHovered
 
-      isPartMode && setHovered({
-        objectId: objectId,
-        graphicId: objectId,
-        containerId: objectId,
+      isPartMode && setHovered(createInfo({
+        objectId: drawing.geometry.cache[id].container.ownerId,
+        graphicId: id,
+        containerId: id,
         prodRefId: drawing.structure.currentProduct,
-        uniqueIdent: objectId.toString()
-      })
-      !isPartMode && setHovered({ objectId, prodRefId: objectId, uniqueIdent: objectId.toString() })
+      }))
+      !isPartMode && setHovered(createInfo({ objectId: id, prodRefId: id }))
     }
   }, [drawingId])
 
@@ -117,20 +116,19 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
       return
     }
 
-    const objectId = isPartMode ? object.userData.containerId : object.userData.productId
+    const id = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive) {
 
       const select = drawing.api.interaction.select
       const multi = e.shiftKey
 
-      isPartMode && select({
-        objectId: objectId,
-        graphicId: objectId,
-        containerId: objectId,
+      isPartMode && select(createInfo({
+        objectId: drawing.geometry.cache[id].container.ownerId,
+        graphicId: id,
+        containerId: id,
         prodRefId: drawing.structure.currentProduct,
-        uniqueIdent: objectId.toString()
-      }, multi)
-      !isPartMode && select({ objectId, prodRefId: objectId, uniqueIdent: objectId.toString() }, multi)
+      }), multi)
+      !isPartMode && select(createInfo({ objectId: id, prodRefId: id }), multi)
     }
   }, [drawingId])
 
