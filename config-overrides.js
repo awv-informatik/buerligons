@@ -4,14 +4,12 @@ const fs = require('fs')
 const {
   addWebpackAlias,
   removeModuleScopePlugin,
-  addWebpackPlugin,
   fixBabelImports,
   addLessLoader,
   override,
   disableEsLint,
   addWebpackModuleRule,
 } = require('customize-cra')
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 // keep the original content of tsconfig.json
 const originalTSConfigStr = fs.readFileSync('./tsconfig.json')
@@ -26,7 +24,6 @@ module.exports = (config, env) => {
     removeModuleScopePlugin(),
     fixBabelImports('import', { libraryName: 'antd', libraryDirectory: 'es', style: true }),
     addLessLoader({ javascriptEnabled: true }),
-    process.env.NODE_ENV === 'production' && addWebpackPlugin(new BundleAnalyzerPlugin()),
     addWebpackAlias({
       react: path.resolve(`node_modules/react`),
       antd: path.resolve(`node_modules/antd`),

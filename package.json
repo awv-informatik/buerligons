@@ -6,6 +6,7 @@
   "repository": "https://github.com/awv-informatik/buerligons",
   "private": true,
   "scripts": {
+    "clean": "rimraf ./build",
     "start": "npm run dev",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
