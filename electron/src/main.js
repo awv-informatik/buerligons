@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-undef */
 
-const { app, globalShortcut, BrowserWindow } = require('electron')
+const { app, globalShortcut, BrowserWindow, shell } = require('electron')
 const path = require('path')
 const url = require('url')
 const { CLASSFILE } = require('./config')
@@ -51,6 +51,11 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null
+  })
+
+  mainWindow.webContents.setWindowOpenHandler(details => {
+    shell.openExternal(details.url)
+    return { action: 'deny' }
   })
 }
 

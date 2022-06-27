@@ -13,7 +13,9 @@ import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
 import create from 'zustand'
+import { useIPC } from '../ipc'
 import { Composer, Controls, Fit, Lights, OutlinesSelector, Threshold } from './canvas'
+import { ChooseCCApp } from './ChooseCCApp'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -105,6 +107,8 @@ export const Buerligons: React.FC = () => {
   const setHovered = useStore(state => state.setHovered) as any
   const setSelected = useStore(state => state.setSelected) as any
 
+  const ipc = useIPC()
+
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 
   // Reset selection when switching nodes
@@ -112,7 +116,9 @@ export const Buerligons: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
-      {count === 0 || !drawingId ? (
+      {ipc.isEmbeddedApp && !ipc.hasClassFile ? (
+        <ChooseCCApp />
+      ) : count === 0 || !drawingId ? (
         <WelcomePage />
       ) : (
         <>

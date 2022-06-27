@@ -29,7 +29,6 @@ ipc?.on(CHANNEL, (arg: any) => {
   switch (command) {
     case CHECK_CLASSFILE:
       ipcAPI.setState(s => ({ ...s, hasClassFile: res.exists }))
-      console.info(ipcAPI.getState())
       break
 
     case LOAD_CLASSFILE:

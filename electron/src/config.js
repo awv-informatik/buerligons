@@ -33,6 +33,6 @@ if (!CLASSFILE) CLASSFILE = findCCAppFile(process.cwd())
 if (!CLASSFILE) CLASSFILE = findCCAppFile(PACKAGEDIR)
 if (!CLASSFILE) CLASSFILE = findCCAppFile(app.getPath('userData'))
 if (!CLASSFILE) CLASSFILE = findCCAppFile(app.getPath('home'))
-if (!CLASSFILE) CLASSFILE = path.join(app.getPath('userData'), 'Modeling.ccapp')
+if (!CLASSFILE) CLASSFILE = path.join(app.getPath('userData'), 'CCApp')
 
 module.exports = { CADPORT, CCBINDIR, CCEXECUTABLE, CCINIFILE, CLASSFILE, INSTANCECOUNT, PACKAGEDIR }
