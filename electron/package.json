@@ -1,0 +1,45 @@
+{
+  "name": "buerligons-electron",
+  "version": "0.0.1",
+  "author": "AWV Informatik AG <info@awv-informatik.ch>",
+  "repository": "https://github.com/awv-informatik/buerligons",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "clean": "rimraf ./client && rimraf ./dist",
+    "start": "electron ./src/main.js",
+    "dev": "electron ./src/main.js --development",
+    "app:build": "electron-builder",
+    "app:dist": "npm run clean && npm run buerligons:build && npm run buerligons:copy && npm run app:build",
+    "buerligons:build": "cd ../ && npm run clean && npm run build",
+    "buerligons:copy": "cd ../ && copyfiles -a -u 1 \"./build/**/*.*\" \"./electron/client\""
+  },
+  "dependencies": {
+    "@classcad/windows-x64": "0.0.0-beta.12"
+  },
+  "devDependencies": {
+    "copyfiles": "2.1.1",
+    "electron": "13.1.7",
+    "electron-builder": "22.11.7"
+  },
+  "build": {
+    "appId": "ch.awv-informatik.buerligons",
+    "productName": "Buerligons",
+    "asar": false,
+    "files": [
+      "**/*",
+      "!.temp/**/*"
+    ],
+    "win": {
+      "icon": "icon.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}
