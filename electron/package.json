@@ -1,5 +1,5 @@
 {
-  "name": "buerligons-app",
+  "name": "ch.awv-informatik.buerligons",
   "version": "0.0.1",
   "author": "AWV Informatik AG <info@awv-informatik.ch>",
   "repository": "https://github.com/awv-informatik/buerligons",
@@ -28,7 +28,10 @@
     "asar": false,
     "files": [
       "**/*",
-      "!.temp/**/*"
+      "!.temp/**/*",
+      "!**/*.cf1",
+      "!**/*.cfe",
+      "!**/*.ccapp"
     ],
     "win": {
       "icon": "icon.png",
