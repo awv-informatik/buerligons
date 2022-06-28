@@ -1,4 +1,4 @@
-import { CCClasses } from '@buerli.io/classcad'
+import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
 import {
   BuerliGeometry,
@@ -57,8 +57,8 @@ export const Buerligons: React.FC = () => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentNode = useDrawing(drawingId, d => d.structure.currentNode) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
-  const curProdClass = useDrawing(drawingId, d => (currentProduct && d.structure.tree[currentProduct]?.class) || '')
-  const isPart = curProdClass === CCClasses.CCPart
+  const curProdClass = useDrawing(drawingId, d => (currentProduct && d.structure.tree[currentProduct]?.class)) || ''
+  const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart) 
 
   React.useEffect(() => void (document.title = 'Buerligons'), [])
 

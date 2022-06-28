@@ -298,7 +298,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
     }
   
     // Feature
-    if (objClass === CCClasses.CCWorkPoint) {
+    if (ccUtils.base.isA(objClass, CCClasses.CCWorkPoint)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <WorkPointObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
@@ -306,7 +306,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       )
     }
   
-    if (objClass === CCClasses.CCWorkAxis) {
+    if (ccUtils.base.isA(objClass, CCClasses.CCWorkAxis)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <WorkAxisObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
@@ -314,7 +314,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       )
     }
   
-    if (objClass === CCClasses.CCWorkPlane) {
+    if (ccUtils.base.isA(objClass, CCClasses.CCWorkPlane)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} opacity={0} />
@@ -322,7 +322,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       )
     }
   
-    if (objClass === CCClasses.CCWorkCoordSystem) {
+    if (ccUtils.base.isA(objClass, CCClasses.CCWorkCoordSystem)) {
       // If there is a userData in info, we actually have to outline a mate...
       if (info.userData) {
         return (

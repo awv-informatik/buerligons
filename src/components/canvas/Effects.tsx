@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
-import { CCClasses } from '@buerli.io/classcad'
+import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import { Outline } from '@buerli.io/react-cad'
 
@@ -26,7 +26,8 @@ export function Composer({
   const sketchActive = useBuerli(s => {
     const drawing = s.drawing.refs[s.drawing.active!]
     const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-    return plugin ? drawing.structure.tree[plugin.id]?.class === CCClasses.CCSketch : false
+    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+    return ccUtils.base.isA(objClass, CCClasses.CCSketch) 
   })
   // Decide if effects-chain is active or not
   const enabled = !sketchActive
