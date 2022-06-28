@@ -6,7 +6,11 @@
     "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext"],
     "outDir": "build/",
-    "paths": {},
+    "paths": {
+      "@buerli.io/core": ["./../../../buerli/packages/core/build/index"],
+      "@buerli.io/react": ["./../../../buerli/packages/react/build/index"],
+      "@buerli.io/react-cad": ["./../../../buerli-react-cad/build/index"]
+    },
     "jsx": "react",
     "allowJs": false,
     "declaration": true,
