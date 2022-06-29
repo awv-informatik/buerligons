@@ -24,7 +24,7 @@
   },
   "build": {
     "appId": "ch.awv-informatik.buerligons",
-    "productName": "Buerligons",
+    "productName": "buerligons",
     "asar": false,
     "files": [
       "**/*",

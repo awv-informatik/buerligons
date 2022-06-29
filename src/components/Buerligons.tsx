@@ -54,7 +54,7 @@ export const Buerligons: React.FC = () => {
 
   const ipc = useIPC()
 
-  React.useEffect(() => void (document.title = 'Buerligons'), [])
+  React.useEffect(() => void (document.title = 'buerligons'), [])
 
   // Reset selection when switching nodes
   React.useEffect(() => {

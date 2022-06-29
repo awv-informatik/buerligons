@@ -23,7 +23,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    title: 'Buerligons',
+    title: 'buerligons',
     show: false,
     webPreferences: {
       nodeIntegration: false,
