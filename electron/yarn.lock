@@ -51,10 +51,10 @@
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.0-beta.12":
-  version "0.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.12.tgz#d13936aac4393aab1f606aaebdabc4416b1f67f4"
-  integrity sha512-OB1R2Seujy2P0vPgJ5h5+RIDqhmdz63zPsRuTp26ZltcCculB5/9ehqukOAyawnRAcL2oEovymheOkas98hpww==
+"@classcad/windows-x64@0.0.0-beta.13":
+  version "0.0.0-beta.13"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.13.tgz#c01146d134a498f2c2f86e5f1cdb72fcd3500f09"
+  integrity sha512-csKDyVc4CSyulOvAt8Keu7nf1dSUlamtXJp0PBAXdssNdBPtPhP3nZuudghOJEKh+BYoS6e3Z4dwDzm2v+vseA==
   dependencies:
     "@classcad/node" "10.2.0"
     yargs "15.4.1"

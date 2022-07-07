@@ -1138,12 +1138,12 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@buerli.io/classcad@0.3.0-beta.0":
-  version "0.3.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.3.0-beta.0.tgz#9ea192f6b6b400270cfab53ce6749f554246f6dd"
-  integrity sha512-17NZ9jIK1Mqs4s0C/KppNOWNjPnKu8vvq38nL6ucvdn76QMeo/0i/WJJ5W3V9so0GwxvlIpdNMA7pDlmQpwgIw==
+"@buerli.io/classcad@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.3.0.tgz#d47edd55eeeaa323769c75cb25fb4a3660ca947f"
+  integrity sha512-jwJu/aI0pK9LIdMliR8330N4q39wRuMl9LSkO6vBpXjArdaWFTdXQ14LHiDiA2AVJ+pXcXokBWdPCbOseNZang==
   dependencies:
-    "@buerli.io/core" "0.3.0-beta.0"
+    "@buerli.io/core" "0.3.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
     js-untar "^2.0.0"
@@ -1154,24 +1154,24 @@
     strict-event-emitter-types "^2.0.0"
     uuid "^3.3.2"
 
-"@buerli.io/core@0.3.0-beta.0":
-  version "0.3.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.3.0-beta.0.tgz#ae70dc15eabd86b5d3d18daa5e87f52ffea3295a"
-  integrity sha512-g/XKWdco5nptpDOWCMOqV51x+3GM6yyJhTWnELrAdb5HIpk8HYQYUe1g3hVr96R6k4aS2JGO6WWcbqwDjDmNiQ==
+"@buerli.io/core@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.3.0.tgz#0942982b34af48a64c4945f9ad3fcff48a7571a7"
+  integrity sha512-heWc01OqLCzaV8PaCbWDuMIp83//8PRSuZpOVMNxCwExGOQ52V16KEr2XLgqFkGOS43DUwAbel1xEhLIZa9/2Q==
   dependencies:
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^3.3.2"
     zustand "^3.5.7"
 
-"@buerli.io/react-cad@0.3.0-beta.0":
-  version "0.3.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.3.0-beta.0.tgz#a7bde218ab77f99351b6ae5982e4261f925ff5f7"
-  integrity sha512-UkaRKPPOrl88mwgAGzHv+q3S6aQzdTiB0RW3e4RYnsnvwy6B2rFujp2NElTOvxdEK3blGhGWRbuQy/FIOQ3Qkg==
+"@buerli.io/react-cad@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.3.0.tgz#fb93c8c04e0fcafb4ab0fb2b0fd152dbb91a7a05"
+  integrity sha512-K0inp0A7xiLc1cqyb6uaYumw5xlT6jvLXfivzIF/s3l0o/cU7br1r95bPPSjry24amdXfAbYDARrXgsfV9t+2A==
   dependencies:
     "@ant-design/compatible" "^1.0.8"
-    "@buerli.io/classcad" "0.3.0-beta.0"
-    "@buerli.io/react" "0.3.0-beta.0"
+    "@buerli.io/classcad" "0.3.0"
+    "@buerli.io/react" "0.3.0"
     "@react-three/postprocessing" "2.3.1"
     antd ">=4.15.3 <4.17"
     path-browserify "^1.0.1"
@@ -1184,13 +1184,13 @@
     uuid "^3.3.2"
     zustand "^3.5.7"
 
-"@buerli.io/react@0.3.0-beta.0":
-  version "0.3.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.3.0-beta.0.tgz#98b8ae5692e2a8ef2619c9e7e6c3722cee687204"
-  integrity sha512-uC3MAQzO/mkW9wYh9y6QVo9ky1Tlml4olbI+jW6aMt2AiYTadAUXWpzX0VGRI16hZ+Hb6aL75i8pwJ5i55E2gA==
+"@buerli.io/react@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.3.0.tgz#e06ee47ce08e8b5b51d2be4ce7af0a2f716b00cc"
+  integrity sha512-nsHAKYsM2zlBuwf3rEHd9PBC3O6mOUU3Tr4xRsawLpxd/M7ao2hNykPm2nGbKJVpDMyrbLt4ftdeAWsp7AC0IQ==
   dependencies:
     "@ant-design/icons" "^4.4.0"
-    "@buerli.io/core" "0.3.0-beta.0"
+    "@buerli.io/core" "0.3.0"
     antd ">=4.15.3 <4.17"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
@@ -1263,10 +1263,10 @@
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.0-beta.12":
-  version "0.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.12.tgz#d13936aac4393aab1f606aaebdabc4416b1f67f4"
-  integrity sha512-OB1R2Seujy2P0vPgJ5h5+RIDqhmdz63zPsRuTp26ZltcCculB5/9ehqukOAyawnRAcL2oEovymheOkas98hpww==
+"@classcad/windows-x64@0.0.0-beta.13":
+  version "0.0.0-beta.13"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.13.tgz#c01146d134a498f2c2f86e5f1cdb72fcd3500f09"
+  integrity sha512-csKDyVc4CSyulOvAt8Keu7nf1dSUlamtXJp0PBAXdssNdBPtPhP3nZuudghOJEKh+BYoS6e3Z4dwDzm2v+vseA==
   dependencies:
     "@classcad/node" "10.2.0"
     yargs "15.4.1"
@@ -12029,7 +12029,7 @@ rc-util@^4.10.0, rc-util@^4.15.3:
     react-lifecycles-compat "^3.0.4"
     shallowequal "^1.1.0"
 
-rc-util@^5.0.0, rc-util@^5.0.1, rc-util@^5.0.5, rc-util@^5.0.6, rc-util@^5.0.7, rc-util@^5.12.0, rc-util@^5.13.0, rc-util@^5.13.1, rc-util@^5.17.0, rc-util@^5.18.1, rc-util@^5.19.2, rc-util@^5.2.0, rc-util@^5.2.1, rc-util@^5.3.0, rc-util@^5.4.0, rc-util@^5.5.0, rc-util@^5.6.1, rc-util@^5.7.0, rc-util@^5.8.0, rc-util@^5.9.4, rc-util@^5.9.8:
+rc-util@^5.0.0, rc-util@^5.0.1, rc-util@^5.0.5, rc-util@^5.0.6, rc-util@^5.0.7, rc-util@^5.12.0, rc-util@^5.13.0, rc-util@^5.13.1, rc-util@^5.19.2, rc-util@^5.2.0, rc-util@^5.2.1, rc-util@^5.3.0, rc-util@^5.4.0, rc-util@^5.5.0, rc-util@^5.6.1, rc-util@^5.7.0, rc-util@^5.8.0, rc-util@^5.9.4, rc-util@^5.9.8:
   version "5.22.5"
   resolved "https://registry.yarnpkg.com/rc-util/-/rc-util-5.22.5.tgz#d4d6d886c5ecb6a2a51dde1840d780a2b70f5179"
   integrity sha512-awD2TGMGU97OZftT2R3JwrHWjR8k/xIwqjwcivPskciweUdgXE7QsyXkBKVSBHXS+c17AWWMDWuKWsJSheQy8g==
