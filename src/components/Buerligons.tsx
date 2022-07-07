@@ -1,16 +1,12 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
-import {
-  BuerliGeometry,
-  BuerliPluginsGeometry,
-  PluginManager,
-  useBuerli,
-  useDrawing,
-} from '@buerli.io/react'
+import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import React from 'react'
+import { useIPC } from '../ipc'
+import { ChooseCCApp } from './ChooseCCApp'
 import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
@@ -45,11 +41,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
 }
 
 const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
-  return (
-    <group name={object.id.toString()}>
-      {node}
-    </group>
-  )
+  return <group name={object.id.toString()}>{node}</group>
 }
 
 export const Buerligons: React.FC = () => {
@@ -57,10 +49,12 @@ export const Buerligons: React.FC = () => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentNode = useDrawing(drawingId, d => d.structure.currentNode) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
-  const curProdClass = useDrawing(drawingId, d => (currentProduct && d.structure.tree[currentProduct]?.class)) || ''
-  const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart) 
+  const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
+  const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
 
-  React.useEffect(() => void (document.title = 'Buerligons'), [])
+  const ipc = useIPC()
+
+  React.useEffect(() => void (document.title = 'buerligons'), [])
 
   // Reset selection when switching nodes
   React.useEffect(() => {
@@ -70,7 +64,9 @@ export const Buerligons: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
-      {count === 0 || !drawingId ? (
+      {ipc.isEmbeddedApp && !ipc.hasClassFile ? (
+        <ChooseCCApp />
+      ) : count === 0 || !drawingId ? (
         <WelcomePage />
       ) : (
         <>
@@ -82,12 +78,7 @@ export const Buerligons: React.FC = () => {
               <Threshold />
 
               <Fit drawingId={drawingId}>
-                <Composer
-                  drawingId={drawingId}
-                  radius={0.1}
-                  hoveredColor="green"
-                  selectedColor="red"
-                  edgeStrength={3}>
+                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
                     <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
                       {props => <GeometryWrapper {...props} />}

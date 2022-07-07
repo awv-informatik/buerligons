@@ -47,5 +47,3 @@ export const Global = styled.createGlobalStyle`
     border: 4px solid white;
   }
 `
-
-export default Global

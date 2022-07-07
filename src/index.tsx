@@ -1,10 +1,11 @@
 import '@buerli.io/react/build/middleware/batchedUpdates'
 import 'antd/dist/antd.less'
+import './ipc'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { App } from './App'
 import { initBuerli } from './initBuerli'
-import Global from './styles/Global'
+import { Global } from './styles/Global'
 
 initBuerli()
 
