@@ -9,10 +9,10 @@ export const Threshold: React.FC<Props> = props => {
   const { camera, raycaster, size } = useThree()
 
   const updateRaycasterSettings = React.useCallback(() => {
-    Object.assign(raycaster.params.Line, {
+    Object.assign(raycaster.params.Line || {}, {
       threshold: CameraHelper.calculateScaleFactor(camera.position, lineWidth, camera, size),
     })
-    Object.assign(raycaster.params.Points, {
+    Object.assign(raycaster.params.Points || {}, {
       threshold: CameraHelper.calculateScaleFactor(camera.position, pointSize, camera, size),
     })
   }, [camera, lineWidth, pointSize, raycaster.params.Line, raycaster.params.Points, size])
