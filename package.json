@@ -16,6 +16,9 @@
     "lint": "eslint \"./src/**/*.ts?(x)\"",
     "classcad": "classcad --ip localhost --port 8182 --instances 5 --ccappfile ./BaseModeling.ccapp"
   },
+  "engines": {
+    "node": ">=14 <17"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
