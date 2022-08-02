@@ -8,6 +8,7 @@ import {
   CADApi,
   Chamfer,
   CircularPattern,
+  ClippingPlane,
   Cone,
   Cylinder,
   Cylindrical,
@@ -69,7 +70,7 @@ export const initBuerli = () => {
       },
     },
     elements,
-    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement],
+    globalPlugins: [Measure, BoundingBoxInfo, ClippingPlane, Expressions, ProductManagement],
     plugins: {
       [CCClasses.CCSketch]: Sketch,
       [CCClasses.CCExtrusion]: Extrusion,
