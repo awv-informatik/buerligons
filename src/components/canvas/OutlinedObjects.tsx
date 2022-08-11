@@ -236,7 +236,7 @@ const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, gro
 
   React.useEffect(() => {
     return () => removeMesh(group, id)
-  }, [])
+  }, [group, id, removeMesh])
 
   return (
     <group ref={groupRef}>
@@ -269,7 +269,7 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
 
   React.useEffect(() => {
     return () => removeMesh(group, id)
-  }, [])
+  }, [group, id, removeMesh])
 
   return null
 }

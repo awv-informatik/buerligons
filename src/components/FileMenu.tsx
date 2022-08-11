@@ -88,7 +88,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
 
 const getCaption = (state: string, states?: States): string => {
   if (states?.captionMap) {
-    const key = Object.keys(states.captionMap).find(key => states.captionMap[key].stateName === state)
+    const key = Object.keys(states.captionMap).find(c => states.captionMap[c].stateName === state)
     return key ? states.captionMap[key].caption : 'undefined caption'
   }
   return 'undefined caption'
