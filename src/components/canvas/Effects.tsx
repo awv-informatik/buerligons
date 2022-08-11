@@ -3,7 +3,7 @@ import React from 'react'
 
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { useBuerli, useDrawing } from '@buerli.io/react'
+import { useDrawing } from '@buerli.io/react'
 import { Outline } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
@@ -22,17 +22,23 @@ export function Composer({
 }: any) {
   const hovered = useDrawing(drawingId, d => d.interaction.hovered)
   const selected = useDrawing(drawingId, d => d.interaction.selected)
+
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
-  const sketchActive = useBuerli(s => {
-    const drawing = s.drawing.refs[s.drawing.active!]
-    const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+  const sketchActive = useDrawing(drawingId, d => {
+    const plugin = d.plugin.refs[d.plugin.active.feature!]
+    const objClass = d.structure.tree[plugin?.id || -1]?.class || ''
     return ccUtils.base.isA(objClass, CCClasses.CCSketch)
   })
+
+  const cPlaneActive = useDrawing(drawingId,
+    d => d.plugin.active.global.findIndex(id => d.plugin.refs[id].name === 'ClippingPlane') !== -1
+  ) || false
+
   // Decide if effects-chain is active or not
-  const enabled = !sketchActive
+  const enabled = !sketchActive && !cPlaneActive
+
   return (
     <>
       <Chain
