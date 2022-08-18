@@ -31,8 +31,8 @@ let CLASSFILE = findCCAppFile(process.env.PORTABLE_EXECUTABLE_DIR)
 if (!CLASSFILE) CLASSFILE = findCCAppFile(process.env.INIT_CWD)
 if (!CLASSFILE) CLASSFILE = findCCAppFile(process.cwd())
 if (!CLASSFILE) CLASSFILE = findCCAppFile(PACKAGEDIR)
-if (!CLASSFILE) CLASSFILE = findCCAppFile(app.getPath('userData'))
 if (!CLASSFILE) CLASSFILE = findCCAppFile(app.getPath('home'))
+if (!CLASSFILE) CLASSFILE = findCCAppFile(app.getPath('userData'))
 if (!CLASSFILE) CLASSFILE = path.join(app.getPath('userData'), 'CCApp')
 
 module.exports = { CADPORT, CCBINDIR, CCEXECUTABLE, CCINIFILE, CLASSFILE, INSTANCECOUNT, PACKAGEDIR }
