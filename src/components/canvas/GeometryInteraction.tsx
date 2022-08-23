@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { GlobalTransform, useDrawing, CameraHelper } from '@buerli.io/react'
+import { HUD } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent, useFrame } from '@react-three/fiber'
 
 import { Gizmo } from './PivotControls'
@@ -32,7 +33,7 @@ declare global {
   }
 }
 
-const getNurbsNormal = (nurbsMesh: any, clickPos: THREE.Vector3) => {
+/* const getNurbsNormal = (nurbsMesh: any, clickPos: THREE.Vector3) => {
   let closestId = 0
   let closestDistSq = Infinity
   const vertexCount = nurbsMesh.rawGraphic.vertices.length / 3
@@ -53,11 +54,12 @@ const getNurbsNormal = (nurbsMesh: any, clickPos: THREE.Vector3) => {
   ).normalize()
 
   return normal
-}
+} */
 
-const getAdjacentMeshNormal = (drawingId: DrawingID, solidId: ObjectID, graphicId: ObjectID, clickPos: THREE.Vector3) => {
+// Intersection object should be a line
+const getAdjacentMeshNormal = (drawingId: DrawingID, graphicId: ObjectID, intersection: THREE.Intersection, clickPos: THREE.Vector3) => {
   const drawing = getDrawing(drawingId)
-  const meshes = drawing.geometry.cache[solidId].meshes
+  const meshes = drawing.geometry.cache[intersection.object.userData.containerId].meshes
   const adjacentMeshes = meshes.filter(mesh => mesh.loops.some(loop => loop.indexOf(graphicId) !== -1))
 
   const planeMesh = adjacentMeshes.find(mesh => mesh.type === 'plane') as any
@@ -91,7 +93,7 @@ const getAdjacentMeshNormal = (drawingId: DrawingID, solidId: ObjectID, graphicI
 
   const nurbsMesh = adjacentMeshes[0] as any
   if (nurbsMesh) {
-    return getNurbsNormal(nurbsMesh, clickPos)
+    return intersection.face?.normal.clone().normalize() || new THREE.Vector3(0, 0, 1)
   }
 
   return new THREE.Vector3(0, 0, 1)
@@ -117,12 +119,31 @@ function useScale(position: THREE.Vector3, getVector?: (sf: number) => [number, 
 const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({ drawingId, productId, matrix }) => {
   const gizmoRef = useScale(new THREE.Vector3(), sf => [2 * sf, 2 * sf, 2 * sf])
 
+  const onDragStart = React.useCallback(() => {
+    const currentProduct = getDrawing(drawingId).structure.currentProduct
+    window.console.log('ccAPI.assemblyBuilder.startMovingUnderConstraints(' + drawingId + ', ' + currentProduct + ')')
+  }, [drawingId])
+
+  const onDrag = React.useCallback((l: THREE.Matrix4, deltaL: THREE.Matrix4, w: THREE.Matrix4, deltaW: THREE.Matrix4) => {
+    const currentProduct = getDrawing(drawingId).structure.currentProduct
+    const selected = getDrawing(drawingId).interaction.selected || []
+    //selected.map(obj => obj.)
+    window.console.log('ccAPI.assemblyBuilder.moveUnderConstraints(' + drawingId + ', ' + currentProduct + ', ' + ')')
+  }, [drawingId])
+
+  const onDragEnd = React.useCallback(() => {
+    const currentProduct = getDrawing(drawingId).structure.currentProduct
+    window.console.log('ccAPI.assemblyBuilder.finishMovingUnderConstraints(' + drawingId + ', ' + currentProduct + ')')
+  }, [drawingId])
+
   return (
-    <GlobalTransform drawingId={drawingId} objectId={productId}>
-      <group matrix={matrix} matrixAutoUpdate={false}>
-        <Gizmo ref={gizmoRef} />
-      </group>
-    </GlobalTransform>
+    <HUD>
+      <GlobalTransform drawingId={drawingId} objectId={productId}>
+        <group matrix={matrix} matrixAutoUpdate={false}>
+          <Gizmo ref={gizmoRef} onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} />
+        </group>
+      </GlobalTransform>
+    </HUD>
   )
 }
   
@@ -257,7 +278,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
             }
             else if (line.type === 'line') {
               const zAxis = line.end.clone().sub(line.start).normalize()
-              const meshNormal = getAdjacentMeshNormal(drawingId, solidId, line.graphicId, pos)
+              const meshNormal = getAdjacentMeshNormal(drawingId, line.graphicId, intersection, pos)
               if (meshNormal.dot(rayL.direction) > 0) {
                 meshNormal.negate()
               }
@@ -287,7 +308,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
               }
 
               zAxis.normalize()
-              const meshNormal = getAdjacentMeshNormal(drawingId, solidId, line.graphicId, pos)
+              const meshNormal = getAdjacentMeshNormal(drawingId, line.graphicId, intersection, pos)
               if (meshNormal.dot(rayL.direction) > 0) {
                 meshNormal.negate()
               }
@@ -339,12 +360,16 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
               const yAxis = posL.clone().sub(posProj).normalize()
               const xAxis = yAxis.clone().cross(posL).normalize()
               const zAxis = xAxis.clone().cross(yAxis).normalize()
+              if (zAxis.dot(rayL.direction) > 0) {
+                xAxis.negate()
+                zAxis.negate()
+              }
               const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
   
               setGizmoInfo({ productId, matrix })
             }
             else {
-              const zAxis = getNurbsNormal(mesh, pos)
+              const zAxis = intersection.face?.normal.clone().normalize() || new THREE.Vector3(0, 0, 1)
               if (zAxis.dot(rayL.direction) > 0) {
                 zAxis.negate()
               }
