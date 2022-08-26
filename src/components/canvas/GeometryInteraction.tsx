@@ -1,8 +1,8 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { CCClasses, ccUtils, ccAPI } from '@buerli.io/classcad'
+import { createInfo, DrawingID, getDrawing, MathUtils, ObjectID } from '@buerli.io/core'
 import { GlobalTransform, useDrawing, CameraHelper } from '@buerli.io/react'
 import { HUD } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent, useFrame } from '@react-three/fiber'
@@ -99,6 +99,22 @@ const getAdjacentMeshNormal = (drawingId: DrawingID, graphicId: ObjectID, inters
   return new THREE.Vector3(0, 0, 1)
 }
 
+const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const curNodeId = drawing.structure.currentNode || -1
+  const curNode = drawing.structure.tree[curNodeId]
+  const interactable = curNode?.children || []
+
+  const ancestors: ObjectID[] = []
+  let objId: number | null = refId
+  while (objId) {
+    ancestors.push(objId)
+    objId = drawing.structure.tree[objId].parent
+  }
+
+  return ancestors.find(id => interactable.indexOf(id) !== -1)
+}
+
 function useScale(position: THREE.Vector3, getVector?: (sf: number) => [number, number, number]) {
   const ref = React.useRef<THREE.Group>(null!)
 
@@ -116,32 +132,98 @@ function useScale(position: THREE.Vector3, getVector?: (sf: number) => [number, 
   return ref
 }
 
+// Artificial delay in 16 ms.
+const artifDelay = 16
+let promise: Promise<void> | null
+
+const mL_ = new THREE.Matrix4()
+const rotX_ = new THREE.Vector3()
+const rotY_ = new THREE.Vector3()
+const rotZ_ = new THREE.Vector3()
+const pos_ = new THREE.Vector3()
+
 const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({ drawingId, productId, matrix }) => {
   const gizmoRef = useScale(new THREE.Vector3(), sf => [2 * sf, 2 * sf, 2 * sf])
 
+  const dragInfo = React.useRef<{ mL0: THREE.Matrix4; mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4; draggedNodes: { id: ObjectID; mL0: THREE.Matrix4 }[] } | null>(null)
+  const mdL = React.useRef<THREE.Matrix4 | null>(null)
+
   const onDragStart = React.useCallback(() => {
-    const currentProduct = getDrawing(drawingId).structure.currentProduct
-    window.console.log('ccAPI.assemblyBuilder.startMovingUnderConstraints(' + drawingId + ', ' + currentProduct + ')')
+    const drawing = getDrawing(drawingId)
+    const curNodeId = drawing.structure.currentNode
+    const draggedNodeId = findInteractableParent(drawingId, productId)
+    if (!curNodeId || !draggedNodeId || !productId) {
+      return
+    }
+
+    const mP = drawing.api.structure.calculateGlobalTransformation(curNodeId)
+    const mPInv = mP.clone().invert()
+    const mL0 = MathUtils.convertToMatrix4(drawing.structure.tree[draggedNodeId].coordinateSystem)
+    const mL0CInv = drawing.api.structure.calculateGlobalTransformation(productId).premultiply(mPInv).invert()
+    
+    const selected = (drawing.interaction.selected || [])
+    const selectedRefs = selected.map(obj => obj.prodRefId ? findInteractableParent(drawingId, obj.prodRefId) : null)
+    const draggedNodeIds = selectedRefs.filter((refId, id) => refId && id === selectedRefs.indexOf(refId)) as ObjectID[]
+    const draggedNodes = draggedNodeIds.map(id => ({
+      id: (drawing.structure.tree[id].members?.productRef?.value || id) as ObjectID,
+      mL0: MathUtils.convertToMatrix4(drawing.structure.tree[id].coordinateSystem)
+    }))
+
+    dragInfo.current = { mL0, mPInv, mL0CInv, draggedNodes }
+  }, [drawingId, productId])
+  
+  const transformNodes = React.useCallback(async (mdL_: THREE.Matrix4, draggedNodes: { id: ObjectID; mL0: THREE.Matrix4 }[]) => {
+    const curNodeId = getDrawing(drawingId).structure.currentNode || -1
+
+    draggedNodes.forEach(draggedNode => {
+      mL_.copy(draggedNode.mL0).premultiply(mdL_)
+      mL_.extractBasis(rotX_, rotY_, rotZ_)
+      pos_.setFromMatrixPosition(mL_)
+      promise = ccAPI.assemblyBuilder.setNodeTransformation(drawingId, draggedNode.id, curNodeId, [pos_, rotX_, rotY_]).catch(console.warn)
+    })
+    await promise
+  
+    // Artificial slowdown to lessen network/server burden
+    await new Promise(resolve => setTimeout(resolve, artifDelay))
+    promise = null
+    
+    if (mdL.current) {
+      transformNodes(mdL.current.clone(), draggedNodes)
+      mdL.current = null
+    }
   }, [drawingId])
 
   const onDrag = React.useCallback((l: THREE.Matrix4, deltaL: THREE.Matrix4, w: THREE.Matrix4, deltaW: THREE.Matrix4) => {
-    const currentProduct = getDrawing(drawingId).structure.currentProduct
-    const selected = getDrawing(drawingId).interaction.selected || []
-    //selected.map(obj => obj.)
-    window.console.log('ccAPI.assemblyBuilder.moveUnderConstraints(' + drawingId + ', ' + currentProduct + ', ' + ')')
-  }, [drawingId])
+    if (!dragInfo.current) {
+      return
+    }
+
+    // const mdL_ = dragInfo.current.mPInv.clone().multiply(w).multiply(dragInfo.current.mL0CInv)
+    // setNodeTransformation seems to take the incoming transform as global, so don't premultiply w by the inverted parent transform
+    const mdL_ = w.clone().multiply(dragInfo.current.mL0CInv)
+    
+    if (promise) {
+      mdL.current = mdL_
+    } else {
+      transformNodes(mdL_, dragInfo.current.draggedNodes)
+    }
+  }, [transformNodes])
 
   const onDragEnd = React.useCallback(() => {
-    const currentProduct = getDrawing(drawingId).structure.currentProduct
-    window.console.log('ccAPI.assemblyBuilder.finishMovingUnderConstraints(' + drawingId + ', ' + currentProduct + ')')
-  }, [drawingId])
+    dragInfo.current = null
+  }, [])
+
+  const { position, rotation } = React.useMemo(() => {
+    return {
+      position: new THREE.Vector3().setFromMatrixPosition(matrix).toArray(),
+      rotation: new THREE.Euler().setFromRotationMatrix(matrix).toArray() as [number, number, number],
+    }
+  }, [matrix])
 
   return (
     <HUD>
       <GlobalTransform drawingId={drawingId} objectId={productId}>
-        <group matrix={matrix} matrixAutoUpdate={false}>
-          <Gizmo ref={gizmoRef} onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} />
-        </group>
+        <Gizmo ref={gizmoRef} onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} offset={position} rotation={rotation} />
       </GlobalTransform>
     </HUD>
   )
@@ -245,9 +327,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     const id = isPartMode ? object.userData.containerId : object.userData.productId
     if (!isSelActive) {
       if (!isPartMode) {
-        const solidId = object.userData.containerId
         const productId = object.userData.productId
-        //const clickPoint = intersection.point.clone()
 
         if (typeof intersection.index === 'number' && object.userData.pointMap) {
           const point = object.userData.pointMap[intersection.index]
@@ -299,7 +379,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
                 dir.set(line.rawGraphic.points[i * 3 + 3], line.rawGraphic.points[i * 3 + 4], line.rawGraphic.points[i * 3 + 5]).sub(point)
                 kVec.copy(pos).sub(point).divide(dir)
                 if (
-                  kVec.x >= 0 && kVec.x <= 1 && kVec.y >=0 && kVec.y <= 1 && kVec.z >= 0 && kVec.z <= 1
+                  kVec.x >= 0 && kVec.x <= 1 && kVec.y >= 0 && kVec.y <= 1 && kVec.z >= 0 && kVec.z <= 1
                   && Math.abs(kVec.x - kVec.y) < 1e-3 && Math.abs(kVec.x - kVec.z) < 1e-3
                 ) {
                   zAxis.copy(dir)
