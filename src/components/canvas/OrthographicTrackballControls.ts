@@ -559,7 +559,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
     this.connect = function (domElement) {
       this.dispose()
 
-      this.domElement = domElement
+      this.domElement = domElement !== undefined ? domElement : document
       this.domElement.addEventListener('contextmenu', contextmenu, false)
       this.domElement.addEventListener('mousedown', mousedown, false)
       this.domElement.addEventListener('wheel', mousewheel, false)

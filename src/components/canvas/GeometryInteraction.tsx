@@ -3,11 +3,11 @@ import * as THREE from 'three'
 
 import { CCClasses, ccUtils, ccAPI } from '@buerli.io/classcad'
 import { createInfo, DrawingID, getDrawing, MathUtils, ObjectID } from '@buerli.io/core'
-import { GlobalTransform, useDrawing, CameraHelper } from '@buerli.io/react'
+import { GlobalTransform, useDrawing } from '@buerli.io/react'
 import { HUD } from '@buerli.io/react-cad'
-import { extend, Object3DNode, ThreeEvent, useFrame } from '@react-three/fiber'
+import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
 
-import { Gizmo } from './PivotControls'
+import { PivotControls } from '@react-three/drei'
 
 class Background extends THREE.Object3D {
   public raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -115,23 +115,6 @@ const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
   return ancestors.find(id => interactable.indexOf(id) !== -1)
 }
 
-function useScale(position: THREE.Vector3, getVector?: (sf: number) => [number, number, number]) {
-  const ref = React.useRef<THREE.Group>(null!)
-
-  useFrame(args => {
-    const sf = CameraHelper.calculateScaleFactor(position, 1, args.camera, args.size)
-    if (ref.current) {
-      const newScale: [number, number, number] = getVector ? getVector(sf) : [sf, sf, sf]
-      if (newScale.some((s, i) => s !== ref.current?.scale.getComponent(i))) {
-        ref.current.scale.set(...newScale)
-        args.invalidate()
-      }
-    }
-  })
-
-  return ref
-}
-
 // Artificial delay in 16 ms.
 const artifDelay = 16
 let promise: Promise<void> | null
@@ -143,8 +126,6 @@ const rotZ_ = new THREE.Vector3()
 const pos_ = new THREE.Vector3()
 
 const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({ drawingId, productId, matrix }) => {
-  const gizmoRef = useScale(new THREE.Vector3(), sf => [2 * sf, 2 * sf, 2 * sf])
-
   const dragInfo = React.useRef<{ mL0: THREE.Matrix4; mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4; draggedNodes: { id: ObjectID; mL0: THREE.Matrix4 }[] } | null>(null)
   const mdL = React.useRef<THREE.Matrix4 | null>(null)
 
@@ -223,7 +204,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   return (
     <HUD>
       <GlobalTransform drawingId={drawingId} objectId={productId}>
-        <Gizmo ref={gizmoRef} onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} offset={position} rotation={rotation} />
+        <PivotControls scale={96} lineWidth={5} fixed onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} offset={position} rotation={rotation} autoTransform={false} />
       </GlobalTransform>
     </HUD>
   )
