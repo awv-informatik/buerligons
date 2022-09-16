@@ -20,9 +20,10 @@ export type ControlsProps = ReactThreeFiber.Overwrite<
 // eslint-disable-next-line react/display-name
 export const Controls = React.forwardRef<OrthographicTrackballControls, ControlsProps>(
   ({ makeDefault, camera, domElement, regress, onChange, onStart, onEnd, ...restProps }, ref) => {
-    const { invalidate, camera: defaultCamera, gl, events, set, get, performance, viewport } = useThree()
+    const { invalidate, camera: defaultCamera, gl, /* events,  */set, get, performance, viewport } = useThree()
     const explCamera = camera || defaultCamera
-    const explDomElement = domElement || (typeof events.connected !== 'boolean' ? events.connected : gl.domElement)
+    // const explDomElement = domElement || (typeof events.connected !== 'boolean' ? events.connected : gl.domElement)
+    const explDomElement = gl.domElement
     const controls = React.useMemo(() => new OrthographicTrackballControls(explCamera), [explCamera])
 
     useFrame(() => {
