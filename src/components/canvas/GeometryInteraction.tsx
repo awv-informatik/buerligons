@@ -119,49 +119,44 @@ const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
 const artifDelay = 16
 let promise: Promise<void> | null
 
-const mL_ = new THREE.Matrix4()
-const rotX_ = new THREE.Vector3()
-const rotY_ = new THREE.Vector3()
-const rotZ_ = new THREE.Vector3()
-const pos_ = new THREE.Vector3()
-
 const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({ drawingId, productId, matrix }) => {
-  const dragInfo = React.useRef<{ mL0: THREE.Matrix4; mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4; draggedNodes: { id: ObjectID; mL0: THREE.Matrix4 }[] } | null>(null)
+  const dragInfo = React.useRef<{ mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4; draggedNodes: ObjectID[] } | null>(null)
   const mdL = React.useRef<THREE.Matrix4 | null>(null)
 
   const onDragStart = React.useCallback(() => {
     const drawing = getDrawing(drawingId)
+    const curProdId = drawing.structure.currentProduct
     const curNodeId = drawing.structure.currentNode
     const draggedNodeId = findInteractableParent(drawingId, productId)
-    if (!curNodeId || !draggedNodeId || !productId) {
+    if (!curProdId || !curNodeId || !draggedNodeId || !productId) {
       return
     }
 
     const mP = drawing.api.structure.calculateGlobalTransformation(curNodeId)
     const mPInv = mP.clone().invert()
-    const mL0 = MathUtils.convertToMatrix4(drawing.structure.tree[draggedNodeId].coordinateSystem)
     const mL0CInv = drawing.api.structure.calculateGlobalTransformation(productId).premultiply(mPInv).invert()
     
     const selected = (drawing.interaction.selected || [])
     const selectedRefs = selected.map(obj => obj.prodRefId ? findInteractableParent(drawingId, obj.prodRefId) : null)
-    const draggedNodeIds = selectedRefs.filter((refId, id) => refId && id === selectedRefs.indexOf(refId)) as ObjectID[]
-    const draggedNodes = draggedNodeIds.map(id => ({
-      id: (drawing.structure.tree[id].members?.productRef?.value || id) as ObjectID,
-      mL0: MathUtils.convertToMatrix4(drawing.structure.tree[id].coordinateSystem)
-    }))
+    const selectedRefsUnique = selectedRefs.filter((refId, id) => refId && id === selectedRefs.indexOf(refId)) as ObjectID[]
+    const draggedNodes = selectedRefsUnique.map(id => (drawing.structure.tree[id].members?.productRef?.value || id) as ObjectID)
 
-    dragInfo.current = { mL0, mPInv, mL0CInv, draggedNodes }
+    dragInfo.current = { mPInv, mL0CInv, draggedNodes }
+    ccAPI.assemblyBuilder.startMovingUnderConstraints(drawingId, curProdId)
   }, [drawingId, productId])
   
-  const transformNodes = React.useCallback(async (mdL_: THREE.Matrix4, draggedNodes: { id: ObjectID; mL0: THREE.Matrix4 }[]) => {
-    const curNodeId = getDrawing(drawingId).structure.currentNode || -1
+  const transformNodes = React.useCallback(async (mdL_: THREE.Matrix4, draggedNodes: ObjectID[]) => {
+    const curProdId = getDrawing(drawingId).structure.currentProduct || -1
 
-    draggedNodes.forEach(draggedNode => {
-      mL_.copy(draggedNode.mL0).premultiply(mdL_)
-      mL_.extractBasis(rotX_, rotY_, rotZ_)
-      pos_.setFromMatrixPosition(mL_)
-      promise = ccAPI.assemblyBuilder.setNodeTransformation(drawingId, draggedNode.id, curNodeId, [pos_, rotX_, rotY_]).catch(console.warn)
-    })
+    const rot: number[] = []
+    const offset: number[] = []
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        rot.push(mdL_.elements[j * 4 + i])
+      }
+      offset.push(mdL_.elements[i + 12])
+    }
+    promise = ccAPI.assemblyBuilder.moveUnderConstraints(drawingId, curProdId, draggedNodes, rot, offset).catch(console.warn)
     await promise
   
     // Artificial slowdown to lessen network/server burden
@@ -179,9 +174,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       return
     }
 
-    // const mdL_ = dragInfo.current.mPInv.clone().multiply(w).multiply(dragInfo.current.mL0CInv)
-    // setNodeTransformation seems to take the incoming transform as global, so don't premultiply w by the inverted parent transform
-    const mdL_ = w.clone().multiply(dragInfo.current.mL0CInv)
+    const mdL_ = dragInfo.current.mPInv.clone().multiply(w).multiply(dragInfo.current.mL0CInv)
     
     if (promise) {
       mdL.current = mdL_
@@ -192,7 +185,9 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 
   const onDragEnd = React.useCallback(() => {
     dragInfo.current = null
-  }, [])
+    const curProdId = getDrawing(drawingId).structure.currentProduct || -1
+    ccAPI.assemblyBuilder.finishMovingUnderConstraints(drawingId, curProdId)
+  }, [drawingId])
 
   const { position, rotation } = React.useMemo(() => {
     return {
