@@ -14,7 +14,7 @@ const transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true, opa
 const pointSize = 1.0
 const sphereGeom = new THREE.SphereGeometry(1, 12, 12)
 const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
-  const ref = React.useRef<THREE.Object3D>()
+  const ref = React.useRef<THREE.Mesh>(null!)
   useFrame(args => {
     if (ref.current) {
       const scale = CameraHelper.calculateScaleFactor(position, 7, args.camera, args.size)
@@ -47,7 +47,7 @@ const LineMesh: React.FC<{
     }
   }, [start, end])
 
-  const ref = React.useRef<THREE.Object3D>()
+  const ref = React.useRef<THREE.Mesh>(null!)
   useFrame(args => {
     if (ref.current) {
       const scale = CameraHelper.calculateScaleFactor(position, 7, args.camera, args.size)
@@ -213,7 +213,7 @@ const CircleMesh: React.FC<{
   )
 }
 
-const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, group, id }) => {
+const OutlinedObject: React.FC<{ group: string, id: number; children?: React.ReactNode }> = ({ children, group, id }) => {
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)

@@ -1,10 +1,12 @@
 import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import { Button, Dropdown, Menu, Space } from 'antd'
+import { Button, Dropdown, Menu, Space, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
+
+type MenuItem = Required<MenuProps>['items'][number];
 
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
@@ -23,16 +25,23 @@ export const WelcomePage: React.FC = () => {
     rfRef.current && rfRef.current.click()
   }, [])
 
-  const menu = (
-    <Menu onClick={() => null}>
-      <Menu.Item key="Part" icon={<FileOutlined />} onClick={createPart}>
-        Part
-      </Menu.Item>
-      <Menu.Item key="Assembly" icon={<AppstoreOutlined />} onClick={createAssembly}>
-        Assembly
-      </Menu.Item>
-    </Menu>
+  const onClick = React.useCallback(
+    (e: { key: string }) => {
+      if (e.key === 'Part') {
+        createPart()
+      } else {
+        createAssembly()
+      }
+    },
+    [createPart, createAssembly],
   )
+
+  const menuItems: MenuItem[] = [
+    { label: 'Part', key: 'Part', icon: (<FileOutlined />) },
+    { label: 'Assembly', key: 'Assembly', icon: (<AppstoreOutlined />) },
+  ]
+
+  const menu = (<Menu items={menuItems} onClick={onClick} />)
 
   return (
     <>

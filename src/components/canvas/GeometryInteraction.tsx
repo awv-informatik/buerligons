@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils, ccAPI } from '@buerli.io/classcad'
-import { createInfo, DrawingID, getDrawing, MathUtils, ObjectID } from '@buerli.io/core'
+import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { GlobalTransform, useDrawing } from '@buerli.io/react'
 import { HUD } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
@@ -205,7 +205,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   )
 }
   
-export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawingId, children }) => {
+export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ drawingId, children }) => {
   const group = React.useRef<THREE.Group>(null!)
 
   const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
@@ -228,7 +228,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     const hovered = drawing.interaction.hovered
     const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
 
-    if (e.buttons !== 0) {
+    if (e.nativeEvent.buttons !== 0) {
       if (hoveredId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
@@ -442,7 +442,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
       }
 
       const select = drawing.api.interaction.select
-      const multi = e.shiftKey
+      const multi = e.nativeEvent.shiftKey
 
       isPartMode && select(createInfo({
         objectId: drawing.geometry.cache[id].container.ownerId,

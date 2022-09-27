@@ -3,7 +3,7 @@ import { ccAPI } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
-import { Button, Space, Tooltip, Typography, Menu as MenuAntd, Dropdown } from 'antd'
+import { Button, Space, Tooltip, Typography, Menu as MenuAntd, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 
@@ -20,6 +20,8 @@ type Command = {
   sub?: Command[]
   stateId?: string
 }
+
+type MenuItem = Required<MenuProps>['items'][number];
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
   const rfRef = React.useRef<HTMLInputElement>()
@@ -152,7 +154,7 @@ const FButton: React.FC<{ command: Command, disabled: boolean }> = ({ command, d
 
 const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
   const onClick = React.useCallback(
-    e => {
+    (e: { key: string }) => {
       if (command.sub) {
         const cmdIdx = command.sub.findIndex(subCmd => subCmd.stateId === e.key)
         const cmd = command.sub[cmdIdx]
@@ -162,15 +164,14 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
     [command],
   )
 
+  const menuItems = command.sub?.map(subCmd => ({
+    label: (<Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>),
+    key: subCmd.stateId,
+  }) as MenuItem) || []
+
   // Menu appears right under arrow button, but it should be under feature button, so it's shifter for feature button width to the left
   const menu = (
-    <MenuAntd onClick={onClick} style={{ marginLeft: '-24px' }}>
-      {command.sub && command.sub?.length > 0 && command.sub.map(subCmd => (
-        <MenuAntd.Item key={subCmd.stateId} >
-          <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>
-        </MenuAntd.Item>
-      ))}
-    </MenuAntd>
+    <MenuAntd items={menuItems} onClick={onClick} style={{ marginLeft: '-24px' }} />
   )
 
   const disabled = command.sub && command.sub.length > 0 ? false : true
