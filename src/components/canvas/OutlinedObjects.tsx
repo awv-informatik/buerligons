@@ -220,7 +220,7 @@ const OutlinedObject: React.FC<{ group: string, id: number; children?: React.Rea
 
   const groupRef = React.useRef<THREE.Group>(null!)
 
-  useFrame(() => {
+  React.useEffect(() => {
     if (!outlinedMeshes[group]?.[id] && groupRef.current) {
       const meshes_: THREE.Object3D[] = []
   
@@ -232,7 +232,7 @@ const OutlinedObject: React.FC<{ group: string, id: number; children?: React.Rea
   
       setOutlinedMeshes(group, id, meshes_)
     }
-  })
+  }, [group, id, outlinedMeshes, setOutlinedMeshes, children])
 
   React.useEffect(() => {
     return () => removeMesh(group, id)
@@ -252,7 +252,7 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)
 
-  useFrame(() => {
+  React.useEffect(() => {
     if (!outlinedMeshes[group]?.[id]) {
       const obj = scene?.getObjectByName(id.toString())
       const meshes_: THREE.Object3D[] = []
@@ -265,7 +265,7 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
   
       setOutlinedMeshes(group, id, meshes_)
     }
-  })
+  }, [group, id, outlinedMeshes, setOutlinedMeshes, scene])
 
   React.useEffect(() => {
     return () => removeMesh(group, id)
