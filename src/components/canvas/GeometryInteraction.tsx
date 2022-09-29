@@ -199,7 +199,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   return (
     <HUD>
       <GlobalTransform drawingId={drawingId} objectId={productId}>
-        <PivotControls scale={96} lineWidth={5} fixed onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} offset={position} rotation={rotation} autoTransform={false} />
+        <PivotControls scale={96} lineWidth={5} fixed onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} offset={position} rotation={rotation} autoTransform={false} userData={{ onHUD: true }} />
       </GlobalTransform>
     </HUD>
   )
