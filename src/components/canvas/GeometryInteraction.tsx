@@ -185,6 +185,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 
   const onDragEnd = React.useCallback(() => {
     dragInfo.current = null
+    mdL.current = null
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
     ccAPI.assemblyBuilder.finishMovingUnderConstraints(drawingId, curProdId)
   }, [drawingId])
