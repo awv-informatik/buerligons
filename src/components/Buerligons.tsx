@@ -3,7 +3,7 @@ import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
@@ -12,7 +12,7 @@ import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 
-const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId }) => {
+const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ children, drawingId }) => {
   const handleMiss = React.useCallback(() => {
     const setSelected = getDrawing(drawingId).api.interaction.setSelected
     setSelected([])
@@ -31,7 +31,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
       orthographic
       frameloop="demand"
       dpr={[1, 2]}
-      raycaster={{ filter: raycastFilter }}
+      events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
       onPointerMissed={handleMiss}>
       <HoveredConstraintDisplay drawingId={drawingId} />
@@ -78,7 +78,7 @@ export const Buerligons: React.FC = () => {
               <Threshold />
 
               <Fit drawingId={drawingId}>
-                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
+                <Composer drawingId={drawingId} ssao={false} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
                     <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
                       {props => <GeometryWrapper {...props} />}
