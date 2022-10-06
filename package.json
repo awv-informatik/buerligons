@@ -54,7 +54,7 @@
   "dependencies": {
     "@buerli.io/react-cad": "0.3.0",
     "@classcad/windows-x64": "0.0.0-beta.14",
-    "@react-three/drei": "9.29.1",
+    "@react-three/drei": "9.34.0",
     "@react-three/fiber": "8.7.1",
     "@react-three/postprocessing": "2.3.1",
     "antd": "^4.23.2",
