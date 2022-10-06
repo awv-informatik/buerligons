@@ -120,10 +120,17 @@ const artifDelay = 16
 let promise: Promise<void> | null
 
 const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({ drawingId, productId, matrix }) => {
-  const dragInfo = React.useRef<{ mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4; draggedNodes: ObjectID[] } | null>(null)
+  const dragInfo = React.useRef<{ mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4 } | null>(null)
   const mdL = React.useRef<THREE.Matrix4 | null>(null)
 
-  const onDragStart = React.useCallback(() => {
+  const { position, rotation } = React.useMemo(() => {
+    return {
+      position: new THREE.Vector3().setFromMatrixPosition(matrix).toArray(),
+      rotation: new THREE.Euler().setFromRotationMatrix(matrix).toArray() as [number, number, number],
+    }
+  }, [matrix])
+
+  const onDragStart = React.useCallback(({ component }: { component: 'Arrow' | 'Slider' | 'Rotator' }) => {
     const drawing = getDrawing(drawingId)
     const curProdId = drawing.structure.currentProduct
     const curNodeId = drawing.structure.currentNode
@@ -134,18 +141,22 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 
     const mP = drawing.api.structure.calculateGlobalTransformation(curNodeId)
     const mPInv = mP.clone().invert()
-    const mL0CInv = drawing.api.structure.calculateGlobalTransformation(productId).premultiply(mPInv).invert()
+    const mL0C = drawing.api.structure.calculateGlobalTransformation(productId).premultiply(mPInv)
+    const mL0CInv = mL0C.invert()
+
+    const pivotPos = new THREE.Vector3(...position).applyMatrix4(mL0C).toArray()
+    const mucType = component === 'Arrow' ? 0 : (component === 'Slider' ? 1 : 2)
     
     const selected = (drawing.interaction.selected || [])
     const selectedRefs = selected.map(obj => obj.prodRefId ? findInteractableParent(drawingId, obj.prodRefId) : null)
     const selectedRefsUnique = selectedRefs.filter((refId, id) => refId && id === selectedRefs.indexOf(refId)) as ObjectID[]
     const draggedNodes = selectedRefsUnique.map(id => (drawing.structure.tree[id].members?.productRef?.value || id) as ObjectID)
 
-    dragInfo.current = { mPInv, mL0CInv, draggedNodes }
-    ccAPI.assemblyBuilder.startMovingUnderConstraints(drawingId, curProdId)
-  }, [drawingId, productId])
+    dragInfo.current = { mPInv, mL0CInv }
+    ccAPI.assemblyBuilder.startMovingUnderConstraints(drawingId, curProdId, draggedNodes, pivotPos, mucType)
+  }, [drawingId, productId, position])
   
-  const transformNodes = React.useCallback(async (mdL_: THREE.Matrix4, draggedNodes: ObjectID[]) => {
+  const transformNodes = React.useCallback(async (mdL_: THREE.Matrix4) => {
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
 
     const rot: number[] = []
@@ -156,7 +167,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       }
       offset.push(mdL_.elements[i + 12])
     }
-    promise = ccAPI.assemblyBuilder.moveUnderConstraints(drawingId, curProdId, draggedNodes, rot, offset).catch(console.warn)
+    promise = ccAPI.assemblyBuilder.moveUnderConstraints(drawingId, curProdId, rot, offset).catch(console.warn)
     await promise
   
     // Artificial slowdown to lessen network/server burden
@@ -164,7 +175,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     promise = null
     
     if (mdL.current) {
-      transformNodes(mdL.current.clone(), draggedNodes)
+      transformNodes(mdL.current.clone())
       mdL.current = null
     }
   }, [drawingId])
@@ -179,7 +190,7 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     if (promise) {
       mdL.current = mdL_
     } else {
-      transformNodes(mdL_, dragInfo.current.draggedNodes)
+      transformNodes(mdL_)
     }
   }, [transformNodes])
 
@@ -189,13 +200,6 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
     ccAPI.assemblyBuilder.finishMovingUnderConstraints(drawingId, curProdId)
   }, [drawingId])
-
-  const { position, rotation } = React.useMemo(() => {
-    return {
-      position: new THREE.Vector3().setFromMatrixPosition(matrix).toArray(),
-      rotation: new THREE.Euler().setFromRotationMatrix(matrix).toArray() as [number, number, number],
-    }
-  }, [matrix])
 
   return (
     <HUD>
