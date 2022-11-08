@@ -1228,10 +1228,10 @@
   resolved "https://registry.yarnpkg.com/@chevrotain/utils/-/utils-10.1.2.tgz#d2fb7b968141139e5c2419553e5295382c265e7d"
   integrity sha512-bbZIpW6fdyf7FMaeDmw3cBbkTqsecxEkwlVKgVfqqXWBPLH6azxhPA2V9F7OhoZSVrsnMYw7QuyK6qutXPjEew==
 
-"@classcad/node@10.2.1":
-  version "10.2.1"
-  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-10.2.1.tgz#35ea499b72e94ddaba21209863036bb21aca0017"
-  integrity sha512-SSNLFIX842vnVKsNnzLck2Zj8SuNb5HWB+SGYpt+P7+LQuuS0BVd2+LEsAAPdxMSsQTD/5a2nAo/WOf59bJaGg==
+"@classcad/node@10.2.3":
+  version "10.2.3"
+  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-10.2.3.tgz#9fef7b7f1c7e3187f92248466de2bfa689e28627"
+  integrity sha512-6ndF1VEvgsawXYbOEQr/ZrtKLFXM/867vUlmJSrHB3KwA5m2Uo0giu3clWzUeIMV7CmAJ06pEsQgkzT/4/qt1g==
   dependencies:
     chalk "^2.4.1"
     chokidar "^3.5.2"
@@ -1265,12 +1265,12 @@
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.0-beta.14":
-  version "0.0.0-beta.14"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.14.tgz#81af2ab9e7671d66d799c138688309fae8e939cf"
-  integrity sha512-YVKSlwMh8Lr0mTCQDVv9pC0lCTgcpCi7Co9cmedSInuvBCyukmFiydB7yKOJJ0M7Wt3Ake5ZVg470UwCgE0Opg==
+"@classcad/windows-x64@0.0.0-beta.15":
+  version "0.0.0-beta.15"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.15.tgz#bfe3cc9b1590d20651ec87fb87066bdc552c6ae1"
+  integrity sha512-ZohEqhmPldAJVBpNjcbxoicC1T0EMFsjdRxKY+hbmwBPuz0sQ7otqnAbXRHLoeWwWDbetZf/Oq2KMVZAFJx64g==
   dependencies:
-    "@classcad/node" "10.2.1"
+    "@classcad/node" "10.2.3"
     yargs "15.4.1"
 
 "@cnakazawa/watch@^1.0.3":
