@@ -1156,40 +1156,42 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@buerli.io/classcad@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.3.0.tgz#d47edd55eeeaa323769c75cb25fb4a3660ca947f"
-  integrity sha512-jwJu/aI0pK9LIdMliR8330N4q39wRuMl9LSkO6vBpXjArdaWFTdXQ14LHiDiA2AVJ+pXcXokBWdPCbOseNZang==
+"@buerli.io/classcad@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.4.1.tgz#050ea3a7bc33134f4141721aed12c58d5c344abd"
+  integrity sha512-TOuDZOILLNRk9ftLxIf0c94QMUVjgs+GZGRCqg45xHvGc94n5RPLcD3CdRPG/jGM425y4SxPQs5Cmg2zbiFMwg==
   dependencies:
-    "@buerli.io/core" "0.3.0"
+    "@buerli.io/core" "0.4.1"
+    "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
+    events "^3.3.0"
     js-untar "^2.0.0"
     pako "^2.0.3"
     path-browserify "^1.0.1"
-    react "^17.0.1"
     socket.io-client "^2.2.0"
     strict-event-emitter-types "^2.0.0"
     uuid "^3.3.2"
+    xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.3.0.tgz#0942982b34af48a64c4945f9ad3fcff48a7571a7"
-  integrity sha512-heWc01OqLCzaV8PaCbWDuMIp83//8PRSuZpOVMNxCwExGOQ52V16KEr2XLgqFkGOS43DUwAbel1xEhLIZa9/2Q==
+"@buerli.io/core@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.4.1.tgz#f3980fd78eed43e940b1c48bb38f4d2ad1490967"
+  integrity sha512-iZV/ySiwTSX2o9pIukIl3BLapQoV0H3JeKLYwTZEVCJUOb/9MG9cfFLvDEHDV+7Yb4TtEf2sLrV6PN/AzKkpAQ==
   dependencies:
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^3.3.2"
     zustand "^3.5.7"
 
-"@buerli.io/react-cad@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.3.0.tgz#fb93c8c04e0fcafb4ab0fb2b0fd152dbb91a7a05"
-  integrity sha512-K0inp0A7xiLc1cqyb6uaYumw5xlT6jvLXfivzIF/s3l0o/cU7br1r95bPPSjry24amdXfAbYDARrXgsfV9t+2A==
+"@buerli.io/react-cad@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.4.1.tgz#bdc84c2133164ec8d74e8d4a413eaf93dcda381b"
+  integrity sha512-69vR9t9WAUAOPWVxul9VN4h4g2ygxJVRcWlyZyqCdoy3yKHG/ggTtwsEjELOYKzWdT3GmvxE35pgimXS7V/6Ww==
   dependencies:
     "@ant-design/compatible" "^1.0.8"
-    "@buerli.io/classcad" "0.3.0"
-    "@buerli.io/react" "0.3.0"
+    "@buerli.io/classcad" "0.4.1"
+    "@buerli.io/react" "0.4.1"
     "@react-three/postprocessing" "2.3.1"
     antd ">=4.15.3 <4.17"
     path-browserify "^1.0.1"
@@ -1202,13 +1204,13 @@
     uuid "^3.3.2"
     zustand "^3.5.7"
 
-"@buerli.io/react@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.3.0.tgz#e06ee47ce08e8b5b51d2be4ce7af0a2f716b00cc"
-  integrity sha512-nsHAKYsM2zlBuwf3rEHd9PBC3O6mOUU3Tr4xRsawLpxd/M7ao2hNykPm2nGbKJVpDMyrbLt4ftdeAWsp7AC0IQ==
+"@buerli.io/react@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.4.1.tgz#b0c285339ef92169305f2d474184b2285ee630e7"
+  integrity sha512-oTuA14IXATgNp04NhDXEg5sZh18QtK+kIyS1Fvws+ImhMj6sA+cYOgsoddvBrzF1+katVvgchE9GUjIcDHv1RQ==
   dependencies:
     "@ant-design/icons" "^4.4.0"
-    "@buerli.io/core" "0.3.0"
+    "@buerli.io/core" "0.4.1"
     antd ">=4.15.3 <4.17"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
@@ -1244,10 +1246,10 @@
   resolved "https://registry.yarnpkg.com/@chevrotain/utils/-/utils-10.1.2.tgz#d2fb7b968141139e5c2419553e5295382c265e7d"
   integrity sha512-bbZIpW6fdyf7FMaeDmw3cBbkTqsecxEkwlVKgVfqqXWBPLH6azxhPA2V9F7OhoZSVrsnMYw7QuyK6qutXPjEew==
 
-"@classcad/node@10.2.1":
-  version "10.2.1"
-  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-10.2.1.tgz#35ea499b72e94ddaba21209863036bb21aca0017"
-  integrity sha512-SSNLFIX842vnVKsNnzLck2Zj8SuNb5HWB+SGYpt+P7+LQuuS0BVd2+LEsAAPdxMSsQTD/5a2nAo/WOf59bJaGg==
+"@classcad/node@10.2.3":
+  version "10.2.3"
+  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-10.2.3.tgz#9fef7b7f1c7e3187f92248466de2bfa689e28627"
+  integrity sha512-6ndF1VEvgsawXYbOEQr/ZrtKLFXM/867vUlmJSrHB3KwA5m2Uo0giu3clWzUeIMV7CmAJ06pEsQgkzT/4/qt1g==
   dependencies:
     chalk "^2.4.1"
     chokidar "^3.5.2"
@@ -1281,12 +1283,12 @@
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.0-beta.14":
-  version "0.0.0-beta.14"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.14.tgz#81af2ab9e7671d66d799c138688309fae8e939cf"
-  integrity sha512-YVKSlwMh8Lr0mTCQDVv9pC0lCTgcpCi7Co9cmedSInuvBCyukmFiydB7yKOJJ0M7Wt3Ake5ZVg470UwCgE0Opg==
+"@classcad/windows-x64@0.0.0-beta.15":
+  version "0.0.0-beta.15"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.0-beta.15.tgz#bfe3cc9b1590d20651ec87fb87066bdc552c6ae1"
+  integrity sha512-ZohEqhmPldAJVBpNjcbxoicC1T0EMFsjdRxKY+hbmwBPuz0sQ7otqnAbXRHLoeWwWDbetZf/Oq2KMVZAFJx64g==
   dependencies:
-    "@classcad/node" "10.2.1"
+    "@classcad/node" "10.2.3"
     yargs "15.4.1"
 
 "@cnakazawa/watch@^1.0.3":
@@ -2076,6 +2078,11 @@
   version "0.0.39"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
+
+"@types/events@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz#2862f3f58a9a7f7c3e78d79f130dd4d71c25c2a7"
+  integrity sha512-EaObqwIvayI5a8dCzhFrjKzVwKLxjoG9T6Ppd5CEo07LRKfQ8Yokw54r5+Wq7FaBQ+yXRvQAYPrHwya1/UFt9g==
 
 "@types/glob@^7.1.1":
   version "7.2.0"
@@ -6244,7 +6251,7 @@ eventemitter3@^4.0.0:
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
-events@^3.0.0:
+events@^3.0.0, events@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
   integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
@@ -12709,7 +12716,7 @@ react@18.0.0:
   dependencies:
     loose-envify "^1.1.0"
 
-react@^17.0.1:
+react@17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
   integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==
@@ -15752,6 +15759,11 @@ xmlchars@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
   integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
+
+xmlhttprequest-ssl@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/xmlhttprequest-ssl/-/xmlhttprequest-ssl-2.1.0.tgz#db66dd799327c48def1480597aaaf649bc2b2995"
+  integrity sha512-PlkG6ZrKEtYVRDboRw5uUzy3nc6vMrZyT94Z3MzLc0PvFzy6d6VD8OLKKcsk9GdQDxz0XQjIwNHvpIMC/1v0pA==
 
 xmlhttprequest-ssl@~1.6.2:
   version "1.6.3"

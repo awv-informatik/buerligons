@@ -15,7 +15,7 @@
     "buerligons:copy": "cd ../ && copyfiles -a -u 1 \"./build/**/*.*\" \"./electron/client\""
   },
   "dependencies": {
-    "@classcad/windows-x64": "0.0.0-beta.14"
+    "@classcad/windows-x64": "0.0.0-beta.15"
   },
   "devDependencies": {
     "copyfiles": "2.1.1",
