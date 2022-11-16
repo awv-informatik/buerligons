@@ -1,4 +1,12 @@
-import { AppstoreOutlined, FileOutlined, FolderOpenOutlined, MenuOutlined, ArrowLeftOutlined, ArrowRightOutlined, DownOutlined } from '@ant-design/icons'
+import {
+  AppstoreOutlined,
+  FileOutlined,
+  FolderOpenOutlined,
+  MenuOutlined,
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  DownOutlined,
+} from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
@@ -142,7 +150,7 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
 
 const { Text } = Typography
 
-const FButton: React.FC<{ command: Command, disabled: boolean }> = ({ command, disabled }) => {
+const FButton: React.FC<{ command: Command; disabled: boolean }> = ({ command, disabled }) => {
   return (
     <Tooltip title={command.label}>
       <Button disabled={disabled} size="small" onClick={command.command} icon={command.icon} />
@@ -165,11 +173,13 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
   // Menu appears right under arrow button, but it should be under feature button, so it's shifter for feature button width to the left
   const menu = (
     <MenuAntd onClick={onClick} style={{ marginLeft: '-24px' }}>
-      {command.sub && command.sub?.length > 0 && command.sub.map(subCmd => (
-        <MenuAntd.Item key={subCmd.stateId} >
-          <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>
-        </MenuAntd.Item>
-      ))}
+      {command.sub &&
+        command.sub?.length > 0 &&
+        command.sub.map(subCmd => (
+          <MenuAntd.Item key={subCmd.stateId}>
+            <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>
+          </MenuAntd.Item>
+        ))}
     </MenuAntd>
   )
 
@@ -192,7 +202,7 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
-  
+
   return (
     <Space>
       <Menu items={items} trigger={['click']}>

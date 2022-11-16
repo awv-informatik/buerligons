@@ -5,7 +5,14 @@ import { useThree, useFrame } from '@react-three/fiber'
 import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
-import { getMateRefIds, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, SelectedMateObj } from '@buerli.io/react-cad'
+import {
+  getMateRefIds,
+  WorkPointObj,
+  WorkAxisObj,
+  WorkPlaneObj,
+  WorkCoordSystemObj,
+  SelectedMateObj,
+} from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
 
@@ -26,9 +33,7 @@ const PointMesh: React.FC<{ position: THREE.Vector3 }> = ({ position }) => {
     }
   })
 
-  return (
-    <mesh ref={ref} position={position} geometry={sphereGeom} material={transparentMaterial} renderOrder={1000} />
-  )
+  return <mesh ref={ref} position={position} geometry={sphereGeom} material={transparentMaterial} renderOrder={1000} />
 }
 
 const lineWidth = 0.5
@@ -37,7 +42,6 @@ const LineMesh: React.FC<{
   start: THREE.Vector3
   end: THREE.Vector3
 }> = ({ start, end }) => {
-
   const { position, quaternion } = React.useMemo(() => {
     const dir = end.clone().sub(start).normalize()
 
@@ -60,7 +64,14 @@ const LineMesh: React.FC<{
   })
 
   return (
-    <mesh ref={ref} position={position} quaternion={quaternion} geometry={cylGeom} material={transparentMaterial} renderOrder={1000} />
+    <mesh
+      ref={ref}
+      position={position}
+      quaternion={quaternion}
+      geometry={cylGeom}
+      material={transparentMaterial}
+      renderOrder={1000}
+    />
   )
 }
 
@@ -101,25 +112,36 @@ const EdgeMesh: React.FC<{
   points: number[]
 }> = ({ points }) => {
   const [scale, setScale] = React.useState<number>(1.0)
-  
+
   useFrame(args => {
-    const newScale = CameraHelper.calculateScaleFactor(new THREE.Vector3(points[0], points[1], points[2]), 7, args.camera, args.size)
+    const newScale = CameraHelper.calculateScaleFactor(
+      new THREE.Vector3(points[0], points[1], points[2]),
+      7,
+      args.camera,
+      args.size,
+    )
     if (newScale !== scale) {
       setScale(newScale)
       args.invalidate()
     }
   })
 
-  const { path, start, end } = React.useMemo(() => ({
-    path: new EdgeApproxCurve(points),
-    start: new THREE.Vector3(points[0], points[1], points[2]),
-    end: new THREE.Vector3(points[points.length - 3], points[points.length - 2], points[points.length - 1]),
-  }), [points])
+  const { path, start, end } = React.useMemo(
+    () => ({
+      path: new EdgeApproxCurve(points),
+      start: new THREE.Vector3(points[0], points[1], points[2]),
+      end: new THREE.Vector3(points[points.length - 3], points[points.length - 2], points[points.length - 1]),
+    }),
+    [points],
+  )
 
-  const { tubeGeometry, sphereGeometry } = React.useMemo(() => ({
-    tubeGeometry: new THREE.TubeGeometry(path, points.length / 3, edgeWidth * scale, 6, false),
-    sphereGeometry: new THREE.SphereGeometry(edgeWidth * scale, 12, 12),
-  }), [path, points.length, scale])
+  const { tubeGeometry, sphereGeometry } = React.useMemo(
+    () => ({
+      tubeGeometry: new THREE.TubeGeometry(path, points.length / 3, edgeWidth * scale, 6, false),
+      sphereGeometry: new THREE.SphereGeometry(edgeWidth * scale, 12, 12),
+    }),
+    [path, points.length, scale],
+  )
 
   return (
     <>
@@ -139,7 +161,7 @@ const ArcMesh: React.FC<{
   angle: number
 }> = ({ center, xAxis, zAxis, radius, angle }) => {
   const [scale, setScale] = React.useState<number>(1.0)
-  
+
   useFrame(args => {
     const newScale = CameraHelper.calculateScaleFactor(center, 7, args.camera, args.size)
     if (newScale !== scale) {
@@ -164,14 +186,23 @@ const ArcMesh: React.FC<{
     }
   }, [center, xAxis, zAxis, radius, angle])
 
-  const { torusGeometry, sphereGeometry } = React.useMemo(() => ({
-    torusGeometry: new THREE.TorusGeometry(radius, arcWidth * scale, 6, 60, angle),
-    sphereGeometry: new THREE.SphereGeometry(arcWidth * scale, 12, 12),
-  }), [radius, angle, scale])
+  const { torusGeometry, sphereGeometry } = React.useMemo(
+    () => ({
+      torusGeometry: new THREE.TorusGeometry(radius, arcWidth * scale, 6, 60, angle),
+      sphereGeometry: new THREE.SphereGeometry(arcWidth * scale, 12, 12),
+    }),
+    [radius, angle, scale],
+  )
 
   return (
     <>
-      <mesh position={center} quaternion={quaternion} geometry={torusGeometry} material={transparentMaterial} renderOrder={1000} />
+      <mesh
+        position={center}
+        quaternion={quaternion}
+        geometry={torusGeometry}
+        material={transparentMaterial}
+        renderOrder={1000}
+      />
       <mesh position={start} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
       <mesh position={end} geometry={sphereGeometry} material={transparentMaterial} renderOrder={1000} />
     </>
@@ -186,7 +217,7 @@ const CircleMesh: React.FC<{
   radius: number
 }> = ({ center, xAxis, zAxis, radius }) => {
   const [scale, setScale] = React.useState<number>(1.0)
-  
+
   useFrame(args => {
     const newScale = CameraHelper.calculateScaleFactor(center, 7, args.camera, args.size)
     if (newScale !== scale) {
@@ -209,11 +240,17 @@ const CircleMesh: React.FC<{
   }, [radius, scale])
 
   return (
-    <mesh position={center} quaternion={quaternion} geometry={torusGeometry} material={transparentMaterial} renderOrder={1000} />
+    <mesh
+      position={center}
+      quaternion={quaternion}
+      geometry={torusGeometry}
+      material={transparentMaterial}
+      renderOrder={1000}
+    />
   )
 }
 
-const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, group, id }) => {
+const OutlinedObject: React.FC<{ group: string; id: number }> = ({ children, group, id }) => {
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)
@@ -223,13 +260,13 @@ const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, gro
   useFrame(() => {
     if (!outlinedMeshes[group]?.[id] && groupRef.current) {
       const meshes_: THREE.Object3D[] = []
-  
+
       groupRef.current.traverse(o => {
         if (o.type === 'Mesh') {
           meshes_.push(o)
         }
       })
-  
+
       setOutlinedMeshes(group, id, meshes_)
     }
   })
@@ -238,16 +275,12 @@ const OutlinedObject: React.FC<{ group: string, id: number }> = ({ children, gro
     return () => removeMesh(group, id)
   }, [group, id, removeMesh])
 
-  return (
-    <group ref={groupRef}>
-      {children}
-    </group>
-  )
+  return <group ref={groupRef}>{children}</group>
 }
 
-const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id }) => {
+const OutlinedProduct: React.FC<{ group: string; id: number }> = ({ group, id }) => {
   const { scene } = useThree()
-  
+
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)
@@ -256,13 +289,13 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
     if (!outlinedMeshes[group]?.[id]) {
       const obj = scene?.getObjectByName(id.toString())
       const meshes_: THREE.Object3D[] = []
-  
+
       obj?.traverse(o => {
         if (o.type === 'Mesh') {
           meshes_.push(o)
         }
       })
-  
+
       setOutlinedMeshes(group, id, meshes_)
     }
   })
@@ -274,29 +307,29 @@ const OutlinedProduct: React.FC<{ group: string, id: number }> = ({ group, id })
   return null
 }
 
-export function OutlinedObjects({ drawingId, info, group }: { drawingId: DrawingID, info: InteractionInfo, group: string }) {
+export function OutlinedObjects({
+  drawingId,
+  info,
+  group,
+}: {
+  drawingId: DrawingID
+  info: InteractionInfo
+  group: string
+}) {
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class)
 
   if (objClass && !info.graphicId) {
     // Assembly node
     if (ccUtils.base.isA(objClass, CCClasses.IProductReference)) {
-      return (
-        <OutlinedProduct key={info.objectId} group={group} id={info.objectId} />
-      )
+      return <OutlinedProduct key={info.objectId} group={group} id={info.objectId} />
     }
-  
+
     // Constraint
     if (ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
       const mateRefIds = getMateRefIds(drawingId, info.objectId)
-      return (
-        <>
-          {mateRefIds?.map(id => (
-            <OutlinedProduct key={id} group={group} id={id} />
-          )) || null}
-        </>
-      )
+      return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
     }
-  
+
     // Feature
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkPoint)) {
       return (
@@ -305,7 +338,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
         </OutlinedObject>
       )
     }
-  
+
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkAxis)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
@@ -313,7 +346,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
         </OutlinedObject>
       )
     }
-  
+
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkPlane)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
@@ -321,7 +354,7 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
         </OutlinedObject>
       )
     }
-  
+
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkCoordSystem)) {
       // If there is a userData in info, we actually have to outline a mate...
       if (info.userData) {
@@ -347,13 +380,12 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
         )
       }
     }
-  }
-  else if (info.graphicId && info.prodRefId && info.containerId) {
+  } else if (info.graphicId && info.prodRefId && info.containerId) {
     const cache = getDrawing(drawingId).geometry.cache
-    const geom = 
-      cache[info.graphicId] as ContainerGeometryT | undefined ||
-      cache[info.containerId]?.map[info.graphicId] as GeometryElement | undefined ||
-      cache[info.containerId]?.points.find(pt => pt.graphicId === info.graphicId) as GeometryElement | undefined
+    const geom =
+      (cache[info.graphicId] as ContainerGeometryT | undefined) ||
+      (cache[info.containerId]?.map[info.graphicId] as GeometryElement | undefined) ||
+      (cache[info.containerId]?.points.find(pt => pt.graphicId === info.graphicId) as GeometryElement | undefined)
 
     // Solid
     if ((geom as ContainerGeometryT)?.type === 'brep') {
@@ -367,7 +399,12 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
     }
 
     // Mesh
-    if ((geom as GeometryElement)?.type === 'plane' || (geom as GeometryElement)?.type === 'cylinder'|| (geom as GeometryElement)?.type === 'cone' || (geom as GeometryElement)?.type === 'nurbs') {
+    if (
+      (geom as GeometryElement)?.type === 'plane' ||
+      (geom as GeometryElement)?.type === 'cylinder' ||
+      (geom as GeometryElement)?.type === 'cone' ||
+      (geom as GeometryElement)?.type === 'nurbs'
+    ) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -404,7 +441,13 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-            <ArcMesh center={(geom as any).center} xAxis={(geom as any).rawGraphic.xAxis} zAxis={(geom as any).rawGraphic.zAxis} radius={(geom as any).radius} angle={(geom as any).angle} />
+            <ArcMesh
+              center={(geom as any).center}
+              xAxis={(geom as any).rawGraphic.xAxis}
+              zAxis={(geom as any).rawGraphic.zAxis}
+              radius={(geom as any).radius}
+              angle={(geom as any).angle}
+            />
           </GlobalTransform>
         </OutlinedObject>
       )
@@ -415,7 +458,12 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-            <CircleMesh center={(geom as any).center} xAxis={(geom as any).rawGraphic.xAxis} zAxis={(geom as any).rawGraphic.zAxis} radius={(geom as any).radius} />
+            <CircleMesh
+              center={(geom as any).center}
+              xAxis={(geom as any).rawGraphic.xAxis}
+              zAxis={(geom as any).rawGraphic.zAxis}
+              radius={(geom as any).radius}
+            />
           </GlobalTransform>
         </OutlinedObject>
       )
