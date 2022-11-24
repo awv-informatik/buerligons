@@ -19,7 +19,7 @@ module.exports = (config, env) => {
   fs.writeFileSync('./tsconfig.json', originalTSConfigStr)
 
   return override(
-    addWebpackModuleRule({ test: /\.(of1|stp)$/, use: 'arraybuffer-loader' }),
+    addWebpackModuleRule({ test: /\.(ofb|stp|step)$/, use: 'arraybuffer-loader' }),
     disableEsLint(),
     removeModuleScopePlugin(),
     fixBabelImports('import', { libraryName: 'antd', libraryDirectory: 'es', style: true }),

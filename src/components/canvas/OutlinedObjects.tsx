@@ -75,7 +75,7 @@ class EdgeApproxCurve extends THREE.Curve<THREE.Vector3> {
     this.step = 1.0 / (points_.length / 3 - 1)
   }
 
-  getPoint(t: number, optionalTarget: THREE.Vector3 = new THREE.Vector3()) {
+  override getPoint(t: number, optionalTarget: THREE.Vector3 = new THREE.Vector3()) {
     const l = t / this.step
     const index = Math.floor(l)
     const k = l - index
