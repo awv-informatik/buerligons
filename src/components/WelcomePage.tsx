@@ -1,12 +1,10 @@
 import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import { Button, Dropdown, Menu, Space, MenuProps } from 'antd'
+import { Button, Dropdown, Space, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
-
-type MenuItem = Required<MenuProps>['items'][number];
 
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
@@ -36,18 +34,18 @@ export const WelcomePage: React.FC = () => {
     [createPart, createAssembly],
   )
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuProps['items'] = [
     { label: 'Part', key: 'Part', icon: (<FileOutlined />) },
     { label: 'Assembly', key: 'Assembly', icon: (<AppstoreOutlined />) },
   ]
 
-  const menu = (<Menu items={menuItems} onClick={onClick} />)
+  const menuProps = { items: menuItems, onClick }
 
   return (
     <>
       <Logo>buerligons</Logo>
       <Main>
-        <Dropdown overlay={menu}>
+        <Dropdown menu={menuProps}>
           <WideButton type="primary">
             <Space>Create New ...</Space>
           </WideButton>
