@@ -1,5 +1,5 @@
 import create from 'zustand'
-import vanillaCreate, { GetState, SetState } from 'zustand/vanilla'
+import vanillaCreate, { StoreApi } from 'zustand/vanilla'
 
 const anyWnd = window as any
 const ipc = anyWnd.electron?.ipcRenderer
@@ -14,12 +14,12 @@ type StoreProps = {
   loadClassFile: () => void
 }
 
-const store = (set: SetState<StoreProps>, get: GetState<StoreProps>): StoreProps => ({
+const store = (set: StoreApi<StoreProps>['setState'], get: StoreApi<StoreProps>['getState']): StoreProps => ({
   isEmbeddedApp: false,
   loadClassFile: () => ipc?.send(CHANNEL, { command: LOAD_CLASSFILE }),
 })
 const ipcAPI = vanillaCreate<StoreProps>(store)
-const useIPC = create<StoreProps>(ipcAPI)
+const useIPC = create(ipcAPI)
 
 ipcAPI.setState(s => ({ ...s, isEmbeddedApp: Boolean(ipc) }))
 

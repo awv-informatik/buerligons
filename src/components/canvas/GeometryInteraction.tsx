@@ -29,7 +29,7 @@ declare global {
   }
 }
   
-export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawingId, children }) => {
+export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ drawingId, children }) => {
   const group = React.useRef<THREE.Group>(null!)
   
   const onGeometryMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -50,7 +50,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     const hovered = drawing.interaction.hovered
     const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
 
-    if (e.buttons !== 0) {
+    if (e.nativeEvent.buttons !== 0) {
       if (hoveredId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
@@ -125,7 +125,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID }> = ({ drawin
     if (!isSelActive) {
 
       const select = drawing.api.interaction.select
-      const multi = e.shiftKey
+      const multi = e.nativeEvent.shiftKey
 
       isPartMode && select(createInfo({
         objectId: drawing.geometry.cache[id].container.ownerId,
