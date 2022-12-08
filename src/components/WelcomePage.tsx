@@ -6,8 +6,6 @@ import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
 
-type MenuItem = Required<MenuProps>['items'][number];
-
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
 
