@@ -3,9 +3,11 @@ import { ccAPI } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
-import { Button, Space, Tooltip, Typography, Menu as MenuAntd, Dropdown, MenuProps } from 'antd'
+import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
+
+import './FileMenu.css'
 
 type States = {
   current: number
@@ -169,10 +171,7 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
     key: subCmd.stateId,
   }) as MenuItem) || []
 
-  // Menu appears right under arrow button, but it should be under feature button, so it's shifter for feature button width to the left
-  const menu = (
-    <MenuAntd items={menuItems} onClick={onClick} style={{ marginLeft: '-24px' }} />
-  )
+  const menuProps = { items: menuItems, onClick }
 
   const disabled = command.sub && command.sub.length > 0 ? false : true
 
@@ -180,7 +179,7 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
     <>
       <Button.Group style={{ top: '1px' }}>
         <FButton command={command} disabled={disabled} />
-        <Dropdown disabled={disabled} overlay={menu}>
+        <Dropdown overlayClassName="subgroup-dropdown" disabled={disabled} menu={menuProps}>
           <Button icon={<DownOutlined />} size="small" style={{ width: '14px' }} />
         </Dropdown>
       </Button.Group>

@@ -372,7 +372,7 @@ export class OrthographicTrackballControls extends EventDispatcher {
       event.preventDefault()
       event.stopPropagation()
 
-      if (_state === STATE.NONE) {
+      if (_state === STATE.NONE && event.button < 3) {
         _state = event.button
       }
 

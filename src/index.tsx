@@ -1,4 +1,3 @@
-import '@buerli.io/react/build/middleware/batchedUpdates'
 import 'antd/dist/antd.less'
 import './ipc'
 import React from 'react'
@@ -9,7 +8,7 @@ import { Global } from './styles/Global'
 
 initBuerli()
 
-const container = document.getElementById('app')
+const container = document.getElementById('root')
 const root = createRoot(container!)
 
 root.render(

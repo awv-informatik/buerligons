@@ -10,7 +10,7 @@ import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
 import { PivotControls } from '@react-three/drei'
 
 class Background extends THREE.Object3D {
-  public raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+  override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
     const res = {
       distance: raycaster.far,
       distanceToRay: 0,
