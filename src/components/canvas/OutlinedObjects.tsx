@@ -297,7 +297,11 @@ export function OutlinedObjects({ drawingId, info, group }: { drawingId: Drawing
       )
     }
   
-    // Feature
+    // Feature; should only be outlined when hovered
+    if (group !== 'hovered') {
+      return null
+    }
+
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkPoint)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
