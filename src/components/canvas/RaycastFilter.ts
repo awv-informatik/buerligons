@@ -1,4 +1,4 @@
-import { FilterFunction } from "@react-three/fiber/dist/declarations/src/core/events"
+import { FilterFunction } from '@react-three/fiber/dist/declarations/src/core/events'
 
 export const raycastFilter: FilterFunction = (intersects, state) => {
   const sorted = [...intersects].sort((a, b) => {

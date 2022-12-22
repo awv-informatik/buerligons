@@ -250,7 +250,11 @@ const CircleMesh: React.FC<{
   )
 }
 
-const OutlinedObject: React.FC<{ group: string, id: number; children?: React.ReactNode }> = ({ children, group, id }) => {
+const OutlinedObject: React.FC<{ group: string; id: number; children?: React.ReactNode }> = ({
+  children,
+  group,
+  id,
+}) => {
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
   const setOutlinedMeshes = useOutlinesStore(s => s.setOutlinedMeshes)
   const removeMesh = useOutlinesStore(s => s.removeMesh)

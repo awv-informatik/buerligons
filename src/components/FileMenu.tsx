@@ -31,7 +31,7 @@ type Command = {
   stateId?: string
 }
 
-type MenuItem = Required<MenuProps>['items'][number];
+type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
   const rfRef = React.useRef<HTMLInputElement>()
@@ -174,10 +174,14 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
     [command],
   )
 
-  const menuItems = command.sub?.map(subCmd => ({
-    label: (<Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>),
-    key: subCmd.stateId,
-  }) as MenuItem) || []
+  const menuItems =
+    command.sub?.map(
+      subCmd =>
+        ({
+          label: <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>,
+          key: subCmd.stateId,
+        } as MenuItem),
+    ) || []
 
   const menuProps = { items: menuItems, onClick }
 
