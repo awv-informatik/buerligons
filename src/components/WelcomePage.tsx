@@ -1,7 +1,7 @@
 import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import { Button, Dropdown, Menu, Space } from 'antd'
+import { Button, Dropdown, Space, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
@@ -23,22 +23,29 @@ export const WelcomePage: React.FC = () => {
     rfRef.current && rfRef.current.click()
   }, [])
 
-  const menu = (
-    <Menu onClick={() => null}>
-      <Menu.Item key="Part" icon={<FileOutlined />} onClick={createPart}>
-        Part
-      </Menu.Item>
-      <Menu.Item key="Assembly" icon={<AppstoreOutlined />} onClick={createAssembly}>
-        Assembly
-      </Menu.Item>
-    </Menu>
+  const onClick = React.useCallback(
+    (e: { key: string }) => {
+      if (e.key === 'Part') {
+        createPart()
+      } else {
+        createAssembly()
+      }
+    },
+    [createPart, createAssembly],
   )
+
+  const menuItems: MenuProps['items'] = [
+    { label: 'Part', key: 'Part', icon: (<FileOutlined />) },
+    { label: 'Assembly', key: 'Assembly', icon: (<AppstoreOutlined />) },
+  ]
+
+  const menuProps = { items: menuItems, onClick }
 
   return (
     <>
       <Logo>buerligons</Logo>
       <Main>
-        <Dropdown overlay={menu}>
+        <Dropdown menu={menuProps}>
           <WideButton type="primary">
             <Space>Create New ...</Space>
           </WideButton>

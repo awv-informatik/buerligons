@@ -59,7 +59,7 @@ const Chain = React.memo(
   ({ enabled, radius, hoveredColor, selectedColor, edgeStrength, ssao = true, ...props }: any) => {
     return (
       <EffectComposer enabled={enabled} multisampling={8} autoClear={false} {...props}>
-        {ssao && <SSAO radius={radius} intensity={85} luminanceInfluence={0.2} color="black" />}
+        {ssao && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
           hoveredColor={hoveredColor}
           selectedColor={selectedColor}
