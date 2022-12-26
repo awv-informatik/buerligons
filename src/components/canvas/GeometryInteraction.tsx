@@ -22,7 +22,7 @@ class Background extends THREE.Object3D {
     intersects.push(res)
   }
 }
-  
+
 extend({ Background })
 
 declare global {
@@ -210,7 +210,10 @@ const GizmoWrapper: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   )
 }
   
-export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ drawingId, children }) => {
+export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({
+  drawingId,
+  children,
+}) => {
   const group = React.useRef<THREE.Group>(null!)
 
   const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)

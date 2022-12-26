@@ -24,15 +24,6 @@
       "pre-commit": "lint-staged"
     }
   },
-  "prettier": {
-    "semi": false,
-    "trailingComma": "all",
-    "singleQuote": true,
-    "arrowParens": "avoid",
-    "jsxBracketSameLine": true,
-    "tabWidth": 2,
-    "printWidth": 120
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": [
       "prettier --write",
