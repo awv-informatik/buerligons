@@ -1146,12 +1146,12 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@buerli.io/classcad@0.5.0-beta.2":
-  version "0.5.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.5.0-beta.2.tgz#6045bdfeb51153cd4cb3c5dc4f77eedac26a4906"
-  integrity sha512-lOhRJwkXkTFB2G2fuExXcOtK2O8cu5QSkpWkiYfNTgRClSMFeNBUvJjwi0IhvvdQdtZCOD/7Hailr/O5Rt8t4g==
+"@buerli.io/classcad@0.5.0-beta.4":
+  version "0.5.0-beta.4"
+  resolved "https://nexus001.ntb.ch/repository/blexon-npm-group/@buerli.io/classcad/-/classcad-0.5.0-beta.4.tgz#859fa98a36d350c57e363bcaf5c2f404fa6d09c7"
+  integrity sha512-IMpBArGFaZajtdUuCa8J6R9v0HONqMqu1AlxCcbZTM2KjtEgi17CQa5QibufX+7hl8C9L0xN58Aj57GmIcQ93Q==
   dependencies:
-    "@buerli.io/core" "0.5.0-beta.2"
+    "@buerli.io/core" "0.5.0-beta.4"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
@@ -1164,24 +1164,24 @@
     uuid "^3.3.2"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.5.0-beta.2":
-  version "0.5.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.5.0-beta.2.tgz#0874a2fb74421430e64858a123a3f853059badf6"
-  integrity sha512-Na4BVvoa5P3eJo8ebwhULdHQ3N0Zv/lm0f5hYCVnrpxzhdaoKn9lNFk4xDaBx2xPOOjtMZaU/h/L+lmdIlR0kw==
+"@buerli.io/core@0.5.0-beta.4":
+  version "0.5.0-beta.4"
+  resolved "https://nexus001.ntb.ch/repository/blexon-npm-group/@buerli.io/core/-/core-0.5.0-beta.4.tgz#43f44d498683da22b3a0755f74ca69561c3936fe"
+  integrity sha512-sTWej8k3iMy3ReWHyW1XMj97IjXTqXZOzZALVOstHZdt1cyWjgqLSu+AgGpHOBDnEHTrBMX6V5uP1Z4bfIGhWA==
   dependencies:
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^3.3.2"
     zustand "^4.1.4"
 
-"@buerli.io/react-cad@0.5.0-beta.2":
-  version "0.5.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.5.0-beta.2.tgz#9089b50883e5e55cb04d60d4378cea7ccbf27cdb"
-  integrity sha512-UHw0/v3n3YnQpysR+qHl85604s0XCL3ZuciXDEG7g6xZ6vdsvqpchnd4NcsqpH3RdwWxGKTcQWmVMiqltiWOGg==
+"@buerli.io/react-cad@0.5.0-beta.4":
+  version "0.5.0-beta.4"
+  resolved "https://nexus001.ntb.ch/repository/blexon-npm-group/@buerli.io/react-cad/-/react-cad-0.5.0-beta.4.tgz#dddd890206cfe8031ba427f3f737e56f81e56f1f"
+  integrity sha512-+PWY+EIS+5uV2EaFXhZRg8A9KxNWpCtLye38gQZYzjWq/rbW14Yk2iB21DzZScltRLEck0ywNXDf53hSQDvHRw==
   dependencies:
     "@ant-design/compatible" "^1.0.8"
-    "@buerli.io/classcad" "0.5.0-beta.2"
-    "@buerli.io/react" "0.5.0-beta.2"
+    "@buerli.io/classcad" "0.5.0-beta.4"
+    "@buerli.io/react" "0.5.0-beta.4"
     "@react-three/postprocessing" "2.6.2"
     antd "^4.23.4"
     path-browserify "^1.0.1"
@@ -1195,13 +1195,13 @@
     uuid "^3.3.2"
     zustand "^4.1.4"
 
-"@buerli.io/react@0.5.0-beta.2":
-  version "0.5.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.5.0-beta.2.tgz#949923dbce6f8c47f1590fead7d5bf67712bc6d7"
-  integrity sha512-zht6jidJATAhgAFPk0HMelsci0l9JjEuk6NemDyWbNOCYiWrrkjRuqJuvHu75wqwHRCGmfyWC8bThiMic60rlg==
+"@buerli.io/react@0.5.0-beta.4":
+  version "0.5.0-beta.4"
+  resolved "https://nexus001.ntb.ch/repository/blexon-npm-group/@buerli.io/react/-/react-0.5.0-beta.4.tgz#7c4f0c414973adcbe68a35e9db89e4d4450400ab"
+  integrity sha512-+6t/DHXCzKi5w3tfoF2XJzZ4ttb7aSCcd4EZsTVL9Sa3uPNM0Jb/I4FV6PRPPsRs4uLV65q1I76FmqYYXkT+cg==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "0.5.0-beta.2"
+    "@buerli.io/core" "0.5.0-beta.4"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
