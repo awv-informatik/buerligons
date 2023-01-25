@@ -15,5 +15,5 @@ root.render(
   <>
     <Global />
     <App />
-  </>
+  </>,
 )
