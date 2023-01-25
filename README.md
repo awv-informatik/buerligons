@@ -29,18 +29,16 @@ If you are on Windows, you can start the classcad server from this package.
 ```
 yarn classcad
 ```
+
 The server should now be available at http://localhost:8182. Please check the status:
 
 ```
 http://localhost:8182/status
 ```
 
-
-
 **Linux/OSX:**
 
 You need to run the ClassCAD Server in Docker. Please follow the instructions here [@classcad/linux-x64](https://www.npmjs.com/package/@classcad/linux-x64).
-
 
 ### Client
 

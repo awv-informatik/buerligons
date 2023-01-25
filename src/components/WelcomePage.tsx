@@ -35,8 +35,8 @@ export const WelcomePage: React.FC = () => {
   )
 
   const menuItems: MenuProps['items'] = [
-    { label: 'Part', key: 'Part', icon: (<FileOutlined />) },
-    { label: 'Assembly', key: 'Assembly', icon: (<AppstoreOutlined />) },
+    { label: 'Part', key: 'Part', icon: <FileOutlined /> },
+    { label: 'Assembly', key: 'Assembly', icon: <AppstoreOutlined /> },
   ]
 
   const menuProps = { items: menuItems, onClick }
