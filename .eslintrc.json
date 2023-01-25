@@ -40,7 +40,6 @@
     "no-empty": ["error", { "allowEmptyCatch": true }],
     "no-shadow": ["error", { "builtinGlobals": false, "hoist": "all", "allow": [] }],
 
-    "react/prop-types": "off",
-    "react/no-unknown-property": "off"
+    "react/prop-types": "off"
   }
 }

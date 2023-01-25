@@ -24,6 +24,15 @@
       "pre-commit": "lint-staged"
     }
   },
+  "prettier": {
+    "semi": false,
+    "trailingComma": "all",
+    "singleQuote": true,
+    "arrowParens": "avoid",
+    "jsxBracketSameLine": true,
+    "tabWidth": 2,
+    "printWidth": 120
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": [
       "prettier --write",
@@ -43,7 +52,7 @@
     ]
   },
   "dependencies": {
-    "@buerli.io/react-cad": "0.5.0-beta.4",
+    "@buerli.io/react-cad": "0.5.0-beta.2",
     "@classcad/windows-x64": "0.0.0-beta.15",
     "@react-three/drei": "9.34.1",
     "@react-three/fiber": "8.7.1",
