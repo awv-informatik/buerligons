@@ -38,12 +38,11 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   const onGeometryMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
-      const isSelActive = drawing.selection.active !== null
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSelActive || isSketchActive) {
+      if (isSketchActive) {
         return
       }
 
@@ -92,7 +91,6 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       e.stopPropagation()
 
       const drawing = getDrawing(drawingId)
-      const isSelActive = drawing.selection.active !== null
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
       const hovered = drawing.interaction.hovered
@@ -100,7 +98,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
 
-      if (!isSelActive && !object && hoveredId) {
+      if (!object && hoveredId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
       }

@@ -321,6 +321,11 @@ export function OutlinedObjects({
   group: string
 }) {
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class)
+  const isSelActive = useDrawing(drawingId, d => d.selection.active !== null)
+
+  if (isSelActive) {
+    return null
+  }
 
   if (objClass && !info.graphicId) {
     // Assembly node
