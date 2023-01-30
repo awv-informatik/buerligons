@@ -11,6 +11,7 @@ import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInte
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
+import { Bvh } from './canvas/Bvh'
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId }) => {
   const handleMiss = React.useCallback(() => {
@@ -35,7 +36,9 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID }> = ({ children, drawingId })
       camera={{ position: [0, 0, 10], zoom: 50 }}
       onPointerMissed={handleMiss}>
       <HoveredConstraintDisplay drawingId={drawingId} />
-      <React.Suspense fallback={null}>{children}</React.Suspense>
+      <React.Suspense fallback={null}>
+        <Bvh drawingId={drawingId}>{children}</Bvh>
+      </React.Suspense>
     </Canvas>
   )
 }
