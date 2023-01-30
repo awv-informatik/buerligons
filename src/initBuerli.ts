@@ -1,11 +1,9 @@
 import { CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
-import { api, getDrawing } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
   BoundingBoxInfo,
   Box,
-  CADApi,
   Chamfer,
   CircularPattern,
   Cone,
@@ -39,18 +37,9 @@ import {
 } from '@buerli.io/react-cad'
 
 const CCSERVERURL = 'ws://localhost:8182'
-const isDev = process.env.NODE_ENV === 'development'
 
 export const initBuerli = () => {
   console.info('initBuerli')
-
-  // Add the app store to the window for debugging purpose.
-  if (isDev) {
-    const wnd = window as any
-    wnd.buerliStore = api
-    wnd.cadStore = CADApi
-    wnd.getDrawing = () => (api.getState().drawing.active ? getDrawing(api.getState().drawing.active || '') : null)
-  }
 
   init(id => new SocketIOClient(CCSERVERURL, id), {
     theme: {
