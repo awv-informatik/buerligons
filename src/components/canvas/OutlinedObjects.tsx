@@ -333,8 +333,12 @@ export function OutlinedObjects({
       const mateRefIds = getMateRefIds(drawingId, info.objectId)
       return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
     }
+  
+    // Feature; should only be outlined when hovered
+    if (group !== 'hovered') {
+      return null
+    }
 
-    // Feature
     if (ccUtils.base.isA(objClass, CCClasses.CCWorkPoint)) {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
