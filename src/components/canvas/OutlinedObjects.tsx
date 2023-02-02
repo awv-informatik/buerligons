@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { useThree, useFrame } from '@react-three/fiber'
-import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo } from '@buerli.io/core'
+import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
 import {
@@ -250,7 +250,7 @@ const CircleMesh: React.FC<{
   )
 }
 
-const OutlinedObject: React.FC<{ group: string; id: number; children?: React.ReactNode }> = ({
+const OutlinedObject: React.FC<{ group: string; id: ObjectID; children?: React.ReactNode }> = ({
   children,
   group,
   id,
@@ -282,7 +282,7 @@ const OutlinedObject: React.FC<{ group: string; id: number; children?: React.Rea
   return <group ref={groupRef}>{children}</group>
 }
 
-const OutlinedProduct: React.FC<{ group: string; id: number }> = ({ group, id }) => {
+const OutlinedProduct: React.FC<{ group: string; id: ObjectID }> = ({ group, id }) => {
   const { scene } = useThree()
 
   const outlinedMeshes = useOutlinesStore(s => s.outlinedMeshes)
@@ -333,7 +333,7 @@ export function OutlinedObjects({
       const mateRefIds = getMateRefIds(drawingId, info.objectId)
       return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
     }
-  
+
     // Feature; should only be outlined when hovered
     if (group !== 'hovered') {
       return null

@@ -3,7 +3,7 @@ import create from 'zustand'
 
 import { ObjectID } from '@buerli.io/core'
 
-type OutlinedMeshes = { [key: number]: THREE.Object3D[] }
+type OutlinedMeshes = { [key: ObjectID]: THREE.Object3D[] }
 
 export const useOutlinesStore = create<{
   outlinedMeshes: { [key: string]: OutlinedMeshes }
