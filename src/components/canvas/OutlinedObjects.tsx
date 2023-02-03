@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { useThree, useFrame } from '@react-three/fiber'
-import { DrawingID, getDrawing, GeometryElement, ContainerGeometryT, InteractionInfo, ObjectID } from '@buerli.io/core'
+import { DrawingID, getDrawing, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, CameraHelper, Overlay } from '@buerli.io/react'
 import {
@@ -391,12 +391,12 @@ export function OutlinedObjects({
   } else if (info.graphicId && info.prodRefId && info.containerId) {
     const cache = getDrawing(drawingId).geometry.cache
     const geom =
-      (cache[info.graphicId] as ContainerGeometryT | undefined) ||
-      (cache[info.containerId]?.map[info.graphicId] as GeometryElement | undefined) ||
-      (cache[info.containerId]?.points.find(pt => pt.graphicId === info.graphicId) as GeometryElement | undefined)
+      cache[info.graphicId as any] ||
+      cache[info.containerId]?.map[info.graphicId] ||
+      cache[info.containerId]?.points.find(pt => pt.graphicId === info.graphicId)
 
     // Solid
-    if ((geom as ContainerGeometryT)?.type === 'brep') {
+    if (geom?.type === 'brep') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -407,12 +407,7 @@ export function OutlinedObjects({
     }
 
     // Mesh
-    if (
-      (geom as GeometryElement)?.type === 'plane' ||
-      (geom as GeometryElement)?.type === 'cylinder' ||
-      (geom as GeometryElement)?.type === 'cone' ||
-      (geom as GeometryElement)?.type === 'nurbs'
-    ) {
+    if (geom?.type === 'plane' || geom?.type === 'cylinder' || geom?.type === 'cone' || geom?.type === 'nurbs') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -423,7 +418,7 @@ export function OutlinedObjects({
     }
 
     // Line
-    if ((geom as GeometryElement)?.type === 'line') {
+    if (geom?.type === 'line') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -434,7 +429,7 @@ export function OutlinedObjects({
     }
 
     // Edge
-    if ((geom as GeometryElement)?.type === 'edge') {
+    if (geom?.type === 'edge') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -445,7 +440,7 @@ export function OutlinedObjects({
     }
 
     // Arc
-    if ((geom as GeometryElement)?.type === 'arc') {
+    if (geom?.type === 'arc') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -462,7 +457,7 @@ export function OutlinedObjects({
     }
 
     // Circle
-    if ((geom as GeometryElement)?.type === 'circle') {
+    if (geom?.type === 'circle') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -478,7 +473,7 @@ export function OutlinedObjects({
     }
 
     // Point
-    if ((geom as GeometryElement)?.type === 'point') {
+    if (geom?.type === 'point') {
       return (
         <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>

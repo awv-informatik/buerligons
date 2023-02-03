@@ -9,6 +9,7 @@ import { Outline } from '@buerli.io/react-cad'
 import { useOutlinesStore } from './OutlinesStore'
 import { OutlinedObjects } from './OutlinedObjects'
 import { AutoClear } from './AutoClear'
+import { NOID } from '@buerli.io/core'
 
 export function Composer({
   children,
@@ -28,7 +29,7 @@ export function Composer({
   const sketchActive = useBuerli(s => {
     const drawing = s.drawing.refs[s.drawing.active!]
     const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+    const objClass = drawing.structure.tree[(plugin?.id as any) || NOID]?.class || ''
     return ccUtils.base.isA(objClass, CCClasses.CCSketch)
   })
   // Decide if effects-chain is active or not

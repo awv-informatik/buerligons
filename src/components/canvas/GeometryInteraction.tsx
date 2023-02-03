@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, getDrawing } from '@buerli.io/core'
+import { createInfo, DrawingID, getDrawing, NOID } from '@buerli.io/core'
 import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
 
 class Background extends THREE.Object3D {
@@ -39,8 +39,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
+      const active = drawing.plugin.refs[drawing.plugin.active.feature || NOID]
+      const objClass = drawing.structure.tree[(active?.id as any) || NOID]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
       if (isSelActive || isSketchActive) {
@@ -49,7 +49,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       e.stopPropagation()
 
-      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
+      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || NOID]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
       const hovered = drawing.interaction.hovered
       const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
@@ -93,7 +93,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
+      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || NOID]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
       const hovered = drawing.interaction.hovered
       const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
@@ -116,8 +116,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
+      const active = drawing.plugin.refs[drawing.plugin.active.feature || NOID]
+      const objClass = drawing.structure.tree[(active?.id as any) || NOID]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
       if (isSelActive || isSketchActive) {
@@ -126,7 +126,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       e.stopPropagation()
 
-      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
+      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || NOID]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
       const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
