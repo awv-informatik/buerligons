@@ -28,7 +28,7 @@ export function Composer({
   const sketchActive = useBuerli(s => {
     const drawing = s.drawing.refs[s.drawing.active!]
     const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+    const objClass = drawing?.structure.tree[plugin?.id || -1]?.class || ''
     return ccUtils.base.isA(objClass, CCClasses.CCSketch)
   })
   // Decide if effects-chain is active or not
