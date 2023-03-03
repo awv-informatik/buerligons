@@ -128,6 +128,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
           rotation={rotation}
           autoTransform={false}
           userData={{ onHUD: true }}
+          displayValues={false}
         />
       </GlobalTransform>
     </HUD>
