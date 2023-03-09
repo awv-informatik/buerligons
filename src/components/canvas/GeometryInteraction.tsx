@@ -2,8 +2,11 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, getDrawing } from '@buerli.io/core'
+import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
+
+import { Gizmo, getGizmoInfo } from './Gizmo'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -34,6 +37,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   children,
 }) => {
   const group = React.useRef<THREE.Group>(null!)
+
+  const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
 
   const onGeometryMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
@@ -129,13 +134,19 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-      const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
+      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const object = intersection?.object
       if (!object) {
         return
       }
 
       const id = isPartMode ? object.userData.containerId : object.userData.productId
       if (!isSelActive) {
+        if (!isPartMode) {
+          const gizmoInfo_ = getGizmoInfo(drawingId, intersection, e.ray)
+          setGizmoInfo(gizmoInfo_)
+        }
+
         const select = drawing.api.interaction.select
         const multi = e.nativeEvent.shiftKey
 
@@ -168,11 +179,19 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
     [drawingId],
   )
 
+  const selected = useDrawing(drawingId, d => d.interaction.selected)
+  React.useEffect(() => {
+    if ((!selected || selected.length === 0) && gizmoInfo) {
+      setGizmoInfo(null)
+    }
+  }, [selected, gizmoInfo])
+
   return (
     <>
       <group ref={group} onPointerMove={onGeometryMove} onClick={onGeometryClick}>
         {children}
       </group>
+      {gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}
       <background onPointerMove={onBackgroundMove} onClick={onBackgroundClick} />
     </>
   )
