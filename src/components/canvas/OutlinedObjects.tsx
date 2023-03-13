@@ -320,14 +320,34 @@ export function OutlinedObjects({
   info: InteractionInfo
   group: string
 }) {
-  const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class)
+  const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
+  const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
+  const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-  if (objClass && !info.graphicId) {
-    // Assembly node
-    if (ccUtils.base.isA(objClass, CCClasses.IProductReference)) {
-      return <OutlinedProduct key={info.objectId} group={group} id={info.objectId} />
+  const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
+  const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
+
+  if (!isSelActive && info.prodRefId) {
+    // Global selection and hovering are handled there
+    if (!isPartMode && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
+      // Assembly node
+      return <OutlinedProduct key={info.uniqueIdent} group={group} id={info.prodRefId} />
     }
 
+    if (isPartMode && info.containerId) {
+      // Solid
+      const geom = getDrawing(drawingId).geometry.cache[info.containerId]
+      return (
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.containerId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <Overlay.Entity drawingId={drawingId} elem={geom as any} opacity={0} />
+          </GlobalTransform>
+        </OutlinedObject>
+      )
+    }
+  }
+
+  if (!info.graphicId) {
     // Constraint
     if (ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
       const mateRefIds = getMateRefIds(drawingId, info.objectId)
@@ -398,7 +418,7 @@ export function OutlinedObjects({
     // Solid
     if ((geom as ContainerGeometryT)?.type === 'brep') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <Overlay.Entity drawingId={drawingId} elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -414,7 +434,7 @@ export function OutlinedObjects({
       (geom as GeometryElement)?.type === 'nurbs'
     ) {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <Overlay.Mesh elem={geom as any} opacity={0} />
           </GlobalTransform>
@@ -425,7 +445,7 @@ export function OutlinedObjects({
     // Line
     if ((geom as GeometryElement)?.type === 'line') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <LineMesh start={(geom as any).start} end={(geom as any).end} />
           </GlobalTransform>
@@ -436,7 +456,7 @@ export function OutlinedObjects({
     // Edge
     if ((geom as GeometryElement)?.type === 'edge') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <EdgeMesh points={(geom as any).rawGraphic.points} />
           </GlobalTransform>
@@ -447,7 +467,7 @@ export function OutlinedObjects({
     // Arc
     if ((geom as GeometryElement)?.type === 'arc') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <ArcMesh
               center={(geom as any).center}
@@ -464,7 +484,7 @@ export function OutlinedObjects({
     // Circle
     if ((geom as GeometryElement)?.type === 'circle') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <CircleMesh
               center={(geom as any).center}
@@ -480,7 +500,7 @@ export function OutlinedObjects({
     // Point
     if ((geom as GeometryElement)?.type === 'point') {
       return (
-        <OutlinedObject key={info.objectId} group={group} id={info.objectId}>
+        <OutlinedObject key={info.uniqueIdent} group={group} id={info.graphicId}>
           <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
             <PointMesh position={(geom as any).position} />
           </GlobalTransform>

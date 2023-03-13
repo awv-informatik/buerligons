@@ -2,11 +2,12 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from './Gizmo'
+import { selectObject } from './Interaction/utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -36,31 +37,24 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   drawingId,
   children,
 }) => {
-  const group = React.useRef<THREE.Group>(null!)
-
   const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
 
   const onGeometryMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
-      const isSelActive = drawing.selection.active !== null
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSelActive || isSketchActive) {
+      if (isSketchActive) {
         return
       }
 
       e.stopPropagation()
 
-      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
-      const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
       const hovered = drawing.interaction.hovered
-      const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
-
       if (e.nativeEvent.buttons !== 0) {
-        if (hoveredId) {
+        if (hovered) {
           const setHovered = drawing.api.interaction.setHovered
           setHovered(null)
         }
@@ -68,25 +62,24 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         return
       }
 
-      const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
-      if (!object) {
+      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const uData = intersection?.object?.userData
+      const index = intersection?.index || -1
+      const faceIndex = intersection?.faceIndex || -1
+      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      if (!object || !uData) {
         return
       }
 
-      const id = isPartMode ? object.userData.containerId : object.userData.productId
-      if (id !== hoveredId) {
+      const interactionInfo = createInfo({
+        objectId: object.container.ownerId,
+        graphicId: object.graphicId,
+        containerId: object.container.id,
+        prodRefId: uData.productId,
+      })
+      if (interactionInfo.uniqueIdent !== drawing.interaction.hovered?.uniqueIdent) {
         const setHovered = drawing.api.interaction.setHovered
-
-        isPartMode &&
-          setHovered(
-            createInfo({
-              objectId: drawing.geometry.cache[id].container.ownerId,
-              graphicId: id,
-              containerId: id,
-              prodRefId: drawing.structure.currentProduct,
-            }),
-          )
-        !isPartMode && setHovered(createInfo({ objectId: id, prodRefId: id }))
+        setHovered(interactionInfo)
       }
     },
     [drawingId],
@@ -97,15 +90,15 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       e.stopPropagation()
 
       const drawing = getDrawing(drawingId)
-      const isSelActive = drawing.selection.active !== null
-      const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
-      const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
       const hovered = drawing.interaction.hovered
-      const hoveredId = isPartMode ? hovered?.graphicId : hovered?.objectId
 
-      const object = e.intersections.find(i => i.object.userData?.isBuerliGeometry)?.object
+      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const uData = intersection?.object?.userData
+      const index = intersection?.index || -1
+      const faceIndex = intersection?.faceIndex || -1
+      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
 
-      if (!isSelActive && !object && hoveredId) {
+      if (!object && hovered) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
       }
@@ -125,43 +118,44 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSelActive || isSketchActive) {
+      if (isSketchActive) {
         return
       }
 
       e.stopPropagation()
-
+      
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
       const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
-      const object = intersection?.object
-      if (!object) {
+      const uData = intersection?.object?.userData
+      const index = intersection?.index || -1
+      const faceIndex = intersection?.faceIndex || -1
+      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      if (!object || !uData) {
         return
       }
 
-      const id = isPartMode ? object.userData.containerId : object.userData.productId
-      if (!isSelActive) {
-        if (!isPartMode) {
-          const gizmoInfo_ = getGizmoInfo(drawingId, intersection, e.ray)
-          setGizmoInfo(gizmoInfo_)
-        }
-
-        const select = drawing.api.interaction.select
-        const multi = e.nativeEvent.shiftKey
-
-        isPartMode &&
-          select(
-            createInfo({
-              objectId: drawing.geometry.cache[id].container.ownerId,
-              graphicId: id,
-              containerId: id,
-              prodRefId: drawing.structure.currentProduct,
-            }),
-            multi,
-          )
-        !isPartMode && select(createInfo({ objectId: id, prodRefId: id }), multi)
+      if (isSelActive) {
+        selectObject(drawingId, uData.productId, object)
+        return
       }
+      
+      if (!isPartMode && intersection) {
+        const gizmoInfo_ = getGizmoInfo(drawingId, intersection, e.ray)
+        setGizmoInfo(gizmoInfo_)
+      }
+
+      const interactionInfo = createInfo({
+        objectId: object.container.ownerId,
+        graphicId: object.graphicId,
+        containerId: object.container.id,
+        prodRefId: uData.productId,
+      })
+      const select = drawing.api.interaction.select
+      const multi = e.nativeEvent.shiftKey
+
+      select(interactionInfo, multi)
     },
     [drawingId],
   )
@@ -188,7 +182,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
   return (
     <>
-      <group ref={group} onPointerMove={onGeometryMove} onClick={onGeometryClick}>
+      <group onPointerMove={onGeometryMove} onClick={onGeometryClick}>
         {children}
       </group>
       {gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}

@@ -80,7 +80,7 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
+                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false}>
                       {props => <GeometryWrapper {...props} />}
                     </BuerliGeometry>
                   </GeometryInteraction>

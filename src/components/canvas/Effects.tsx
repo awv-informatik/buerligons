@@ -2,6 +2,7 @@
 import React from 'react'
 
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
+import { DrawingID, InteractionInfo } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import { Outline } from '@buerli.io/react-cad'
@@ -9,6 +10,21 @@ import { Outline } from '@buerli.io/react-cad'
 import { useOutlinesStore } from './OutlinesStore'
 import { OutlinedObjects } from './OutlinedObjects'
 import { AutoClear } from './AutoClear'
+import { convertSelToInteraction } from './Interaction/utils'
+
+const useHovered = (drawingId: DrawingID) => {
+  return useDrawing(drawingId, d => d.interaction.hovered) as InteractionInfo | null
+}
+
+const useSelected = (drawingId: DrawingID) => {
+  const interactionInfo = useDrawing(drawingId, d => d.interaction.selected) as InteractionInfo[]
+
+  const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
+  const selectionItems = useDrawing(drawingId, d => d.selection.refs[d.selection.active || '']?.items)
+  const selectionInfo = convertSelToInteraction(drawingId, selectionItems || [])
+
+  return isSelActive ? selectionInfo : interactionInfo
+}
 
 export function Composer({
   children,
@@ -20,8 +36,8 @@ export function Composer({
   ssao = true,
   ...props
 }: any) {
-  const hovered = useDrawing(drawingId, d => d.interaction.hovered)
-  const selected = useDrawing(drawingId, d => d.interaction.selected)
+  const hovered = useHovered(drawingId)
+  const selected = useSelected(drawingId)
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
@@ -46,7 +62,7 @@ export function Composer({
       />
       {hovered && <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />}
       {selected?.map(info => (
-        <OutlinedObjects key={info.objectId} drawingId={drawingId} info={info} group="selected" />
+        <OutlinedObjects key={info.uniqueIdent} drawingId={drawingId} info={info} group="selected" />
       ))}
       {!enabled && <AutoClear />}
       {children}
