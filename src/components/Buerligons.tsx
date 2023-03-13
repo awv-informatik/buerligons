@@ -1,16 +1,56 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
+import { DrawingID, getDrawing, IStructureObject, MathUtils } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
-import { Canvas, events } from '@react-three/fiber'
+import { Canvas, events, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 import React from 'react'
+import { useFrame } from '@react-three/fiber'
+import { easing } from 'maath'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
 import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
+
+const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({
+  node,
+  object: { id, coordinateSystem: csys },
+}) => {
+  const invalidate = useThree(state => state.invalidate)
+  const group = React.useRef<THREE.Group>(null!)
+  const matrix: THREE.Matrix4 = React.useMemo(
+    () => (csys ? MathUtils.convertToMatrix4(csys) : new THREE.Matrix4()),
+    [csys],
+  )
+
+  useFrame((state, delta) => {
+    // Damp towards the coordinate system we got from object.coordinateSystem
+    const parent = group.current?.parent
+    if (parent) {
+      // Invalidate if the value hasn't matched target (matrix) yet
+      if (easing.dampM(parent.matrix, matrix, 0.2, delta, Infinity)) invalidate()
+    }
+  })
+
+  // This runs before the component is rendererd in threejs
+  React.useLayoutEffect(() => {
+    // Set our parent matrix to identity, that matrix has been set previously by <BurliGeometry>
+    // We need to remove it and then damp towards the coordinate system we got from object.coordinateSystem
+    const parent = group.current?.parent
+    if (parent) parent.matrix.identity()
+    invalidate()
+  })
+
+  // Wrap whatever we get from CC into a group, catch a ref
+  return (
+    <group name={id.toString()} ref={group}>
+      {node}
+    </group>
+  )
+}
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ children, drawingId }) => {
   const handleMiss = React.useCallback(() => {
@@ -38,10 +78,6 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
       <React.Suspense fallback={null}>{children}</React.Suspense>
     </Canvas>
   )
-}
-
-const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
-  return <group name={object.id.toString()}>{node}</group>
 }
 
 export const Buerligons: React.FC = () => {
