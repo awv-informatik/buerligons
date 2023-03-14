@@ -41,7 +41,7 @@ const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObjec
     // We need to remove it and then damp towards the coordinate system we got from object.coordinateSystem
     const parent = group.current?.parent
     if (parent) parent.matrix.identity()
-    invalidate()
+    invalidate(100)
   })
 
   // Wrap whatever we get from CC into a group, catch a ref
