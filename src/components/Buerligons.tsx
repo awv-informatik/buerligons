@@ -31,7 +31,7 @@ const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObjec
     const parent = group.current?.parent
     if (parent) {
       // Invalidate if the value hasn't matched target (matrix) yet
-      if (easing.dampM(parent.matrix, matrix, 0.2, delta, Infinity)) invalidate()
+      if (easing.dampM(parent.matrix, matrix, 0.1, delta, Infinity)) invalidate()
     }
   })
 
