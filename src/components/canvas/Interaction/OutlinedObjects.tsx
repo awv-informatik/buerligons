@@ -89,6 +89,12 @@ export function OutlinedObjects({
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
   const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
 
+  if (!activeSel && !isPartMode && ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
+    // Constraint
+    const mateRefIds = getMateRefIds(drawingId, info.objectId)
+    return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
+  }
+
   if (!activeSel && !isPartMode && info.prodRefId && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
     // Assembly node with hovered / selected mesh (if it exists)
     return (
@@ -123,12 +129,6 @@ export function OutlinedObjects({
         )}
       </>
     )
-  }
-
-  if (ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
-    // Constraint
-    const mateRefIds = getMateRefIds(drawingId, info.objectId)
-    return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
   }
 
   if (!info.prodRefId) {
