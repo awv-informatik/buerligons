@@ -25,7 +25,6 @@ export function Composer({
   ssao = true,
   ...props
 }: any) {
-  const { hColor, sColor } = useOutlinesColor(drawingId)
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
@@ -41,8 +40,7 @@ export function Composer({
     <>
       <Chain
         enabled={enabled}
-        hoveredColor={hColor}
-        selectedColor={sColor}
+        drawingId={drawingId}
         edgeStrength={edgeStrength}
         radius={radius}
         ssao={ssao}
@@ -56,13 +54,12 @@ export function Composer({
 
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
-  ({ enabled, radius, hoveredColor, selectedColor, edgeStrength, ssao = true, ...props }: any) => {
+  ({ enabled, radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
     return (
       <EffectComposer enabled={enabled} multisampling={8} autoClear={false} {...props}>
         {ssao && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
-          hoveredColor={hoveredColor}
-          selectedColor={selectedColor}
+          drawingId={drawingId}
           edgeStrength={edgeStrength}
           radius={radius}
         />
@@ -73,18 +70,19 @@ const Chain = React.memo(
 
 // The outline component will update itself without disturbing the parental effect composer
 const MultiOutline = React.memo(
-  ({ hoveredColor = 'white', selectedColor = 'white', edgeStrength = 100, radius = 0.1 }: any) => {
+  ({ drawingId, edgeStrength = 100, radius = 0.1 }: any) => {
     const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
     const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
     const selections1 = React.useMemo(() => (selectedMeshes ? Object.values(selectedMeshes) : []), [selectedMeshes])
     const selections2 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
+    const { hColor, sColor } = useOutlinesColor(drawingId)
     return (
       <Outline
         selections1={selections1}
         selections2={selections2}
         selectionLayer={10}
-        edgeColor1={selectedColor as any}
-        edgeColor2={hoveredColor as any}
+        edgeColor1={sColor as any}
+        edgeColor2={hColor as any}
         edgeStrength={edgeStrength}
       />
     )
