@@ -7,7 +7,7 @@ import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -86,6 +86,7 @@ export const Buerligons: React.FC = () => {
                   </GeometryInteraction>
                 </Composer>
                 <BuerliPluginsGeometry drawingId={drawingId} />
+                <HighlightedObjects drawingId={drawingId} />
               </Fit>
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>

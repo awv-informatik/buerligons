@@ -3,11 +3,11 @@ import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
-import { useDrawing } from '@buerli.io/react'
-import { extend, Object3DNode, ThreeEvent } from '@react-three/fiber'
+import { CameraHelper, useDrawing } from '@buerli.io/react'
+import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
-import { Gizmo, getGizmoInfo } from './Gizmo'
-import { selectObject } from './Interaction/utils'
+import { Gizmo, getGizmoInfo } from '../Gizmo'
+import { findGeometryIntersection, selectObject } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -39,6 +39,16 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 }) => {
   const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
 
+  const lnTh = useThree(state => state.raycaster.params.Line?.threshold)
+  const ptsTh = useThree(state => state.raycaster.params.Points?.threshold)
+  const { camera, size } = useThree()
+  const { lineThreshold, pointThreshold } = React.useMemo(() => {
+    return {
+      lineThreshold: lnTh || CameraHelper.calculateScaleFactor(camera.position, 4, camera, size),
+      pointThreshold: ptsTh || CameraHelper.calculateScaleFactor(camera.position, 6, camera, size),
+    }
+  }, [camera, size, lnTh, ptsTh])
+
   const onGeometryMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
@@ -62,7 +72,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         return
       }
 
-      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
       const index = intersection?.index || -1
       const faceIndex = intersection?.faceIndex || -1
@@ -82,7 +92,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         setHovered(interactionInfo)
       }
     },
-    [drawingId],
+    [drawingId, lineThreshold, pointThreshold],
   )
 
   const onBackgroundMove = React.useCallback(
@@ -92,7 +102,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const drawing = getDrawing(drawingId)
       const hovered = drawing.interaction.hovered
 
-      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
       const index = intersection?.index || -1
       const faceIndex = intersection?.faceIndex || -1
@@ -103,7 +113,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         setHovered(null)
       }
     },
-    [drawingId],
+    [drawingId, lineThreshold, pointThreshold],
   )
 
   const onGeometryClick = React.useCallback(
@@ -127,7 +137,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-      const intersection = e.intersections.find(i => i.object.userData?.isBuerliGeometry)
+      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
       const index = intersection?.index || -1
       const faceIndex = intersection?.faceIndex || -1
@@ -157,7 +167,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       select(interactionInfo, multi)
     },
-    [drawingId],
+    [drawingId, lineThreshold, pointThreshold],
   )
 
   const onBackgroundClick = React.useCallback(

@@ -2,42 +2,30 @@
 import React from 'react'
 
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
-import { DrawingID, InteractionInfo } from '@buerli.io/core'
+import { DrawingID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import { Outline } from '@buerli.io/react-cad'
 
-import { useOutlinesStore } from './OutlinesStore'
-import { OutlinedObjects } from './OutlinedObjects'
+import { useOutlinesStore } from './Interaction'
 import { AutoClear } from './AutoClear'
-import { convertSelToInteraction } from './Interaction/utils'
 
-const useHovered = (drawingId: DrawingID) => {
-  return useDrawing(drawingId, d => d.interaction.hovered) as InteractionInfo | null
-}
-
-const useSelected = (drawingId: DrawingID) => {
-  const interactionInfo = useDrawing(drawingId, d => d.interaction.selected) as InteractionInfo[]
-
+const useOutlinesColor = (drawingId: DrawingID) => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
-  const selectionItems = useDrawing(drawingId, d => d.selection.refs[d.selection.active || '']?.items)
-  const selectionInfo = convertSelToInteraction(drawingId, selectionItems || [])
-
-  return isSelActive ? selectionInfo : interactionInfo
+  return React.useMemo(() => {
+    return isSelActive ? { hColor: '#86d2ea', sColor: '#957ab8' } : { hColor: 'green', sColor: 'red' }
+  }, [isSelActive])
 }
 
 export function Composer({
   children,
   drawingId,
-  hoveredColor = 'white',
-  selectedColor = 'white',
   edgeStrength = 100,
   radius = 0.1,
   ssao = true,
   ...props
 }: any) {
-  const hovered = useHovered(drawingId)
-  const selected = useSelected(drawingId)
+  const { hColor, sColor } = useOutlinesColor(drawingId)
   // Skip outlines when selection is active
   // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
   // Skip AO when sketch is active
@@ -53,17 +41,13 @@ export function Composer({
     <>
       <Chain
         enabled={enabled}
-        hoveredColor={hoveredColor}
-        selectedColor={selectedColor}
+        hoveredColor={hColor}
+        selectedColor={sColor}
         edgeStrength={edgeStrength}
         radius={radius}
         ssao={ssao}
         {...props}
       />
-      {hovered && <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />}
-      {selected?.map(info => (
-        <OutlinedObjects key={info.uniqueIdent} drawingId={drawingId} info={info} group="selected" />
-      ))}
       {!enabled && <AutoClear />}
       {children}
     </>

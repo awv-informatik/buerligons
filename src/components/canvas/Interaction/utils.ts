@@ -16,6 +16,34 @@ import {
 } from '@buerli.io/core'
 import { TreeObjScope, MateScope } from '@buerli.io/react-cad'
 
+const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
+const isLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
+
+export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
+  let index = intersections.findIndex(i => i.object.userData?.isBuerliGeometry)
+  let intersection = intersections[index]
+  if (!intersection) {
+    return undefined
+  }
+
+  const minDist = intersection.distance
+  const maxThreshold = Math.max(lineThreshold, pointThreshold)
+  
+  while (intersections[index].distance - minDist < maxThreshold) {
+    const intersectionNext = intersections[index]
+    if (isPoint(intersectionNext) && intersectionNext.distance - minDist < pointThreshold) {
+      // If we find a point within point threshold, just return it
+      return intersectionNext
+    }
+    if (!isLine(intersection) && isLine(intersectionNext) && intersectionNext.distance - minDist < lineThreshold) {
+      intersection = intersectionNext
+    }
+    index++
+  }
+
+  return intersection
+}
+
 export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
   const activeSelId = drawing.selection.active
