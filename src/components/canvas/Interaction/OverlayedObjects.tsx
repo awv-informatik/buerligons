@@ -26,7 +26,7 @@ export function OverlayedObjects({
 }) {
   const solid = useDrawing(drawingId, d => d.geometry.cache[info.containerId || -1])
   const mesh = solid?.meshes.find(mesh_ => mesh_.graphicId === info.graphicId)
-  const curve = solid?.map[info.graphicId || -1]
+  const curve = !mesh ? solid?.map[info.graphicId || -1] : undefined  // If info.graphicId points to a mesh, force curve to undefined
   const point = solid?.points.find(pt => pt.graphicId === info.graphicId)
 
   const activeSel = useDrawing(drawingId, d => d.selection.refs[d.selection.active || -1])

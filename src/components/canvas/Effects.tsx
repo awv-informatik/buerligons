@@ -25,28 +25,16 @@ export function Composer({
   ssao = true,
   ...props
 }: any) {
-  // Skip outlines when selection is active
-  // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
-  // Skip AO when sketch is active
-  const sketchActive = useBuerli(s => {
-    const drawing = s.drawing.refs[s.drawing.active!]
-    const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
-    return ccUtils.base.isA(objClass, CCClasses.CCSketch)
-  })
-  // Decide if effects-chain is active or not
-  const enabled = !sketchActive
   return (
     <>
       <Chain
-        enabled={enabled}
         drawingId={drawingId}
         edgeStrength={edgeStrength}
         radius={radius}
         ssao={ssao}
         {...props}
       />
-      {!enabled && <AutoClear />}
+      {/* {!enabled && <AutoClear />} */}
       {children}
     </>
   )
@@ -54,10 +42,19 @@ export function Composer({
 
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
-  ({ enabled, radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
+  ({ radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
+    // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
+    // Skip AO when sketch is active
+    const sketchActive = useBuerli(s => {
+      const drawing = s.drawing.refs[s.drawing.active!]
+      const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
+      const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+      return ccUtils.base.isA(objClass, CCClasses.CCSketch)
+    })
+
     return (
-      <EffectComposer enabled={enabled} multisampling={8} autoClear={false} {...props}>
-        {ssao && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
+      <EffectComposer enabled multisampling={8} autoClear={false} {...props}>
+        {ssao && !sketchActive && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
           drawingId={drawingId}
           edgeStrength={edgeStrength}

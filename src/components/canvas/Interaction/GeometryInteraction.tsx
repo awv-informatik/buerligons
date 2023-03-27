@@ -52,11 +52,12 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   const onGeometryMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
+      const isSelActive = drawing.selection.active !== null
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive) {
+      if (isSketchActive && !isSelActive) {
         return
       }
 
@@ -74,8 +75,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
-      const index = intersection?.index || -1
-      const faceIndex = intersection?.faceIndex || -1
+      const index = intersection?.index ?? -1
+      const faceIndex = intersection?.faceIndex ?? -1
       const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
       if (!object || !uData) {
         return
@@ -128,7 +129,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive) {
+      if (isSketchActive && !isSelActive) {
         return
       }
 
@@ -139,8 +140,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
-      const index = intersection?.index || -1
-      const faceIndex = intersection?.faceIndex || -1
+      const index = intersection?.index ?? -1
+      const faceIndex = intersection?.faceIndex ?? -1
       const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
       if (!object || !uData) {
         return

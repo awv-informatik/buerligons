@@ -95,7 +95,11 @@ export function OutlinedObjects({
     return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
   }
 
-  if (!activeSel && !isPartMode && info.prodRefId && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
+  if (!info.prodRefId) {
+    return null
+  }
+
+  if (!activeSel && !isPartMode && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
     // Assembly node with hovered / selected mesh (if it exists)
     return (
       <>
@@ -111,7 +115,7 @@ export function OutlinedObjects({
     )
   }
 
-  if (!activeSel && isPartMode && info.prodRefId && solid) {
+  if (!activeSel && isPartMode && solid) {
     // Solid with hovered / selected mesh (if it exists)
     return (
       <>
@@ -129,10 +133,6 @@ export function OutlinedObjects({
         )}
       </>
     )
-  }
-
-  if (!info.prodRefId) {
-    return null
   }
 
   if (solid && activeSel?.isSelectable(BuerliScope, solid.type)) {
