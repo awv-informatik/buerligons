@@ -1,7 +1,9 @@
 import React from 'react'
 
 import { DrawingID, InteractionInfo, BuerliScope, GraphicType } from '@buerli.io/core'
+import { CCClasses } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
+import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
 
 const getColor = (type: 'hovered' | 'selected', isSelActive: boolean) => {
   if (isSelActive) {
@@ -24,6 +26,9 @@ export function OverlayedObjects({
   info: InteractionInfo
   type: 'hovered' | 'selected'
 }) {
+  const object = useDrawing(drawingId, d => d.structure.tree[info.objectId])
+  const isVisible = useDrawing(drawingId, d => d.plugin.visible.indexOf(info.objectId) !== -1) || false
+
   const solid = useDrawing(drawingId, d => d.geometry.cache[info.containerId || -1])
   const mesh = solid?.meshes.find(mesh_ => mesh_.graphicId === info.graphicId)
   const curve = !mesh ? solid?.map[info.graphicId || -1] : undefined  // If info.graphicId points to a mesh, force curve to undefined
@@ -33,7 +38,45 @@ export function OverlayedObjects({
   const color = getColor(type, Boolean(activeSel))
   const renderOrder = getRenderOrder(type)
 
-  if (!info.graphicId || !info.containerId || !info.prodRefId) {
+  if (!info.prodRefId) {
+    return null
+  }
+
+  if (object?.class === CCClasses.CCWorkPoint && !isVisible) {
+    return (
+      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+        <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
+      </GlobalTransform>
+    )
+  }
+
+  if (object?.class === CCClasses.CCWorkAxis && !isVisible) {
+    return (
+      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+        <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
+      </GlobalTransform>
+    )
+  }
+
+  if (object?.class === CCClasses.CCWorkPlane && !isVisible) {
+    return (
+      <HUD>
+        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color} opacity={0.3} />
+        </GlobalTransform>
+      </HUD>
+    )
+  }
+
+  if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible) {
+    return (
+      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+        <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
+      </GlobalTransform>
+    )
+  }
+
+  if (!info.graphicId || !info.containerId) {
     return null
   }
 
