@@ -44,17 +44,21 @@ export function OverlayedObjects({
 
   if (object?.class === CCClasses.CCWorkPoint && !isVisible) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
-      </GlobalTransform>
+      <HUD>
+        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
+        </GlobalTransform>
+      </HUD>
     )
   }
 
   if (object?.class === CCClasses.CCWorkAxis && !isVisible) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
-      </GlobalTransform>
+      <HUD>
+        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
+        </GlobalTransform>
+      </HUD>
     )
   }
 
@@ -70,9 +74,11 @@ export function OverlayedObjects({
 
   if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
-      </GlobalTransform>
+      <HUD>
+        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
+        </GlobalTransform>
+      </HUD>
     )
   }
 
