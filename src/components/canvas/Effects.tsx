@@ -10,6 +10,15 @@ import { Outline } from '@buerli.io/react-cad'
 import { useOutlinesStore } from './Interaction'
 import { AutoClear } from './AutoClear'
 
+const useIsSketchActive = () => {
+  return useBuerli(s => {
+    const drawing = s.drawing.refs[s.drawing.active!]
+    const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
+    const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
+    return ccUtils.base.isA(objClass, CCClasses.CCSketch)
+  })
+}
+
 const useOutlinesColor = (drawingId: DrawingID) => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   return React.useMemo(() => {
@@ -25,6 +34,8 @@ export function Composer({
   ssao = true,
   ...props
 }: any) {
+  const autoClear = useIsSketchActive()
+
   return (
     <>
       <Chain
@@ -34,7 +45,7 @@ export function Composer({
         ssao={ssao}
         {...props}
       />
-      {/* {!enabled && <AutoClear />} */}
+      {autoClear && <AutoClear />}
       {children}
     </>
   )
@@ -43,18 +54,11 @@ export function Composer({
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
   ({ radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
-    // const selectionActive = useBuerli(s => !!s.drawing.refs[s.drawing.active!]?.selection.active)
-    // Skip AO when sketch is active
-    const sketchActive = useBuerli(s => {
-      const drawing = s.drawing.refs[s.drawing.active!]
-      const plugin = drawing ? drawing.plugin.refs[drawing.plugin.active.feature!] : null
-      const objClass = drawing.structure.tree[plugin?.id || -1]?.class || ''
-      return ccUtils.base.isA(objClass, CCClasses.CCSketch)
-    })
+    const isSketchActive = useIsSketchActive() // Skip AO when sketch is active
 
     return (
       <EffectComposer enabled multisampling={8} autoClear={false} {...props}>
-        {ssao && !sketchActive && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
+        {ssao && !isSketchActive && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
           drawingId={drawingId}
           edgeStrength={edgeStrength}
