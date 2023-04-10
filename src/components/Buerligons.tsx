@@ -1,7 +1,7 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
+import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
@@ -85,8 +85,10 @@ export const Buerligons: React.FC = () => {
                     </BuerliGeometry>
                   </GeometryInteraction>
                 </Composer>
-                <BuerliPluginsGeometry drawingId={drawingId} />
+                <PluginGeometryBounds drawingId={drawingId} />
               </Fit>
+
+              <BuerliPluginsGeometry drawingId={drawingId} />
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>
