@@ -9,6 +9,7 @@ import { Outline } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './Interaction'
 import { AutoClear } from './AutoClear'
+import { useFrame } from '@react-three/fiber'
 
 const useIsSketchActive = () => {
   return useBuerli(s => {
@@ -52,11 +53,26 @@ export function Composer({
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
   ({ radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
+    const ssaoRef = React.useRef<any>(null!)
+    const cameraPrev = React.useRef<{ near: number, far: number, zoom: number }>({ near: 0.01, far: 10000, zoom: 1 })
+    
+    useFrame(state => {
+      if (!ssaoRef.current) {
+        return
+      }
+
+      const camera = state.camera
+      if (camera.near !== cameraPrev.current.near || camera.far !== cameraPrev.current.far || camera.zoom !== cameraPrev.current.zoom) {
+        cameraPrev.current = { near: camera.near, far: camera.far, zoom: camera.zoom }
+        ssaoRef.current?.ssaoMaterial?.copyCameraSettings(camera)
+      }
+    })
+
     const isSketchActive = useIsSketchActive() // Skip AO when sketch is active
 
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ssao && !isSketchActive && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
+        {ssao && !isSketchActive && <SSAO ref={ssaoRef} radius={radius} intensity={20} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
           drawingId={drawingId}
           edgeStrength={edgeStrength}
