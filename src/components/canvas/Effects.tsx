@@ -34,8 +34,6 @@ export function Composer({
   ssao = true,
   ...props
 }: any) {
-  const autoClear = useIsSketchActive()
-
   return (
     <>
       <Chain
