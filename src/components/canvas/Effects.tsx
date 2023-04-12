@@ -45,7 +45,7 @@ export function Composer({
         ssao={ssao}
         {...props}
       />
-      {autoClear && <AutoClear />}
+      <AutoClear />
       {children}
     </>
   )
@@ -57,7 +57,7 @@ const Chain = React.memo(
     const isSketchActive = useIsSketchActive() // Skip AO when sketch is active
 
     return (
-      <EffectComposer enabled multisampling={8} autoClear={false} {...props}>
+      <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
         {ssao && !isSketchActive && <SSAO radius={radius} intensity={30} luminanceInfluence={0.2} color="black" />}
         <MultiOutline
           drawingId={drawingId}
