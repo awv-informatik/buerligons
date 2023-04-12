@@ -7,7 +7,7 @@ import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from
 
 const getColor = (type: 'hovered' | 'selected', isSelActive: boolean) => {
   if (isSelActive) {
-    return type === 'hovered' ? '#86d2ea' : '#957ab8'
+    return type === 'hovered' ? '#3280ff' : '#8040c0'
   } else {
     return type === 'hovered' ? 'green' : 'red'
   }
