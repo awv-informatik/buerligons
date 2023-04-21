@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { DrawingID, InteractionInfo, BuerliScope, GraphicType } from '@buerli.io/core'
-import { CCClasses } from '@buerli.io/classcad'
+import { ccUtils, CCClasses } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
 import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
 
@@ -37,6 +37,9 @@ export function OverlayedObjects({
   const activeSel = useDrawing(drawingId, d => d.selection.refs[d.selection.active || -1])
   const color = getColor(type, Boolean(activeSel))
   const renderOrder = getRenderOrder(type)
+  
+  const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
+  const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
   if (!info.prodRefId) {
     return null
@@ -72,7 +75,8 @@ export function OverlayedObjects({
     )
   }
 
-  if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible) {
+  // At least for now ignore WorkCoordSystems in assembly mode (i.e. Mates). CSysDisplay is supposed to fully handle their visualization...
+  if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible && isPartMode) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
