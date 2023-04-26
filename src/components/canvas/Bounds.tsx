@@ -161,8 +161,6 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         return this
       },
       fit() {
-        const { center } = getSize()
-
         let maxHeight = 0, maxWidth = 0
         const vertices = [
           new THREE.Vector3(box.min.x, box.min.y, box.min.z),
@@ -182,11 +180,10 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         const mCamWInv = target
           ? new THREE.Matrix4().lookAt(pos, target, up).setPosition(pos).invert()
           : camera.matrixWorldInverse
-        const globCenterC = center.clone().applyMatrix4(mCamWInv)
         for (const v of vertices) {
           v.applyMatrix4(mCamWInv)
-          maxHeight = Math.max(maxHeight, Math.abs(v.y - globCenterC.y))
-          maxWidth = Math.max(maxWidth, Math.abs(v.x - globCenterC.x))
+          maxHeight = Math.max(maxHeight, Math.abs(v.y))
+          maxWidth = Math.max(maxWidth, Math.abs(v.x))
         }
         maxHeight *= 2
         maxWidth *= 2
