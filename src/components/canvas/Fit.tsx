@@ -86,7 +86,7 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
   React.useEffect(() => {
     // Reset camera bounds when sketch is disabled
     if (!isSketchActive) {
-      boundsControls?.refresh().fit()
+      window.setTimeout(() => boundsControls?.refresh().fit(), 100)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive])
