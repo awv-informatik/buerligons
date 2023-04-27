@@ -50,6 +50,12 @@ type GoalT = {
   target: THREE.Vector3 | undefined,
 }
 
+enum AnimationState {
+  NONE = 0,
+  START = 1,
+  ACTIVE = 2,
+}
+
 const isBox3 = (def: any): def is THREE.Box3 => def && (def as THREE.Box3).isBox3
 
 function interpolate(v0: number, v1: number, t: number) {
@@ -83,7 +89,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
     camUp: undefined,
     target: undefined,
   })
-  const animating = React.useRef<boolean>(false)
+  const animationState = React.useRef<AnimationState>(AnimationState.NONE)
   const t = React.useRef<number>(0) // represent animation state from 0 to 1
 
   const [box] = React.useState(() => new THREE.Box3())
@@ -134,7 +140,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
         
         controls && (controls.enabled = false)
-        animating.current = true
+        animationState.current = AnimationState.START
         t.current = 0
 
         return this
@@ -143,7 +149,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camPos = position.clone()
         
         controls && (controls.enabled = false)
-        animating.current = true
+        animationState.current = AnimationState.START
         t.current = 0
 
         return this
@@ -155,7 +161,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
         
         controls && (controls.enabled = false)
-        animating.current = true
+        animationState.current = AnimationState.START
         t.current = 0
 
         return this
@@ -193,7 +199,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camZoom = Math.min(zoomForHeight, zoomForWidth) / margin
 
         controls && (controls.enabled = false)
-        animating.current = true
+        animationState.current = AnimationState.START
         t.current = 0
 
         return this
@@ -227,7 +233,12 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
   }, [controls]) */
 
   useFrame((state, delta) => {
-    if (animating.current) {
+    // This (additional animation step START) is needed to guarantee that delta used in animation isn't absurdly high (2-3 seconds) which is actually possible if rendering happens on demand...
+    if (animationState.current === AnimationState.START) {
+      animationState.current = AnimationState.ACTIVE
+      invalidate()
+    }
+    else if (animationState.current === AnimationState.ACTIVE) {
       t.current += delta / maxDuration
 
       if (t.current >= 1) {
@@ -244,10 +255,8 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
           controls.update()
         }
 
-        controls.enabled = true
-        animating.current = false
-
-        return
+        controls && (controls.enabled = true)
+        animationState.current = AnimationState.NONE
       }
       else {
         goal.current.camPos && interpolateV(camera.position, origin.current.camPos, goal.current.camPos, t.current)
