@@ -4,7 +4,7 @@ import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDra
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
-import React, { Suspense } from 'react'
+import React from 'react'
 import { useIPC } from '../ipc'
 import { Composer, Controls, Fit, GeometryInteraction, Lights, raycastFilter, Threshold } from './canvas'
 import { ChooseCCApp } from './ChooseCCApp'
@@ -47,7 +47,7 @@ const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObjec
 export const Buerligons: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
-  const currentNode = useDrawing(drawingId, d => d.structure.currentNode) || undefined
+  const currentNode = useDrawing(drawingId, d => d.structure.currentNode)
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
@@ -78,28 +78,22 @@ export const Buerligons: React.FC = () => {
               <Lights drawingId={drawingId} />
               <Threshold />
 
-              <Suspense fallback={null}>
-                <Fit drawingId={drawingId}>
-                  <Composer
-                    drawingId={drawingId}
-                    radius={0.1}
-                    hoveredColor="green"
-                    selectedColor="red"
-                    edgeStrength={3}>
-                    <GeometryInteraction drawingId={drawingId}>
-                      <group ref={ref}>
-                        <BuerliGeometry
-                          drawingId={drawingId}
-                          productId={isPart ? currentProduct : currentNode}
-                          suspend={pending => pending.name.includes('.Load')}>
-                          {(props: any) => <GeometryWrapper {...props} />}
-                        </BuerliGeometry>
-                      </group>
-                    </GeometryInteraction>
-                  </Composer>
-                  <BuerliPluginsGeometry drawingId={drawingId} />
-                </Fit>
-              </Suspense>
+              <Fit drawingId={drawingId}>
+                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
+                  <GeometryInteraction drawingId={drawingId}>
+                    <group ref={ref}>
+                      <BuerliGeometry
+                        drawingId={drawingId}
+                        productId={isPart ? currentProduct : currentNode}
+                        selection={true}
+                        suspend={['.Load']}>
+                        {(props: any) => <GeometryWrapper {...props} />}
+                      </BuerliGeometry>
+                    </group>
+                  </GeometryInteraction>
+                </Composer>
+                <BuerliPluginsGeometry drawingId={drawingId} />
+              </Fit>
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>
