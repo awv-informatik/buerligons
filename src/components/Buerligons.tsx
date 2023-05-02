@@ -1,13 +1,6 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing } from '@buerli.io/core'
-import {
-  BuerliGeometry,
-  BuerliPluginsGeometry,
-  PluginManager,
-  SuspendBuerliGeometry,
-  useBuerli,
-  useDrawing,
-} from '@buerli.io/react'
+import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
+import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
@@ -47,18 +40,8 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   )
 }
 
-const RenameGroups: React.FC<{ target: any }> = ({ target }) => {
-  // The name of each <group> is set to the corresponding object name in BuerliGeometry.
-  // Because buerligons needs the name be set to the id of the object, it has to be renamed here.
-  React.useLayoutEffect(() => {
-    target.current.traverse((node: any) => {
-      // userData.id is set for each relevant <group> in BuerliGeometry
-      if (node.userData?.id) {
-        node.name = `${node.userData.id}`
-      }
-    })
-  })
-  return null
+const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
+  return <group name={object.id.toString()}>{node}</group>
 }
 
 export const Buerligons: React.FC = () => {
@@ -105,14 +88,17 @@ export const Buerligons: React.FC = () => {
                     edgeStrength={3}>
                     <GeometryInteraction drawingId={drawingId}>
                       <group ref={ref}>
-                        <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
+                        <BuerliGeometry
+                          drawingId={drawingId}
+                          productId={isPart ? currentProduct : currentNode}
+                          suspend={pending => pending.name.includes('.Load')}>
+                          {(props: any) => <GeometryWrapper {...props} />}
+                        </BuerliGeometry>
                       </group>
                     </GeometryInteraction>
                   </Composer>
                   <BuerliPluginsGeometry drawingId={drawingId} />
                 </Fit>
-                <SuspendBuerliGeometry drawingId={drawingId} />
-                <RenameGroups target={ref} />
               </Suspense>
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
