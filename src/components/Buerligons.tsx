@@ -1,13 +1,20 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
-import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
+import { DrawingID, getDrawing } from '@buerli.io/core'
+import {
+  BuerliGeometry,
+  BuerliPluginsGeometry,
+  PluginManager,
+  SuspendBuerliGeometry,
+  useBuerli,
+  useDrawing,
+} from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useIPC } from '../ipc'
+import { Composer, Controls, Fit, GeometryInteraction, Lights, raycastFilter, Threshold } from './canvas'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -40,8 +47,18 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   )
 }
 
-const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
-  return <group name={object.id.toString()}>{node}</group>
+const RenameGroups: React.FC<{ target: any }> = ({ target }) => {
+  // The name of each <group> is set to the corresponding object name in BuerliGeometry.
+  // Because buerligons needs the name be set to the id of the object, it has to be renamed here.
+  React.useLayoutEffect(() => {
+    target.current.traverse((node: any) => {
+      // userData.id is set for each relevant <group> in BuerliGeometry
+      if (node.userData?.id) {
+        node.name = `${node.userData.id}`
+      }
+    })
+  })
+  return null
 }
 
 export const Buerligons: React.FC = () => {
@@ -51,6 +68,7 @@ export const Buerligons: React.FC = () => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
+  const ref = React.useRef<any>()
 
   const ipc = useIPC()
 
@@ -77,16 +95,25 @@ export const Buerligons: React.FC = () => {
               <Lights drawingId={drawingId} />
               <Threshold />
 
-              <Fit drawingId={drawingId}>
-                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
-                  <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
-                      {props => <GeometryWrapper {...props} />}
-                    </BuerliGeometry>
-                  </GeometryInteraction>
-                </Composer>
-                <BuerliPluginsGeometry drawingId={drawingId} />
-              </Fit>
+              <Suspense fallback={null}>
+                <Fit drawingId={drawingId}>
+                  <Composer
+                    drawingId={drawingId}
+                    radius={0.1}
+                    hoveredColor="green"
+                    selectedColor="red"
+                    edgeStrength={3}>
+                    <GeometryInteraction drawingId={drawingId}>
+                      <group ref={ref}>
+                        <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} />
+                      </group>
+                    </GeometryInteraction>
+                  </Composer>
+                  <BuerliPluginsGeometry drawingId={drawingId} />
+                </Fit>
+                <SuspendBuerliGeometry drawingId={drawingId} />
+                <RenameGroups target={ref} />
+              </Suspense>
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>
