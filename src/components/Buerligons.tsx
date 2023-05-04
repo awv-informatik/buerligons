@@ -40,10 +40,6 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   )
 }
 
-const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
-  return <group name={object.id.toString()}>{node}</group>
-}
-
 export const Buerligons: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
@@ -80,9 +76,7 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false}>
-                      {props => <GeometryWrapper {...props} />}
-                    </BuerliGeometry>
+                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false} />
                   </GeometryInteraction>
                 </Composer>
                 <BuerliPluginsGeometry drawingId={drawingId} />

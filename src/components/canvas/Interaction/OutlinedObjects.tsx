@@ -50,9 +50,14 @@ const OutlinedProduct: React.FC<{ group: string; id: number }> = ({ group, id })
 
   React.useEffect(() => {
     if (!outlinedMeshes[group]?.[id]) {
-      const obj = scene?.getObjectByName(id.toString())
-      const meshes_: THREE.Object3D[] = []
+      let obj: THREE.Object3D | undefined
+      scene?.traverse(sceneObj => {
+        if (!obj && sceneObj.userData?.id === id) {
+          obj = sceneObj
+        }
+      })
 
+      const meshes_: THREE.Object3D[] = []
       obj?.traverse(o => {
         if (o.type === 'Mesh') {
           meshes_.push(o)
