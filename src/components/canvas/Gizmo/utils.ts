@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 
 import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
-import { Intersection } from 'three'
 
 // Intersection object should be a line
 const getAdjacentMeshNormal = (
@@ -67,7 +66,7 @@ export const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) =>
   return ancestors.find(id => interactable.indexOf(id) !== -1)
 }
 
-export const getGizmoInfo = (drawingId: DrawingID, intersection: Intersection, cameraRay: THREE.Ray) => {
+export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersection, cameraRay: THREE.Ray) => {
   const object = intersection?.object
   if (!object) {
     return null
