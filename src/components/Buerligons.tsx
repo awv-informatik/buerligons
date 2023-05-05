@@ -1,5 +1,5 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing } from '@buerli.io/core'
+import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
@@ -7,7 +7,7 @@ import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -40,30 +40,8 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   )
 }
 
-const useInteractionReset = (drawingId: DrawingID) => {
-  const currentNode = useDrawing(drawingId, d => d.structure.currentNode)
-  const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
-  const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
-  const objClass = useDrawing(drawingId, d => d.structure.tree[activeId || -1]?.class) || ''
-  const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
-
-  const resetInteraction = React.useCallback(() => {
-    const interaction = getDrawing(drawingId)?.api.interaction
-    interaction?.setHovered(null)
-    interaction?.setSelected([])
-  }, [drawingId])
-
-  // Reset hover and selection on sketch or selector activation
-  React.useEffect(() => {
-    if (isSelActive || isSketchActive) {
-      resetInteraction()
-    }
-  }, [resetInteraction, isSelActive, isSketchActive])
-  
-  // Reset hover and selection when switching nodes
-  React.useEffect(() => {
-    resetInteraction()
-  }, [resetInteraction, currentNode])
+const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
+  return <group name={object.id.toString()}>{node}</group>
 }
 
 export const Buerligons: React.FC = () => {
@@ -78,7 +56,11 @@ export const Buerligons: React.FC = () => {
 
   React.useEffect(() => void (document.title = 'buerligons'), [])
 
-  useInteractionReset(drawingId)
+  // Reset selection when switching nodes
+  React.useEffect(() => {
+    const setSelected = getDrawing(drawingId)?.api.interaction.setSelected
+    setSelected && setSelected([])
+  }, [drawingId, currentNode])
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
@@ -98,14 +80,15 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false} />
+                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
+                      {props => <GeometryWrapper {...props} />}
+                    </BuerliGeometry>
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />
               </Fit>
 
               <BuerliPluginsGeometry drawingId={drawingId} />
-              <HighlightedObjects drawingId={drawingId} />
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>
