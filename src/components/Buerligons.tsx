@@ -29,7 +29,8 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   return (
     <Canvas
       orthographic
-      frameloop="demand"
+      flat
+      frameloop="demand"      
       dpr={[1, 2]}
       events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
