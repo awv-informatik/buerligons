@@ -1146,12 +1146,12 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@buerli.io/classcad@0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.5.0.tgz#871663548436aad52e5dafa05d1aa199f9e962d2"
-  integrity sha512-e8tSom+VY3+jydGjHMRk1e3Cp3z8+C0c7q797yp51aEzzJbUDKLqCdpUha9jn3QZr+fqKfBkCupBEIVa7XC7Pw==
+"@buerli.io/classcad@0.7.1-beta.2":
+  version "0.7.1-beta.2"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.7.1-beta.2.tgz#d53ec0242250c7224e367ec16045515ddde07558"
+  integrity sha512-xFsQzsuCGSRx9ukcmdKNrOA4cXtOZRqai0fCvmdaNDR68Furxj1JrlRGOD71S1g1v5ABAZJZWqh6wmWMf+eOgA==
   dependencies:
-    "@buerli.io/core" "0.5.0"
+    "@buerli.io/core" "0.7.1-beta.2"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
@@ -1164,24 +1164,32 @@
     uuid "^3.3.2"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.5.0.tgz#3cc3e2bbf28bd64783afd44a63470041431d1654"
-  integrity sha512-m2IN3U1yCkWA6e3OdC8OCmZmt2baXqt6WQF8LKbIMuI5Lk8wMMNW38p4cdcHITqOOcdC7bjDm18oXPtcoJQMGQ==
+"@buerli.io/core@0.7.1-beta.2":
+  version "0.7.1-beta.2"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.7.1-beta.2.tgz#ca7191a5a25a9a2a8d23d1ea40daed97fd3d64f9"
+  integrity sha512-vZE4fhW5JkUdFFi7qDYUX5AemgfO0a78GJ+P5jJW2OCMSR/YmAuBOQETeyvT7PE5PuJcNh7RZqSmjl2bGYFgdg==
   dependencies:
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^3.3.2"
     zustand "^4.1.4"
 
-"@buerli.io/react-cad@0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.5.0.tgz#8c5bf908bd9bc91b48d7444dd197838866ab58d9"
-  integrity sha512-1jy+w3aBUgWJFeZ0jQhSLYuSsI04ysaYSARCMLD8s08Jq7EnCMVJlOmggu9vCMrFFvcfq/NlHZ4sH4Yk/5rgpw==
+"@buerli.io/headless@0.7.1-beta.2":
+  version "0.7.1-beta.2"
+  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.7.1-beta.2.tgz#266c03fdbfa450904be671503e347d717f6922a3"
+  integrity sha512-gk2XI7iG0qwPuJNAKkIfuf0/61ZpzIqL8cF3LIsUnHu65BfYAGQD/qb9MZTwSmLszVf6FRbGO+QS43iJvI6MjQ==
+  dependencies:
+    "@buerli.io/classcad" "0.7.1-beta.2"
+    flat-promise "^1.0.3"
+
+"@buerli.io/react-cad@0.7.1-beta.1":
+  version "0.7.1-beta.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.7.1-beta.1.tgz#fe173e4665ba9ee171ecd905574caecfa79beb60"
+  integrity sha512-4Gx36gdyrY1BcsPbPegnVgh1Sucj/AxiL9Ee5rgOyLWodMRIYug2+Rptgte+5lHCHp52pRc/rmWESg+CpoFy7g==
   dependencies:
     "@ant-design/compatible" "^1.0.8"
-    "@buerli.io/classcad" "0.5.0"
-    "@buerli.io/react" "0.5.0"
+    "@buerli.io/classcad" "0.7.1-beta.2"
+    "@buerli.io/react" "0.7.1-beta.2"
     "@react-three/postprocessing" "2.6.2"
     antd "^4.23.4"
     path-browserify "^1.0.1"
@@ -1195,18 +1203,20 @@
     uuid "^3.3.2"
     zustand "^4.1.4"
 
-"@buerli.io/react@0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.5.0.tgz#e41da570dc08e3f6a814635c9fda4bcd27de3b6b"
-  integrity sha512-MvKXCKZZSu9K1G1a/2xCAa6F7Emlq7evB75998BIZ7a2sMHC8G7ssUb21cgwZonhY1h2b4SRveGtqd5i09J1ew==
+"@buerli.io/react@0.7.1-beta.2":
+  version "0.7.1-beta.2"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.7.1-beta.2.tgz#0c829a55d015844b4563594bc3edcf3d8ce76659"
+  integrity sha512-a3o/LM7vA7PPJb67sUkFPxavhIqLoiSIeOFuQ7YAuO2Q3Dx2bJJRI1nGSlWkWuhLDl9RBaulgCB1R4zh6fjIjA==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "0.5.0"
+    "@buerli.io/core" "0.7.1-beta.2"
+    "@buerli.io/headless" "0.7.1-beta.2"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
     react-spring "^8.0.27"
     styled-components "^5.3.1"
+    suspend-react "^0.0.10"
     uuid "^3.3.2"
     zustand "^4.1.4"
 
@@ -5978,6 +5988,11 @@ flat-cache@^3.0.4:
   dependencies:
     flatted "^3.1.0"
     rimraf "^3.0.2"
+
+flat-promise@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/flat-promise/-/flat-promise-1.0.3.tgz#d6abeddf0419d95f2c87cb7e0af999636e4cfb27"
+  integrity sha512-ncD6/40peBxXngM/F+3fYyL8sYfXyQnggGxZ2Chr9mnTQco77hKpZeT3EUH298Bjq8224qIxEGlHN10rx8Mv2A==
 
 flatted@^3.1.0:
   version "3.2.7"
@@ -12352,6 +12367,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
+
+suspend-react@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/suspend-react/-/suspend-react-0.0.10.tgz#9b1cc83d13e0ded81fd6f65a3d564bbbfa7024ab"
+  integrity sha512-7yyJ1aBr9Ap4XZQOBaYlOelNcRc42zv50C0pVNOHfhW/DwTbHGFVZKKJsVndyQvQTv/fAkIO9TAMvGiSCjT0Zw==
 
 suspend-react@^0.0.8:
   version "0.0.8"
