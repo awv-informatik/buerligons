@@ -61,7 +61,7 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     const boundsMember = drawing.structure.tree[activeId]?.members?.boundingBox as ArrayMem
     const bounds = getSketchBounds(boundsMember)
 
-    const csys = drawing.structure.tree[activeId].coordinateSystem
+    const csys = drawing.structure.tree[activeId].coordinateSystem as number[][]
     const transformMatrix = MathUtils.convertToMatrix3(csys)
     const plane = drawing.structure.tree[planeRef]
     const normal = convertToVector(plane?.members?.Normal as PointMem)
