@@ -1,7 +1,7 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
+import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
+import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
@@ -29,7 +29,8 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   return (
     <Canvas
       orthographic
-      frameloop="demand"
+      flat
+      frameloop="demand"      
       dpr={[1, 2]}
       events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
@@ -101,9 +102,11 @@ export const Buerligons: React.FC = () => {
                     <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false} />
                   </GeometryInteraction>
                 </Composer>
-                <BuerliPluginsGeometry drawingId={drawingId} />
-                <HighlightedObjects drawingId={drawingId} />
+                <PluginGeometryBounds drawingId={drawingId} />
               </Fit>
+
+              <BuerliPluginsGeometry drawingId={drawingId} />
+              <HighlightedObjects drawingId={drawingId} />
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>
