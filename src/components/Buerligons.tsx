@@ -1,7 +1,7 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
+import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds, GeometryOverridesManager } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
@@ -95,6 +95,7 @@ export const Buerligons: React.FC = () => {
               <Controls makeDefault staticMoving rotateSpeed={2} />
               <Lights drawingId={drawingId} />
               <Threshold />
+              <GeometryOverridesManager drawingId={drawingId} />
 
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
