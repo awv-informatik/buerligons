@@ -44,8 +44,8 @@
   },
   "dependencies": {
     "@buerli.io/react-cad": "0.7.1",
-    "@react-three/drei": "9.34.1",
-    "@react-three/fiber": "8.7.1",
+    "@react-three/drei": "9.68.3",
+    "@react-three/fiber": "8.13.0",
     "@react-three/postprocessing": "2.6.2",
     "antd": "^4.23.4",
     "arraybuffer-loader": "1.0.8",
