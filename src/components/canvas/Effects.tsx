@@ -23,7 +23,7 @@ const useIsSketchActive = () => {
 const useOutlinesColor = (drawingId: DrawingID) => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   return React.useMemo(() => {
-    return isSelActive ? { hColor: '#3280ff', sColor: '#8040c0' } : { hColor: 'green', sColor: 'red' }
+    return isSelActive ? { hColor: ['#3280ff', '#194080'], sColor: ['#8040c0', '#402060'] } : { hColor: ['#008000', '#00ff00'], sColor: ['#ff0000', '#ffa000'] }
   }, [isSelActive])
 }
 
