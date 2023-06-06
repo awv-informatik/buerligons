@@ -6,7 +6,7 @@ import {
   getDrawing,
   BuerliScope,
   GraphicType,
-  Surfaces,
+  MeshTypes,
   MeshGeometry,
   GraphicID,
   createGraphicItem,
@@ -59,7 +59,7 @@ export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: 
     // All elements of one entity must have the same graphicId in order to have
     // the entity selection working proper.
     prodElements = [{ ...object, type: object.container.type, graphicId: object.container.id, productId }]
-  } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && Surfaces.indexOf(object.type) >= 0) {
+  } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0) {
     // Special handling for LOOP's
     const mesh = object as MeshGeometry
     const edges: GraphicID[] = []
