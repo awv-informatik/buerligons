@@ -96,9 +96,9 @@ const MultiOutline = React.memo(
         selections1={selections1}
         selections2={selections2}
         selectionLayer={10}
+        width={5}
         edgeColor1={sColor as any}
         edgeColor2={hColor as any}
-        edgeStrength={edgeStrength}
       />
     )
   },
