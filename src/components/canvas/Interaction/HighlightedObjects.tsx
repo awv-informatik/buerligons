@@ -9,20 +9,21 @@ import { convertSelToInteraction } from './utils'
 import { OverlayedObjects } from './OverlayedObjects'
 
 const useHovered = (drawingId: DrawingID) => {
-  return useDrawing(drawingId, d => d.interaction.hovered) as InteractionInfo | null
+  const interactionSel = useDrawing(drawingId, d => d.interaction.selected) as InteractionInfo[]
+  const interactionHov = useDrawing(drawingId, d => d.interaction.hovered) as InteractionInfo | null
+
+  // Don't hover an item if it is also selected to avoid rendering 2 semi-transparent overlays at once right after the selection
+  return interactionSel.some(info => info.uniqueIdent === interactionHov?.uniqueIdent) ? null : interactionHov
 }
 
 const useSelected = (drawingId: DrawingID) => {
   const interactionSel = useDrawing(drawingId, d => d.interaction.selected) as InteractionInfo[]
-  const interactionHov = useHovered(drawingId)
 
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   const selectionItems = useDrawing(drawingId, d => d.selection.refs[d.selection.active || '']?.items)
   const selectionInfo = convertSelToInteraction(drawingId, selectionItems || [])
-  const selected = isSelActive ? selectionInfo : interactionSel
 
-  // Remove currently hovered items from selected to avoid rendering 2 semi-transparent overlays at once right after the selection
-  return selected.filter(info => info.uniqueIdent !== interactionHov?.uniqueIdent)
+  return isSelActive ? selectionInfo : interactionSel
 }
 
 export function HighlightedObjects({ drawingId }: { drawingId: DrawingID }) {

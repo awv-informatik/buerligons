@@ -88,8 +88,8 @@ const MultiOutline = React.memo(
   ({ drawingId, edgeStrength = 100, radius = 0.1 }: any) => {
     const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
     const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
-    const selections1 = React.useMemo(() => (selectedMeshes ? Object.values(selectedMeshes) : []), [selectedMeshes])
-    const selections2 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
+    const selections1 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
+    const selections2 = React.useMemo(() => (selectedMeshes ? Object.values(selectedMeshes) : []), [selectedMeshes])
     const { hColor, sColor } = useOutlinesColor(drawingId)
     return (
       <Outline
@@ -97,8 +97,8 @@ const MultiOutline = React.memo(
         selections2={selections2}
         selectionLayer={10}
         width={5}
-        edgeColor1={sColor as any}
-        edgeColor2={hColor as any}
+        edgeColor1={hColor as any}
+        edgeColor2={sColor as any}
       />
     )
   },
