@@ -1780,13 +1780,13 @@
     suspend-react "^0.0.8"
     zustand "^3.7.1"
 
-"@react-three/postprocessing@2.14.8":
-  version "2.14.8"
-  resolved "https://registry.yarnpkg.com/@react-three/postprocessing/-/postprocessing-2.14.8.tgz#0a0fe64d0be0563da6041ea2bf56ab7458bb4c52"
-  integrity sha512-haSasjHdY9iGU7davo97FNo8OFo9QCKYHFizOBT1JY0rIn3M3xK+6q3ZO/El4KoJ1mBHX673MzUS8j680Bhe0g==
+"@react-three/postprocessing@2.14.9":
+  version "2.14.9"
+  resolved "https://registry.yarnpkg.com/@react-three/postprocessing/-/postprocessing-2.14.9.tgz#f344c5c51ebee2622cc6b593d7e294192f7a1c1a"
+  integrity sha512-F40pZFHZ+zylx3tQP/DbTprJ0uUQu1sbv8agwsdvAHGT3qNhXpWiyu2+pUv1ok/c60JEits5uCAxMRRCUA6Q+A==
   dependencies:
     maath "^0.5.3"
-    n8ao "^1.4.2"
+    n8ao "^1.5.1"
     postprocessing "^6.31.0"
     screen-space-reflections "^2.5.0"
     three-stdlib "^2.23.4"
@@ -8762,7 +8762,7 @@ multicast-dns@^6.0.1:
     dns-packet "^1.3.1"
     thunky "^1.0.2"
 
-n8ao@^1.4.2:
+n8ao@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/n8ao/-/n8ao-1.5.1.tgz#e48960352e9c358955d7da072a341bbc64961bb5"
   integrity sha512-Dn5o6ecmLC1xZm2mby2qdGYgwKcNsC9oKv85TQBKFbDJVzUHGXV2oys14rDl6nhwjH+zZU3YcLJkMcY7qe+jTg==
