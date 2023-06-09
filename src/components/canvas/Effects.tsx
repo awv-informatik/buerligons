@@ -31,7 +31,7 @@ export function Composer({
   drawingId,
   edgeStrength = 100,
   radius = 0.1,
-  ssao = true,
+  ao = true,
   ...props
 }: any) {
   return (
@@ -40,7 +40,7 @@ export function Composer({
         drawingId={drawingId}
         edgeStrength={edgeStrength}
         radius={radius}
-        ssao={ssao}
+        ao={ao}
         {...props}
       />
       <AutoClear />
@@ -51,12 +51,12 @@ export function Composer({
 
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
-  ({ radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
+  ({ radius, drawingId, edgeStrength, ao = true, ...props }: any) => {
     const isSketchActive = useIsSketchActive() // Skip AO when sketch is active
 
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ssao && !isSketchActive && <N8AO aoRadius={5} intensity={7} aoSamples={30} denoiseSamples={30} denoiseRadius={5} quality="ultra" color="black" />}
+        {ao && !isSketchActive && <N8AO aoRadius={50} intensity={7} distanceFalloff={0.2} aoSamples={20} denoiseSamples={20} denoiseRadius={20} screenSpaceRadius quality="medium" color="black" />}
         <MultiOutline
           drawingId={drawingId}
           edgeStrength={edgeStrength}
