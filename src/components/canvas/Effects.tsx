@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import React from 'react'
 
-import { EffectComposer, SSAO } from '@react-three/postprocessing'
+import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { DrawingID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useBuerli, useDrawing } from '@buerli.io/react'
@@ -72,7 +72,7 @@ const Chain = React.memo(
 
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ssao && !isSketchActive && <SSAO ref={ssaoRef} radius={radius} intensity={20} luminanceInfluence={0.2} color="black" />}
+        {ssao && !isSketchActive && <N8AO ref={ssaoRef} aoRadius={5} intensity={5} aoSamples={30} denoiseSamples={30} denoiseRadius={5} quality="ultra" color="black" />}
         <MultiOutline
           drawingId={drawingId}
           edgeStrength={edgeStrength}
