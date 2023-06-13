@@ -79,14 +79,14 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     const target = bounds.center.clone().applyMatrix4(matrix4)
     const position = target.clone().addScaledVector(normal, bounds.radius * margin * 4)
 
-    boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit()
+    boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive, planeRef])
 
   React.useEffect(() => {
     // Reset camera bounds when sketch is disabled
     if (!isSketchActive) {
-      window.setTimeout(() => boundsControls?.refresh().fit(), 100)
+      window.setTimeout(() => boundsControls?.refresh().fit().clip(), 100)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive])
