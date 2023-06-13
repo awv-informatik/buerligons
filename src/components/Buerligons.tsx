@@ -98,7 +98,7 @@ export const Buerligons: React.FC = () => {
               <GeometryOverridesManager drawingId={drawingId} />
 
               <Fit drawingId={drawingId}>
-                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
+                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" width={4}>
                   <GeometryInteraction drawingId={drawingId}>
                     <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false} />
                   </GeometryInteraction>

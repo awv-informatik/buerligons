@@ -30,7 +30,7 @@ const useOutlinesColor = (drawingId: DrawingID) => {
 export function Composer({
   children,
   drawingId,
-  edgeStrength = 100,
+  width = 5,
   radius = 0.1,
   ssao = true,
   ...props
@@ -39,7 +39,7 @@ export function Composer({
     <>
       <Chain
         drawingId={drawingId}
-        edgeStrength={edgeStrength}
+        width={width}
         radius={radius}
         ssao={ssao}
         {...props}
@@ -52,7 +52,7 @@ export function Composer({
 
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
-  ({ radius, drawingId, edgeStrength, ssao = true, ...props }: any) => {
+  ({ radius, drawingId, width, ssao = true, ...props }: any) => {
     const ssaoRef = React.useRef<any>(null!)
     const cameraPrev = React.useRef<{ near: number, far: number, zoom: number }>({ near: 0.01, far: 10000, zoom: 1 })
     
@@ -73,11 +73,7 @@ const Chain = React.memo(
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
         {ssao && !isSketchActive && <SSAO ref={ssaoRef} radius={radius} intensity={20} luminanceInfluence={0.2} color="black" />}
-        <MultiOutline
-          drawingId={drawingId}
-          edgeStrength={edgeStrength}
-          radius={radius}
-        />
+        <MultiOutline drawingId={drawingId} width={width} />
       </EffectComposer>
     )
   },
@@ -85,7 +81,7 @@ const Chain = React.memo(
 
 // The outline component will update itself without disturbing the parental effect composer
 const MultiOutline = React.memo(
-  ({ drawingId, edgeStrength = 100, radius = 0.1 }: any) => {
+  ({ drawingId, width = 5 }: any) => {
     const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
     const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
     const selections1 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
@@ -96,7 +92,7 @@ const MultiOutline = React.memo(
         selections1={selections1}
         selections2={selections2}
         selectionLayer={10}
-        width={5}
+        width={width}
         edgeColor1={hColor as any}
         edgeColor2={sColor as any}
       />
