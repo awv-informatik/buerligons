@@ -116,7 +116,7 @@ export function OverlayedObjects({
   if (solid && mesh && activeSel?.isSelectable(BuerliScope, GraphicType.LOOP)) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color as any} renderOrder={renderOrder} lineWidth={3} />)}
+        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />)}
       </GlobalTransform>
     )
   }
@@ -134,7 +134,7 @@ export function OverlayedObjects({
   if (curve && (!activeSel || activeSel?.isSelectable(BuerliScope, curve.type))) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Spline elem={(curve as any)} color={color as any} renderOrder={renderOrder} lineWidth={3} />
+        <Overlay.Spline elem={(curve as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />
       </GlobalTransform>
     )
   }
