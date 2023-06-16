@@ -3,7 +3,7 @@ import React from 'react'
 import { DrawingID, InteractionInfo, BuerliScope, GraphicType } from '@buerli.io/core'
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
-import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj } from '@buerli.io/react-cad'
+import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, WorkCSysObj } from '@buerli.io/react-cad'
 
 const getColor = (type: 'hovered' | 'selected', isSelActive: boolean) => {
   if (isSelActive) {
@@ -81,6 +81,16 @@ export function OverlayedObjects({
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
           <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
+        </GlobalTransform>
+      </HUD>
+    )
+  }
+
+  if (object?.class === CCClasses.CCWorkCSys && !isVisible && isPartMode) {
+    return (
+      <HUD>
+        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
     )

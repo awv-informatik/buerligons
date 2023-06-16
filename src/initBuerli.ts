@@ -31,7 +31,7 @@ import {
   TransformByCsys,
   Translate,
   WorkAxis,
-  WorkCoordSystem,
+  WorkCSys,
   WorkPlane,
   WorkPoint,
 } from '@buerli.io/react-cad'
@@ -73,7 +73,7 @@ export const initBuerli = () => {
       [CCClasses.CCSphere]: Sphere,
       [CCClasses.CCCylinder]: Cylinder,
       [CCClasses.CCCone]: Cone,
-      [CCClasses.CCWorkCoordSystem]: WorkCoordSystem,
+      [CCClasses.CCWorkCSys]: WorkCSys,
       [CCClasses.CCIntersection]: BooleanPlg,
       [CCClasses.CCSubtraction]: BooleanPlg,
       [CCClasses.CCSlice]: Slice,
