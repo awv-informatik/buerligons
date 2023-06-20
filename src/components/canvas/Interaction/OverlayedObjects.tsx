@@ -112,7 +112,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color} />
+          <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
         </GlobalTransform>
       </HUD>
     )
