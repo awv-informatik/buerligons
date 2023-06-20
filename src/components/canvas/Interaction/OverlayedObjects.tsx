@@ -1,16 +1,37 @@
 import React from 'react'
+import * as THREE from 'three'
 
 import { DrawingID, InteractionInfo, BuerliScope, GraphicType } from '@buerli.io/core'
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
 import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, WorkCSysObj } from '@buerli.io/react-cad'
 
-const getColor = (type: 'hovered' | 'selected', isSelActive: boolean) => {
+const getColor = (type: 'hovered' | 'selected', isSelActive: boolean, solidColor: THREE.Color | undefined) => {
+  const gHoveredColors = [new THREE.Color('#008000'), new THREE.Color('#00ff00')]
+  const gSelectedColors = [new THREE.Color('#ff0000'), new THREE.Color('#ffa000')]
+  const sHoveredColors = [new THREE.Color('#3280ff'), new THREE.Color('#194080')]
+  const sSelectedColors = [new THREE.Color('#8040c0'), new THREE.Color('#402060')]
+
+  let colors: THREE.Color[]
   if (isSelActive) {
-    return type === 'hovered' ? '#3280ff' : '#8040c0'
+    colors = type === 'hovered' ? sHoveredColors : sSelectedColors
   } else {
-    return type === 'hovered' ? 'green' : 'red'
+    colors = type === 'hovered' ? gHoveredColors : gSelectedColors
   }
+
+  if (!solidColor) {
+    return colors[0]
+  }
+
+  const { r: rO, g: gO, b: bO } = colors[0]
+  const { r: rS, g: gS, b: bS } = solidColor
+
+  const diff = 2 * Math.abs(rO - rS) + 2 * Math.abs(gO - gS) + 3 * Math.abs(bO - bS) // weighted difference
+  if (diff < 0.5) {
+    return colors[1]
+  }
+
+  return colors[0]
 }
 
 const getRenderOrder = (type: 'hovered' | 'selected') => {
@@ -33,9 +54,10 @@ export function OverlayedObjects({
   const mesh = solid?.meshes.find(mesh_ => mesh_.graphicId === info.graphicId)
   const curve = !mesh ? solid?.map[info.graphicId || -1] : undefined  // If info.graphicId points to a mesh, force curve to undefined
   const point = solid?.points.find(pt => pt.graphicId === info.graphicId)
+  const solidColor = solid?.color
 
   const activeSel = useDrawing(drawingId, d => d.selection.refs[d.selection.active || -1])
-  const color = getColor(type, Boolean(activeSel))
+  const color = getColor(type, Boolean(activeSel), solidColor)
   const renderOrder = getRenderOrder(type)
   
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
@@ -49,7 +71,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
+          <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
         </GlobalTransform>
       </HUD>
     )
@@ -59,7 +81,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
+          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
         </GlobalTransform>
       </HUD>
     )
@@ -69,7 +91,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color} opacity={0.3} />
+          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color as any} opacity={0.3} />
         </GlobalTransform>
       </HUD>
     )
@@ -80,7 +102,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
+          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
         </GlobalTransform>
       </HUD>
     )
@@ -104,7 +126,7 @@ export function OverlayedObjects({
   if (solid && mesh && activeSel?.isSelectable(BuerliScope, GraphicType.LOOP)) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color} renderOrder={renderOrder} lineWidth={3} />)}
+        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />)}
       </GlobalTransform>
     )
   }
@@ -113,7 +135,7 @@ export function OverlayedObjects({
   if (mesh && !activeSel) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Mesh elem={mesh as any} color={color} opacity={0.5} renderOrder={renderOrder} />
+        <Overlay.Mesh elem={mesh as any} color={color as any} opacity={0.5} renderOrder={renderOrder} />
       </GlobalTransform>
     )
   }
@@ -122,7 +144,7 @@ export function OverlayedObjects({
   if (curve && (!activeSel || activeSel?.isSelectable(BuerliScope, curve.type))) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Spline elem={(curve as any)} color={color} renderOrder={renderOrder} lineWidth={3} />
+        <Overlay.Spline elem={(curve as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />
       </GlobalTransform>
     )
   }
@@ -131,7 +153,7 @@ export function OverlayedObjects({
   if (point && (!activeSel || activeSel?.isSelectable(BuerliScope, point.type))) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Point elem={(point as any)} color={color} renderOrder={renderOrder} pointSize={6} />
+        <Overlay.Point elem={(point as any)} color={color as any} renderOrder={renderOrder} pointSize={6} />
       </GlobalTransform>
     )
   }
