@@ -42,7 +42,7 @@ const Chain = React.memo(
   ({ drawingId, width, ao = true, ...props }: any) => {
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ao && <N8AO aoRadius={50} intensity={7} distanceFalloff={0.2} aoSamples={20} denoiseSamples={20} denoiseRadius={20} screenSpaceRadius quality="medium" color="black" />}
+        {ao && <N8AO aoRadius={50} halfRes intensity={2} distanceFalloff={1} screenSpaceRadius />}
         <MultiOutline drawingId={drawingId} width={width} />
       </EffectComposer>
     )
