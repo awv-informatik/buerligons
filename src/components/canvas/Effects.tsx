@@ -9,10 +9,14 @@ import { Outline } from '@buerli.io/react-cad'
 import { useOutlinesStore } from './Interaction'
 import { AutoClear } from './AutoClear'
 
-const useOutlinesColor = (drawingId: DrawingID) => {
+type OutlineColorRepresentation = [THREE.ColorRepresentation, THREE.ColorRepresentation]
+
+const useOutlinesColor = (drawingId: DrawingID): { hColor: OutlineColorRepresentation, sColor: OutlineColorRepresentation } => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   return React.useMemo(() => {
-    return isSelActive ? { hColor: ['#3280ff', '#194080'], sColor: ['#8040c0', '#402060'] } : { hColor: ['#008000', '#00ff00'], sColor: ['#ff0000', '#ffa000'] }
+    return isSelActive
+      ? { hColor: ['#3280ff', '#194080'], sColor: ['#8040c0', '#402060'] }
+      : { hColor: ['#008000', '#00ff00'], sColor: ['#ff0000', '#ffa000'] }
   }, [isSelActive])
 }
 
@@ -63,8 +67,8 @@ const MultiOutline = React.memo(
         selections2={selections2}
         selectionLayer={10}
         width={width}
-        edgeColor1={hColor as any}
-        edgeColor2={sColor as any}
+        edgeColor1={hColor}
+        edgeColor2={sColor}
       />
     )
   },

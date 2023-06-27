@@ -86,7 +86,7 @@ export function OutlinedObjects({
 }) {
   const solid = useDrawing(drawingId, d => d.geometry.cache[info.containerId || -1])
   const mesh = solid?.meshes.find(mesh_ => mesh_.graphicId === info.graphicId)
-  const solidColor = solid?.color || '#808080' as any // TODO: change Overlay color type?
+  const solidColor = solid?.color || '#808080'
 
   const activeSel = useDrawing(drawingId, d => d.selection.refs[d.selection.active || -1])
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''

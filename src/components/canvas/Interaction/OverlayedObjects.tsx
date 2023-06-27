@@ -71,7 +71,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
+          <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
     )
@@ -81,7 +81,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
+          <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
     )
@@ -91,7 +91,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color as any} opacity={0.3} />
+          <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color} opacity={0.3} />
         </GlobalTransform>
       </HUD>
     )
@@ -102,7 +102,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
+          <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
     )
@@ -112,7 +112,7 @@ export function OverlayedObjects({
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-          <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color as any} />
+          <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
     )
@@ -126,7 +126,7 @@ export function OverlayedObjects({
   if (solid && mesh && activeSel?.isSelectable(BuerliScope, GraphicType.LOOP)) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />)}
+        {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color} renderOrder={renderOrder} lineWidth={5} />)}
       </GlobalTransform>
     )
   }
@@ -135,7 +135,7 @@ export function OverlayedObjects({
   if (mesh && !activeSel) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Mesh elem={mesh as any} color={color as any} opacity={0.5} renderOrder={renderOrder} />
+        <Overlay.Mesh elem={mesh as any} color={color} opacity={0.5} renderOrder={renderOrder} />
       </GlobalTransform>
     )
   }
@@ -144,7 +144,7 @@ export function OverlayedObjects({
   if (curve && (!activeSel || activeSel?.isSelectable(BuerliScope, curve.type))) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Spline elem={(curve as any)} color={color as any} renderOrder={renderOrder} lineWidth={5} />
+        <Overlay.Spline elem={(curve as any)} color={color} renderOrder={renderOrder} lineWidth={5} />
       </GlobalTransform>
     )
   }
@@ -153,7 +153,7 @@ export function OverlayedObjects({
   if (point && (!activeSel || activeSel?.isSelectable(BuerliScope, point.type))) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
-        <Overlay.Point elem={(point as any)} color={color as any} renderOrder={renderOrder} pointSize={6} />
+        <Overlay.Point elem={(point as any)} color={color} renderOrder={renderOrder} pointSize={6} />
       </GlobalTransform>
     )
   }
