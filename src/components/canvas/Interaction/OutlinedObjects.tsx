@@ -93,7 +93,7 @@ export function OutlinedObjects({
   const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
-  const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
+  const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.instanceOrRootId || -1]?.class) || ''
 
   if (!activeSel && !isPartMode && ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
     // Constraint
@@ -101,7 +101,7 @@ export function OutlinedObjects({
     return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
   }
 
-  if (!info.prodRefId) {
+  if (!info.instanceOrRootId) {
     return null
   }
 
@@ -109,10 +109,10 @@ export function OutlinedObjects({
     // Assembly node with hovered / selected mesh (if it exists)
     return (
       <>
-        <OutlinedProduct key={info.prodRefId} group={group} id={info.prodRefId} />
+        <OutlinedProduct key={info.instanceOrRootId} group={group} id={info.instanceOrRootId} />
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
               <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
             </GlobalTransform>
           </OutlinedObject>
@@ -126,13 +126,13 @@ export function OutlinedObjects({
     return (
       <>
         <OutlinedObject key={solid.graphicId} group={group} id={solid.graphicId}>
-          <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+          <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
             <Overlay.Entity drawingId={drawingId} elem={solid as any} color={solidColor} opacity={0} />
           </GlobalTransform>
         </OutlinedObject>
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
               <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
             </GlobalTransform>
           </OutlinedObject>
@@ -145,7 +145,7 @@ export function OutlinedObjects({
     // Solid
     return (
       <OutlinedObject key={solid.graphicId} group={group} id={solid.graphicId}>
-        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
           <Overlay.Entity drawingId={drawingId} elem={solid as any} color={solidColor} opacity={0} />
         </GlobalTransform>
       </OutlinedObject>
@@ -156,7 +156,7 @@ export function OutlinedObjects({
     // Mesh
     return (
       <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-        <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
           <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
         </GlobalTransform>
       </OutlinedObject>

@@ -100,7 +100,7 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} width={5}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentNode} selection={false} />
+                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} nodeId={isPart ? currentProduct : currentNode} selection={false} />
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />

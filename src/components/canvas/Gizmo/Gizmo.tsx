@@ -48,7 +48,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 
       const selected = drawing.interaction.selected || []
       const selectedRefs = selected.map(obj =>
-        obj.prodRefId ? findInteractableParent(drawingId, obj.prodRefId) : null,
+        obj.instanceOrRootId ? findInteractableParent(drawingId, obj.instanceOrRootId) : null,
       )
       const selectedRefsUnique = selectedRefs.filter(
         (refId, id) => refId && id === selectedRefs.indexOf(refId),

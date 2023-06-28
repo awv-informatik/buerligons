@@ -37,7 +37,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   drawingId,
   children,
 }) => {
-  const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
+  const [gizmoInfo, setGizmoInfo] = React.useState<{ nodeId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
 
   const lnTh = useThree(state => state.raycaster.params.Line?.threshold)
   const ptsTh = useThree(state => state.raycaster.params.Points?.threshold)
@@ -86,7 +86,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         objectId: object.container.ownerId,
         graphicId: object.graphicId,
         containerId: object.container.id,
-        prodRefId: uData.productId,
+        instanceOrRootId: uData.nodeId,
       })
       if (interactionInfo.uniqueIdent !== drawing.interaction.hovered?.uniqueIdent) {
         const setHovered = drawing.api.interaction.setHovered
@@ -148,7 +148,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       if (isSelActive) {
-        selectObject(drawingId, uData.productId, object)
+        selectObject(drawingId, uData.nodeId, object)
         return
       }
       
@@ -161,7 +161,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         objectId: object.container.ownerId,
         graphicId: object.graphicId,
         containerId: object.container.id,
-        prodRefId: uData.productId,
+        instanceOrRootId: uData.nodeId,
       })
       const select = drawing.api.interaction.select
       const multi = e.nativeEvent.shiftKey
@@ -196,7 +196,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       <group onPointerMove={onGeometryMove} onClick={onGeometryClick}>
         {children}
       </group>
-      {gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}
+      {gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.nodeId} matrix={gizmoInfo.matrix} />}
       <background onPointerMove={onBackgroundMove} onClick={onBackgroundClick} />
     </>
   )

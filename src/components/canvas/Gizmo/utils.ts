@@ -73,20 +73,20 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
   }
 
   const drawing = getDrawing(drawingId)
-  const productId = object.userData.productId
+  const nodeId = object.userData.nodeId
 
   if (typeof intersection.index === 'number' && object.userData.pointMap) {
     const point = object.userData.pointMap[intersection.index]
     if (point) {
       const matrix = new THREE.Matrix4().setPosition(point.position)
 
-      return { productId, matrix }
+      return { nodeId, matrix }
     }
   } else if (typeof intersection.index === 'number' && object.userData.lineMap) {
     // Line
     const line = object.userData.lineMap[intersection.index || 0]
     if (line) {
-      const mWInv = drawing.api.structure.calculateGlobalTransformation(productId).invert()
+      const mWInv = drawing.api.structure.calculateGlobalTransformation(nodeId).invert()
       const pos = intersection.point.clone().applyMatrix4(mWInv)
       const rayL = cameraRay.clone().applyMatrix4(mWInv)
 
@@ -100,7 +100,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       } else if (line.type === 'line') {
         const zAxis = line.end.clone().sub(line.start).normalize()
         const meshNormal = getAdjacentMeshNormal(drawingId, line.graphicId, intersection, pos)
@@ -111,7 +111,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       } else {
         const lineCount = line.rawGraphic.points.length / 3 - 1
         const point = new THREE.Vector3()
@@ -156,14 +156,14 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       }
     }
   } else if (typeof intersection.faceIndex === 'number' && Boolean(object.userData.meshMap)) {
     // Mesh
     const mesh = object.userData.meshMap[intersection.faceIndex || 0]
     if (mesh) {
-      const mWInv = drawing.api.structure.calculateGlobalTransformation(productId).invert()
+      const mWInv = drawing.api.structure.calculateGlobalTransformation(nodeId).invert()
       const pos = intersection.point.clone().applyMatrix4(mWInv)
       const rayL = cameraRay.clone().applyMatrix4(mWInv)
 
@@ -177,7 +177,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       } else if (mesh.type === 'cylinder') {
         const zAxis = mesh.axis.clone().normalize()
         const frontVec = mesh.origin.clone().sub(pos)
@@ -188,7 +188,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       } else if (mesh.type === 'cone') {
         const posL = pos.clone().sub(mesh.origin)
         const bottomPlane = new THREE.Plane(mesh.axis)
@@ -204,7 +204,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         }
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       } else {
         const zAxis = intersection.face?.normal.clone().normalize() || new THREE.Vector3(0, 0, 1)
         if (zAxis.dot(rayL.direction) > 0) {
@@ -215,7 +215,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
         const yAxis = zAxis.clone().cross(xAxis).normalize()
         const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis).setPosition(pos)
 
-        return { productId, matrix }
+        return { nodeId, matrix }
       }
     }
   }

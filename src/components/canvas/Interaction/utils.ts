@@ -2,7 +2,7 @@ import {
   DrawingID,
   ObjectID,
   GeometryElement,
-  ProductElement,
+  NodeElement,
   getDrawing,
   BuerliScope,
   GraphicType,
@@ -44,7 +44,7 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
   return intersection
 }
 
-export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
+export const selectObject = (drawingId: DrawingID, nodeId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
   const activeSelId = drawing.selection.active
   if (!object || !activeSelId) {
@@ -53,12 +53,12 @@ export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: 
 
   const selection = drawing.selection.refs[drawing.selection.active]
 
-  let prodElements: ProductElement[] = []
+  let prodElements: NodeElement[] = []
   if (selection.isSelectable(BuerliScope, object.container.type)) {
     // Use the container id of the element as graphicId for entity selection.
     // All elements of one entity must have the same graphicId in order to have
     // the entity selection working proper.
-    prodElements = [{ ...object, type: object.container.type, graphicId: object.container.id, productId }]
+    prodElements = [{ ...object, type: object.container.type, graphicId: object.container.id, nodeId }]
   } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0) {
     // Special handling for LOOP's
     const mesh = object as MeshGeometry
@@ -70,13 +70,13 @@ export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: 
       }
     }
     const container = drawing.geometry.cache[mesh.container.id]
-    prodElements = container ? edges.map(n => ({ ...container.map[n], productId })) : []
+    prodElements = container ? edges.map(n => ({ ...container.map[n], nodeId })) : []
   } else if (selection.isSelectable(BuerliScope, object.type)) {
-    prodElements = [{ ...object, productId }]
+    prodElements = [{ ...object, nodeId }]
   }
 
   const selApi = drawing.api.selection
-  const items = prodElements.map(elem => createGraphicItem(elem.productId, elem))
+  const items = prodElements.map(elem => createGraphicItem(elem.nodeId, elem))
   const haveUnselected = items.find(item => !selApi.isItemSelected(item)) !== undefined
   if (haveUnselected) {
     selApi.select(items, activeSelId)
@@ -98,14 +98,14 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
           objectId: data.container.ownerId,
           graphicId: data.graphicId,
           containerId: data.container.id,
-          prodRefId: data.productId,
+          instanceOrRootId: data.nodeId,
         })
       }
       case TreeObjScope: {
         const object = item.data.object
         return createInfo({
           objectId: object.id,
-          prodRefId: curNodeId || curProdId,
+          instanceOrRootId: curNodeId || curProdId,
         })
       }
       case MateScope: {
@@ -114,7 +114,7 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
         return createInfo({
           objectId: csys.id,
           objectPath: matePath,
-          prodRefId: matePath[0],
+          instanceOrRootId: matePath[0],
         })
       }
       default: {
