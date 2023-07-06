@@ -77,7 +77,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const uData = intersection?.object?.userData
       const index = intersection?.index ?? -1
       const faceIndex = intersection?.faceIndex ?? -1
-      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object: GeometryElement | undefined =
+        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
       if (!object || !uData) {
         return
       }
@@ -107,7 +108,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const uData = intersection?.object?.userData
       const index = intersection?.index || -1
       const faceIndex = intersection?.faceIndex || -1
-      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object: GeometryElement | undefined =
+        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
 
       if (!object && hovered) {
         const setHovered = drawing.api.interaction.setHovered
@@ -119,9 +121,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
   const onGeometryClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
-      if (e.delta > 0) {
-        return
-      }
+      if (e.delta > 4) return
 
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
@@ -134,7 +134,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       e.stopPropagation()
-      
+
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
@@ -142,7 +142,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const uData = intersection?.object?.userData
       const index = intersection?.index ?? -1
       const faceIndex = intersection?.faceIndex ?? -1
-      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object: GeometryElement | undefined =
+        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
       if (!object || !uData) {
         return
       }
@@ -151,7 +152,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         selectObject(drawingId, uData.productId, object)
         return
       }
-      
+
       if (!isPartMode && intersection) {
         const gizmoInfo_ = getGizmoInfo(drawingId, intersection, e.ray)
         setGizmoInfo(gizmoInfo_)
@@ -173,13 +174,11 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
   const onBackgroundClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (e.delta > 4) return
       e.stopPropagation()
-
-      if (e.delta === 0) {
-        const drawing = getDrawing(drawingId)
-        drawing?.api.interaction.setSelected([])
-        drawing?.api.selection?.unselectAll()
-      }
+      const drawing = getDrawing(drawingId)
+      drawing?.api.interaction.setSelected([])
+      drawing?.api.selection?.unselectAll()
     },
     [drawingId],
   )
