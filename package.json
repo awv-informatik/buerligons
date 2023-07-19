@@ -13,8 +13,7 @@
     "eject": "react-scripts eject",
     "dev": "react-app-rewired start",
     "compile": "tsc",
-    "lint": "eslint \"./src/**/*.ts?(x)\"",
-    "classcad": "classcad --ip localhost --port 8182 --instances 5 --ccappfile ./BaseModeling.ccapp"
+    "lint": "eslint \"./src/**/*.ts?(x)\""
   },
   "engines": {
     "node": ">=14 <17"
@@ -43,7 +42,7 @@
     ]
   },
   "dependencies": {
-    "@buerli.io/react-cad": "0.7.1",
+    "@buerli.io/react-cad": "0.8.0",
     "@react-three/drei": "9.77.1",
     "@react-three/fiber": "8.13.0",
     "@react-three/postprocessing": "2.14.9",

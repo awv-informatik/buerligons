@@ -11,6 +11,7 @@ import {
   Cylindrical,
   Expressions,
   Extrusion,
+  EntityDeletion,
   Fastened,
   FastenedOrigin,
   Fillet,
@@ -91,6 +92,7 @@ export const initBuerli = () => {
       [CCClasses.CCPlanarConstraint]: Planar,
       [CCClasses.CCParallelConstraint]: Parallel,
       [CCClasses.CCImport]: Import,
+      [CCClasses.CCEntityDeletion]: EntityDeletion,
     },
   })
 }
