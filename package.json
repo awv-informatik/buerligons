@@ -13,8 +13,7 @@
     "eject": "react-scripts eject",
     "dev": "react-app-rewired start",
     "compile": "tsc",
-    "lint": "eslint \"./src/**/*.ts?(x)\"",
-    "classcad": "classcad --ip localhost --port 8182 --instances 5 --ccappfile ./BaseModeling.ccapp"
+    "lint": "eslint \"./src/**/*.ts?(x)\""
   },
   "engines": {
     "node": ">=14 <17"
@@ -23,15 +22,6 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  },
-  "prettier": {
-    "semi": false,
-    "trailingComma": "all",
-    "singleQuote": true,
-    "arrowParens": "avoid",
-    "jsxBracketSameLine": true,
-    "tabWidth": 2,
-    "printWidth": 120
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": [
@@ -52,27 +42,26 @@
     ]
   },
   "dependencies": {
-    "@buerli.io/react-cad": "0.4.1",
-    "@classcad/windows-x64": "0.0.0-beta.15",
-    "@react-three/drei": "8.20.1",
-    "@react-three/fiber": "7.0.19",
-    "@react-three/postprocessing": "2.3.1",
-    "antd": "4.16.13",
+    "@buerli.io/react-cad": "0.8.0",
+    "@react-three/drei": "9.77.1",
+    "@react-three/fiber": "8.13.0",
+    "@react-three/postprocessing": "2.14.9",
+    "antd": "^4.23.4",
     "arraybuffer-loader": "1.0.8",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "three": "0.138.0",
-    "zustand": "3.5.7"
+    "react": "18.0.0",
+    "react-dom": "18.0.0",
+    "three": "0.153",
+    "zustand": "4.1.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.1.1",
     "@testing-library/user-event": "^13.2.1",
     "@types/jest": "^27.0.2",
-    "@types/react": "^17.0.26",
-    "@types/react-dom": "^17.0.9",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "@types/styled-components": "^5.1.14",
-    "@types/three": "0.137.0",
+    "@types/three": "0.152.1",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",

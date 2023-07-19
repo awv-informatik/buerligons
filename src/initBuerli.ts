@@ -1,11 +1,9 @@
 import { CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
-import { api, getDrawing } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
   BoundingBoxInfo,
   Box,
-  CADApi,
   Chamfer,
   CircularPattern,
   CompositeCurve,
@@ -14,6 +12,7 @@ import {
   Cylindrical,
   Expressions,
   Extrusion,
+  EntityDeletion,
   Fastened,
   FastenedOrigin,
   Fillet,
@@ -34,24 +33,15 @@ import {
   TransformByCsys,
   Translate,
   WorkAxis,
-  WorkCoordSystem,
+  WorkCSys,
   WorkPlane,
   WorkPoint,
 } from '@buerli.io/react-cad'
 
 const CCSERVERURL = 'ws://localhost:8182'
-const isDev = process.env.NODE_ENV === 'development'
 
 export const initBuerli = () => {
   console.info('initBuerli')
-
-  // Add the app store to the window for debugging purpose.
-  if (isDev) {
-    const wnd = window as any
-    wnd.buerliStore = api
-    wnd.cadStore = CADApi
-    wnd.getDrawing = () => (api.getState().drawing.active ? getDrawing(api.getState().drawing.active || '') : null)
-  }
 
   init(id => new SocketIOClient(CCSERVERURL, id), {
     theme: {
@@ -85,7 +75,7 @@ export const initBuerli = () => {
       [CCClasses.CCSphere]: Sphere,
       [CCClasses.CCCylinder]: Cylinder,
       [CCClasses.CCCone]: Cone,
-      [CCClasses.CCWorkCoordSystem]: WorkCoordSystem,
+      [CCClasses.CCWorkCSys]: WorkCSys,
       [CCClasses.CCIntersection]: BooleanPlg,
       [CCClasses.CCSubtraction]: BooleanPlg,
       [CCClasses.CCSlice]: Slice,
@@ -104,6 +94,7 @@ export const initBuerli = () => {
       [CCClasses.CCPlanarConstraint]: Planar,
       [CCClasses.CCParallelConstraint]: Parallel,
       [CCClasses.CCImport]: Import,
+      [CCClasses.CCEntityDeletion]: EntityDeletion,
     },
   })
 }
