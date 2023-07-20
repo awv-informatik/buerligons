@@ -64,7 +64,7 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     const csys = drawing.structure.tree[activeId].coordinateSystem as number[][]
     const transformMatrix = MathUtils.convertToMatrix3(csys)
     const plane = drawing.structure.tree[planeRef]
-    const normal = convertToVector(plane?.members?.Normal as PointMem)
+    const normal = convertToVector(plane?.members?.Normal as PointMem).normalize()
     const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
 
     // If box.min === box.max add (100, 100, 100) to box.max to make box not empty

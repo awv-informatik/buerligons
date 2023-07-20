@@ -7,7 +7,7 @@ import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects, ContextMenu } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -30,7 +30,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
     <Canvas
       orthographic
       flat
-      frameloop="demand"      
+      frameloop="demand"
       dpr={[1, 2]}
       events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
@@ -104,6 +104,7 @@ export const Buerligons: React.FC = () => {
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />
+                <ContextMenu drawingId={drawingId} />
               </Fit>
 
               <BuerliPluginsGeometry drawingId={drawingId} />
