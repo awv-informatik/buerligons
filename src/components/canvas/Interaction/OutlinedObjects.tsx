@@ -102,26 +102,22 @@ export function OutlinedObjects({
   }
 
   if (!activeSel && !isPartMode && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
-    if (!info.instanceId || !info.productId) {
+    if (!info.instanceId) {
       return null
     }
     // Assembly node with hovered / selected mesh (if it exists)
     return (
       <>
-        <OutlinedProduct key={info.instanceId} group={group} id={info.instanceId || info.productId} />
+        <OutlinedProduct key={info.instanceId} group={group} id={info.instanceId} />
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
+            <GlobalTransform drawingId={drawingId} objectId={info.instanceId}>
               <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
             </GlobalTransform>
           </OutlinedObject>
         )}
       </>
     )
-  }
-
-  if (!info.productId) {
-    return null
   }
 
   if (!activeSel && isPartMode && solid) {
@@ -129,26 +125,26 @@ export function OutlinedObjects({
     return (
       <>
         <OutlinedObject key={solid.graphicId} group={group} id={solid.graphicId}>
-          <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
-            <Overlay.Entity drawingId={drawingId} elem={solid as any} color={solidColor} opacity={0} />
-          </GlobalTransform>
+          <Overlay.Entity drawingId={drawingId} elem={solid as any} color={solidColor} opacity={0} />
         </OutlinedObject>
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
-              <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
-            </GlobalTransform>
+            <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
           </OutlinedObject>
         )}
       </>
     )
   }
 
+  if (info.instanceId === undefined) {
+    return null
+  }
+
   if (solid && activeSel?.isSelectable(BuerliScope, solid.type)) {
     // Solid
     return (
       <OutlinedObject key={solid.graphicId} group={group} id={solid.graphicId}>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.instanceId}>
           <Overlay.Entity drawingId={drawingId} elem={solid as any} color={solidColor} opacity={0} />
         </GlobalTransform>
       </OutlinedObject>
@@ -159,7 +155,7 @@ export function OutlinedObjects({
     // Mesh
     return (
       <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.instanceId}>
           <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
         </GlobalTransform>
       </OutlinedObject>
