@@ -6,9 +6,10 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   DownOutlined,
+  SaveOutlined
 } from '@ant-design/icons'
 import { ccAPI } from '@buerli.io/classcad'
-import { api as buerliApi, DrawingID } from '@buerli.io/core'
+import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
 import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
@@ -66,6 +67,30 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
     [drawingId],
   )
 
+  const save = React.useCallback(
+    (type: 'ofb' | 'stp' | 'stl') => {
+      const run = async () => {
+        try {
+          const drawing = getDrawing(drawingId)
+          let name = drawing.name || 'drawing'
+          const ptIndex = name.lastIndexOf('.')
+          name = name.substring(0, ptIndex >= 0 ? ptIndex : name.length)
+          const data = await ccAPI.baseModeler.save(drawingId, type)
+          if (data) {
+            const link = document.createElement('a')
+            link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
+            link.download = `${name}.${type}`
+            link.click()
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      run()
+    },
+    [drawingId]
+  )
+
   return React.useMemo(() => {
     return {
       new: {
@@ -94,8 +119,26 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
         icon: <FolderOpenOutlined />,
         callback: () => rfRef.current && rfRef.current.click(),
       },
+      save: {
+        caption: 'save',
+        icon: <SaveOutlined />,
+        children: {
+          ofb: {
+            caption: 'ofb',
+            callback: () => save('ofb'),
+          },
+          stp: {
+            caption: 'stp',
+            callback: () => save('stp'),
+          },
+          stl: {
+            caption: 'stl',
+            callback: () => save('stl'),
+          },
+        },
+      },
     }
-  }, [createNewDrawing])
+  }, [createNewDrawing, save])
 }
 
 const getCaption = (state: string, states?: States): string => {
