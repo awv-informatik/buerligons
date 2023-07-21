@@ -42,7 +42,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
 }
 
 const useInteractionReset = (drawingId: DrawingID) => {
-  const currentNode = useDrawing(drawingId, d => d.structure.currentNode)
+  const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance)
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
   const objClass = useDrawing(drawingId, d => d.structure.tree[activeId || -1]?.class) || ''
@@ -64,13 +64,13 @@ const useInteractionReset = (drawingId: DrawingID) => {
   // Reset hover and selection when switching nodes
   React.useEffect(() => {
     resetInteraction()
-  }, [resetInteraction, currentNode])
+  }, [resetInteraction, currentInstance])
 }
 
 export const Buerligons: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
-  const currentNode = useDrawing(drawingId, d => d.structure.currentNode) || undefined
+  const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
@@ -100,7 +100,7 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} width={5}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} nodeId={isPart ? currentProduct : currentNode} selection={false} />
+                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} nodeId={isPart ? currentProduct : currentInstance} selection={false} />
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />

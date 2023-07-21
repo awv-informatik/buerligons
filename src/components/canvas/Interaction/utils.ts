@@ -87,7 +87,7 @@ export const selectObject = (drawingId: DrawingID, nodeId: ObjectID, object: Geo
 
 // TODO: Rename this function
 export const convertSelToInteraction = (drawingId: DrawingID, selItems: SelectedItem[]) => {
-  const curNodeId = getDrawing(drawingId).structure.currentNode
+  const curInstanceId = getDrawing(drawingId).structure.currentInstance
   const curProdId = getDrawing(drawingId).structure.currentProduct as ObjectID
 
   const interactionInfoArr = selItems.map(item => {
