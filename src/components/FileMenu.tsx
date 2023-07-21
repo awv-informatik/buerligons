@@ -75,16 +75,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           let name = drawing.name || 'drawing'
           const ptIndex = name.lastIndexOf('.')
           name = name.substring(0, ptIndex >= 0 ? ptIndex : name.length)
-          let data = null
-          switch (type) {
-            case 'ofb':
-            case 'stp':
-            case 'stl':
-              data = await ccAPI.baseModeler.save(drawingId, type)
-              break
-            default:
-              break
-          }
+          const data = await ccAPI.baseModeler.save(drawingId, type)
           if (data) {
             const link = document.createElement('a')
             link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
