@@ -32,13 +32,13 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     ({ component }: { component: 'Arrow' | 'Slider' | 'Rotator' }) => {
       const drawing = getDrawing(drawingId)
       const curProdId = drawing.structure.currentProduct
-      const curNodeId = drawing.structure.currentNode
-      const draggedNodeId = findInteractableParent(drawingId, productId)
-      if (!curProdId || !curNodeId || !draggedNodeId || !productId) {
+      const curInstanceId = drawing.structure.currentInstance
+      const draggedInstanceId = findInteractableParent(drawingId, productId)
+      if (!curProdId || !curInstanceId || !draggedInstanceId || !productId) {
         return
       }
 
-      const mP = drawing.api.structure.calculateGlobalTransformation(curNodeId)
+      const mP = drawing.api.structure.calculateGlobalTransformation(curInstanceId)
       const mPInv = mP.clone().invert()
       const mL0C = drawing.api.structure.calculateGlobalTransformation(productId).premultiply(mPInv)
       const mL0CInv = mL0C.invert()
@@ -53,17 +53,17 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       const selectedRefsUnique = selectedRefs.filter(
         (refId, id) => refId && id === selectedRefs.indexOf(refId),
       ) as ObjectID[]
-      const draggedNodes = selectedRefsUnique.map(
+      const draggedInstances = selectedRefsUnique.map(
         id => (drawing.structure.tree[id].members?.productRef?.value || id) as ObjectID,
       )
 
       dragInfo.current = { mPInv, mL0CInv }
-      ccAPI.assemblyBuilder.startMovingUnderConstraints(drawingId, curProdId, draggedNodes, pivotPos, mucType)
+      ccAPI.assemblyBuilder.startMovingUnderConstraints(drawingId, curProdId, draggedInstances, pivotPos, mucType)
     },
     [drawingId, productId, position],
   )
 
-  const transformNodes = React.useCallback(
+  const transformInstances = React.useCallback(
     async (mdL_: THREE.Matrix4) => {
       const curProdId = getDrawing(drawingId).structure.currentProduct || -1
 
@@ -83,7 +83,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       promise = null
 
       if (mdL.current) {
-        transformNodes(mdL.current.clone())
+        transformInstances(mdL.current.clone())
         mdL.current = null
       }
     },
@@ -101,10 +101,10 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       if (promise) {
         mdL.current = mdL_
       } else {
-        transformNodes(mdL_)
+        transformInstances(mdL_)
       }
     },
-    [transformNodes],
+    [transformInstances],
   )
 
   const onDragEnd = React.useCallback(() => {

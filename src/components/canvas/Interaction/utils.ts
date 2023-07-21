@@ -87,7 +87,7 @@ export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: 
 
 // TODO: Rename this function
 export const convertSelToInteraction = (drawingId: DrawingID, selItems: SelectedItem[]) => {
-  const curNodeId = getDrawing(drawingId).structure.currentNode
+  const curInstanceId = getDrawing(drawingId).structure.currentInstance
   const curProdId = getDrawing(drawingId).structure.currentProduct as ObjectID
 
   const interactionInfoArr = selItems.map(item => {
@@ -105,7 +105,7 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
         const object = item.data.object
         return createInfo({
           objectId: object.id,
-          prodRefId: curNodeId || curProdId,
+          prodRefId: curInstanceId || curProdId,
         })
       }
       case MateScope: {

@@ -52,9 +52,9 @@ export const getAdjacentMeshNormal = (
 
 export const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
   const drawing = getDrawing(drawingId)
-  const curNodeId = drawing.structure.currentNode || -1
-  const curNode = drawing.structure.tree[curNodeId]
-  const interactable = curNode?.children || []
+  const curInstId = drawing.structure.currentInstance || -1
+  const curInst = drawing.structure.tree[curInstId]
+  const interactable = curInst?.children || []
 
   const ancestors: ObjectID[] = []
   let objId: number | null = refId
