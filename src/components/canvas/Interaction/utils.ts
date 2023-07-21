@@ -98,14 +98,15 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
           objectId: data.container.ownerId,
           graphicId: data.graphicId,
           containerId: data.container.id,
-          instanceOrRootId: data.nodeId,
+          instanceId: data.nodeId,
         })
       }
       case TreeObjScope: {
         const object = item.data.object
         return createInfo({
           objectId: object.id,
-          instanceOrRootId: curNodeId || curProdId,
+          instanceId: curNodeId,
+          productId: curProdId,
         })
       }
       case MateScope: {
@@ -114,7 +115,7 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
         return createInfo({
           objectId: csys.id,
           objectPath: matePath,
-          instanceOrRootId: matePath[0],
+          instanceId: matePath[0],
         })
       }
       default: {

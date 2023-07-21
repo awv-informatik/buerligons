@@ -87,7 +87,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         objectId: object.container.ownerId,
         graphicId: object.graphicId,
         containerId: object.container.id,
-        instanceOrRootId: uData.nodeId,
+        instanceId: uData.instanceId,
+        productId: uData.productId,
       })
       if (interactionInfo.uniqueIdent !== drawing.interaction.hovered?.uniqueIdent) {
         const setHovered = drawing.api.interaction.setHovered
@@ -149,7 +150,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       if (isSelActive) {
-        selectObject(drawingId, uData.nodeId, object)
+        selectObject(drawingId, uData.instanceId, object)
         return
       }
 
@@ -162,7 +163,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         objectId: object.container.ownerId,
         graphicId: object.graphicId,
         containerId: object.container.id,
-        instanceOrRootId: uData.nodeId,
+        instanceId: uData.instanceId,
+        productId: uData.productId,
       })
       const select = drawing.api.interaction.select
       const multi = e.nativeEvent.shiftKey

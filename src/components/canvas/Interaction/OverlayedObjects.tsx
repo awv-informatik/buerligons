@@ -63,14 +63,14 @@ export function OverlayedObjects({
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
   const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-  if (!info.instanceOrRootId) {
+  if (!info.productId) {
     return null
   }
 
   if (object?.class === CCClasses.CCWorkPoint && !isVisible) {
     return (
       <HUD>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.productId}>
           <WorkPointObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
@@ -80,7 +80,7 @@ export function OverlayedObjects({
   if (object?.class === CCClasses.CCWorkAxis && !isVisible) {
     return (
       <HUD>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.productId}>
           <WorkAxisObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
@@ -90,7 +90,7 @@ export function OverlayedObjects({
   if (object?.class === CCClasses.CCWorkPlane && !isVisible) {
     return (
       <HUD>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.productId}>
           <WorkPlaneObj drawingId={drawingId} objectId={info.objectId} color={color} opacity={0.3} />
         </GlobalTransform>
       </HUD>
@@ -101,7 +101,7 @@ export function OverlayedObjects({
   if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible && isPartMode) {
     return (
       <HUD>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.productId}>
           <WorkCoordSystemObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
@@ -111,7 +111,7 @@ export function OverlayedObjects({
   if (object?.class === CCClasses.CCWorkCSys && !isVisible && isPartMode) {
     return (
       <HUD>
-        <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+        <GlobalTransform drawingId={drawingId} objectId={info.productId}>
           <WorkCSysObj drawingId={drawingId} objectId={info.objectId} color={color} />
         </GlobalTransform>
       </HUD>
@@ -125,7 +125,7 @@ export function OverlayedObjects({
   // Mesh
   if (solid && mesh && activeSel?.isSelectable(BuerliScope, GraphicType.LOOP)) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+      <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
         {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color} renderOrder={renderOrder} lineWidth={5} />)}
       </GlobalTransform>
     )
@@ -134,7 +134,7 @@ export function OverlayedObjects({
   // For now, only highlight meshes if no selection is active. For selection, only outlining is used...
   if (mesh && !activeSel) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+      <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
         <Overlay.Mesh elem={mesh as any} color={color} opacity={0.5} renderOrder={renderOrder} />
       </GlobalTransform>
     )
@@ -143,7 +143,7 @@ export function OverlayedObjects({
   // Line / Edge / Arc / Circle
   if (curve && (!activeSel || activeSel?.isSelectable(BuerliScope, curve.type))) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+      <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
         <Overlay.Spline elem={(curve as any)} color={color} renderOrder={renderOrder} lineWidth={5} />
       </GlobalTransform>
     )
@@ -152,7 +152,7 @@ export function OverlayedObjects({
   // Point
   if (point && (!activeSel || activeSel?.isSelectable(BuerliScope, point.type))) {
     return (
-      <GlobalTransform drawingId={drawingId} objectId={info.instanceOrRootId}>
+      <GlobalTransform drawingId={drawingId} objectId={info.instanceId || info.productId}>
         <Overlay.Point elem={(point as any)} color={color} renderOrder={renderOrder} pointSize={6} />
       </GlobalTransform>
     )

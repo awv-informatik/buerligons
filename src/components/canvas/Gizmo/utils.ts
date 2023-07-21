@@ -73,7 +73,7 @@ export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersect
   }
 
   const drawing = getDrawing(drawingId)
-  const nodeId = object.userData.nodeId
+  const nodeId = object.userData.instanceId
 
   if (typeof intersection.index === 'number' && object.userData.pointMap) {
     const point = object.userData.pointMap[intersection.index]
