@@ -105,7 +105,7 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
         const object = item.data.object
         return createInfo({
           objectId: object.id,
-          instanceId: curNodeId,
+          instanceId: curInstanceId,
           productId: curProdId,
         })
       }
