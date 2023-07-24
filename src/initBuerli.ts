@@ -18,6 +18,7 @@ import {
   Import,
   LinearPattern,
   Measure,
+  Mirror,
   Parallel,
   Planar,
   ProductManagement,
@@ -93,6 +94,7 @@ export const initBuerli = () => {
       [CCClasses.CCParallelConstraint]: Parallel,
       [CCClasses.CCImport]: Import,
       [CCClasses.CCEntityDeletion]: EntityDeletion,
+      [CCClasses.CCMirror]: Mirror,
     },
   })
 }
