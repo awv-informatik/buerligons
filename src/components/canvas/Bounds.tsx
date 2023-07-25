@@ -46,8 +46,8 @@ type GoalT = {
   camPos: THREE.Vector3 | undefined
   camRot: THREE.Euler | undefined
   camZoom: number | undefined
-  camUp: THREE.Vector3 | undefined,
-  target: THREE.Vector3 | undefined,
+  camUp: THREE.Vector3 | undefined
+  target: THREE.Vector3 | undefined
 }
 
 enum AnimationState {
@@ -63,7 +63,12 @@ function interpolate(v0: number, v1: number, t: number) {
   return v0 * (1 - k) + v1 * k
 }
 
-function interpolateV(v: THREE.Vector3 | THREE.Euler, v0: THREE.Vector3 | THREE.Euler, v1: THREE.Vector3 | THREE.Euler, t: number) {
+function interpolateV(
+  v: THREE.Vector3 | THREE.Euler,
+  v0: THREE.Vector3 | THREE.Euler,
+  v1: THREE.Vector3 | THREE.Euler,
+  t: number,
+) {
   v.x = interpolate(v0.x, v1.x, t)
   v.y = interpolate(v0.y, v1.y, t)
   v.z = interpolate(v0.z, v1.z, t)
@@ -110,6 +115,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         if (isBox3(object)) box.copy(object)
         else {
           const target = object || ref.current
+          if (!target) return this
           target.updateWorldMatrix(true, true)
           box.setFromObject(target)
         }
@@ -138,7 +144,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.target = center.clone()
         const mCamRot = new THREE.Matrix4().lookAt(goal.current.camPos, goal.current.target, camera.up)
         goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
-        
+
         controls && (controls.enabled = false)
         animationState.current = AnimationState.START
         t.current = 0
@@ -147,7 +153,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
       },
       moveTo(position: THREE.Vector3) {
         goal.current.camPos = position.clone()
-        
+
         controls && (controls.enabled = false)
         animationState.current = AnimationState.START
         t.current = 0
@@ -159,7 +165,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camUp = up ? up.clone() : camera.up.clone()
         const mCamRot = new THREE.Matrix4().lookAt(goal.current.camPos || camera.position, target, goal.current.camUp)
         goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
-        
+
         controls && (controls.enabled = false)
         animationState.current = AnimationState.START
         t.current = 0
@@ -167,7 +173,8 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         return this
       },
       fit() {
-        let maxHeight = 0, maxWidth = 0
+        let maxHeight = 0,
+          maxWidth = 0
         const vertices = [
           new THREE.Vector3(box.min.x, box.min.y, box.min.z),
           new THREE.Vector3(box.min.x, box.max.y, box.min.z),
@@ -178,7 +185,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
           new THREE.Vector3(box.max.x, box.min.y, box.max.z),
           new THREE.Vector3(box.max.x, box.min.y, box.min.z),
         ]
-    
+
         // Transform the center and each corner to camera space
         const pos = goal.current.camPos || camera.position
         const target = goal.current.target || controls?.target
@@ -195,7 +202,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         maxWidth *= 2
         const zoomForHeight = (camera.top - camera.bottom) / maxHeight
         const zoomForWidth = (camera.right - camera.left) / maxWidth
-    
+
         goal.current.camZoom = Math.min(zoomForHeight, zoomForWidth) / margin
 
         controls && (controls.enabled = false)
@@ -206,7 +213,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
       },
       clip() {
         const { distance } = getSize()
-        
+
         camera.near = Math.min(distance / 100, 0.01)
         camera.far = Math.max(distance * 100, 1000)
         camera.updateProjectionMatrix()
@@ -237,8 +244,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
     if (animationState.current === AnimationState.START) {
       animationState.current = AnimationState.ACTIVE
       invalidate()
-    }
-    else if (animationState.current === AnimationState.ACTIVE) {
+    } else if (animationState.current === AnimationState.ACTIVE) {
       t.current += delta / maxDuration
 
       if (t.current >= 1) {
@@ -257,12 +263,11 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
 
         controls && (controls.enabled = true)
         animationState.current = AnimationState.NONE
-      }
-      else {
+      } else {
         goal.current.camPos && interpolateV(camera.position, origin.current.camPos, goal.current.camPos, t.current)
         goal.current.camRot && interpolateV(camera.rotation, origin.current.camRot, goal.current.camRot, t.current)
         goal.current.camZoom && (camera.zoom = interpolate(origin.current.camZoom, goal.current.camZoom, t.current))
-  
+
         camera.updateMatrixWorld()
         camera.updateProjectionMatrix()
       }
