@@ -18,6 +18,7 @@ import {
   Import,
   LinearPattern,
   Measure,
+  Mirror,
   Parallel,
   Planar,
   ProductManagement,
@@ -37,7 +38,7 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
-const CCSERVERURL = 'ws://localhost:8182'
+const CCSERVERURL = 'ws://localhost:9091'
 
 export const initBuerli = () => {
   console.info('initBuerli')
@@ -93,6 +94,7 @@ export const initBuerli = () => {
       [CCClasses.CCParallelConstraint]: Parallel,
       [CCClasses.CCImport]: Import,
       [CCClasses.CCEntityDeletion]: EntityDeletion,
+      [CCClasses.CCMirror]: Mirror,
     },
   })
 }

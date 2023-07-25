@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 const { app } = require('electron')
 
-const CADPORT = 8182
+const CADPORT = 9091
 const INSTANCECOUNT = Math.max(1, os.cpus().length - 3)
 const PACKAGEDIR = path.join(__dirname, '..')
 const CCBINDIR = path.join(PACKAGEDIR, 'node_modules/@classcad/windows-x64')
