@@ -44,8 +44,9 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
   return intersection
 }
 
-export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
+export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
+  const selApi = drawing.api.selection
   const activeSelId = drawing.selection.active
   if (!object || !activeSelId) {
     return
@@ -74,8 +75,12 @@ export const selectObject = (drawingId: DrawingID, productId: ObjectID, object: 
   } else if (selection.isSelectable(BuerliScope, object.type)) {
     prodElements = [{ ...object, productId }]
   }
+  else {
+    // If the object can't be selected, consider it a 'miss', and unselect everything
+    selApi.unselectAll()
+    return
+  }
 
-  const selApi = drawing.api.selection
   const items = prodElements.map(elem => createGraphicItem(elem.productId, elem))
   const haveUnselected = items.find(item => !selApi.isItemSelected(item)) !== undefined
   if (haveUnselected) {

@@ -7,7 +7,7 @@ import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, selectObject } from './utils'
+import { findGeometryIntersection, attemptSelection } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -149,7 +149,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       if (isSelActive) {
-        selectObject(drawingId, uData.productId, object)
+        attemptSelection(drawingId, uData.productId, object)
         return
       }
 
