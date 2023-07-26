@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { ItemType } from 'antd/lib/menu/hooks/useItems'
 
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes } from '@buerli.io/core'
+import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes, LineGeometry, EdgeGeometry, ArcGeometry } from '@buerli.io/core'
 
 import { MenuInfo, MenuElement, MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
@@ -39,6 +39,15 @@ export const findSuitableIntersection = (intersections: THREE.Intersection[], li
   return intersection
 }
 
+const getEdgeNormal = (drawingId: DrawingID, edge: LineGeometry | EdgeGeometry | ArcGeometry, intersection: THREE.Intersection, clickPos: THREE.Vector3) => {
+  if (edge.type === 'arc' || edge.type === 'circle') {
+    return (edge as ArcGeometry).normal.clone().normalize()
+  }
+  else {
+    return getAdjacentMeshNormal(drawingId, edge.graphicId, intersection, clickPos)
+  }
+}
+
 export const getGeometryNormal = (drawingId: DrawingID, intersection: THREE.Intersection, cameraRay: THREE.Ray) => {
   const object = intersection?.object
   if (!object) {
@@ -59,18 +68,17 @@ export const getGeometryNormal = (drawingId: DrawingID, intersection: THREE.Inte
   if (typeof intersection.index === 'number' && object.userData.pointMap) {
     const point = object.userData.pointMap[intersection.index]
     if (point) {
-      // TODO: ???
+      const solid = drawing.geometry.cache[point.container.id]
+      const line = solid.map[point.owners[0]?.ownerId] as LineGeometry | EdgeGeometry | ArcGeometry
+      if (line) {
+        normal = getEdgeNormal(drawingId, line, intersection, pos)
+      }
     }
   } else if (typeof intersection.index === 'number' && object.userData.lineMap) {
     // Line
     const line = object.userData.lineMap[intersection.index || 0]
     if (line) {
-      if (line.type === 'arc' || line.type === 'circle') {
-        normal.copy(line.normal).normalize()
-      }
-      else {
-        normal = getAdjacentMeshNormal(drawingId, line.graphicId, intersection, pos)
-      }
+      normal = getEdgeNormal(drawingId, line, intersection, pos)
     }
   } else if (typeof intersection.faceIndex === 'number' && Boolean(object.userData.meshMap)) {
     // Mesh
