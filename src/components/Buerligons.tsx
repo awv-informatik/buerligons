@@ -1,13 +1,13 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, IStructureObject } from '@buerli.io/core'
+import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay } from '@buerli.io/react-cad'
+import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds, GeometryOverridesManager } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -29,7 +29,8 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   return (
     <Canvas
       orthographic
-      frameloop="demand"
+      flat
+      frameloop="demand"      
       dpr={[1, 2]}
       events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
@@ -40,14 +41,36 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
   )
 }
 
-const GeometryWrapper: React.FC<{ node: React.ReactNode; object: IStructureObject }> = ({ node, object }) => {
-  return <group name={object.id.toString()}>{node}</group>
+const useInteractionReset = (drawingId: DrawingID) => {
+  const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance)
+  const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
+  const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
+  const objClass = useDrawing(drawingId, d => d.structure.tree[activeId || -1]?.class) || ''
+  const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
+
+  const resetInteraction = React.useCallback(() => {
+    const interaction = getDrawing(drawingId)?.api.interaction
+    interaction?.setHovered(null)
+    interaction?.setSelected([])
+  }, [drawingId])
+
+  // Reset hover and selection on sketch or selector activation
+  React.useEffect(() => {
+    if (isSelActive || isSketchActive) {
+      resetInteraction()
+    }
+  }, [resetInteraction, isSelActive, isSketchActive])
+  
+  // Reset hover and selection when switching nodes
+  React.useEffect(() => {
+    resetInteraction()
+  }, [resetInteraction, currentInstance])
 }
 
 export const Buerligons: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
-  const currentNode = useDrawing(drawingId, d => d.structure.currentNode) || undefined
+  const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
@@ -56,11 +79,7 @@ export const Buerligons: React.FC = () => {
 
   React.useEffect(() => void (document.title = 'buerligons'), [])
 
-  // Reset selection when switching nodes
-  React.useEffect(() => {
-    const setSelected = getDrawing(drawingId)?.api.interaction.setSelected
-    setSelected && setSelected([])
-  }, [drawingId, currentNode])
+  useInteractionReset(drawingId)
 
   return (
     <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
@@ -76,17 +95,19 @@ export const Buerligons: React.FC = () => {
               <Controls makeDefault staticMoving rotateSpeed={2} />
               <Lights drawingId={drawingId} />
               <Threshold />
+              <GeometryOverridesManager drawingId={drawingId} />
 
               <Fit drawingId={drawingId}>
-                <Composer drawingId={drawingId} radius={0.1} hoveredColor="green" selectedColor="red" edgeStrength={3}>
+                <Composer drawingId={drawingId} width={5}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry drawingId={drawingId} productId={isPart ? currentProduct : currentNode}>
-                      {props => <GeometryWrapper {...props} />}
-                    </BuerliGeometry>
+                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentInstance} selection={false} />
                   </GeometryInteraction>
                 </Composer>
-                <BuerliPluginsGeometry drawingId={drawingId} />
+                <PluginGeometryBounds drawingId={drawingId} />
               </Fit>
+
+              <BuerliPluginsGeometry drawingId={drawingId} />
+              <HighlightedObjects drawingId={drawingId} />
 
               <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
                 <group scale={0.8}>

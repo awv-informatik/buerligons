@@ -13,8 +13,7 @@
     "eject": "react-scripts eject",
     "dev": "react-app-rewired start",
     "compile": "tsc",
-    "lint": "eslint \"./src/**/*.ts?(x)\"",
-    "classcad": "classcad --ip localhost --port 8182 --instances 5 --ccappfile ./BaseModeling.ccapp"
+    "lint": "eslint \"./src/**/*.ts?(x)\""
   },
   "engines": {
     "node": ">=14 <17"
@@ -43,15 +42,15 @@
     ]
   },
   "dependencies": {
-    "@buerli.io/react-cad": "0.5.0",
-    "@react-three/drei": "9.34.1",
-    "@react-three/fiber": "8.7.1",
-    "@react-three/postprocessing": "2.6.2",
+    "@buerli.io/react-cad": "0.9.0",
+    "@react-three/drei": "9.77.1",
+    "@react-three/fiber": "8.13.0",
+    "@react-three/postprocessing": "2.14.9",
     "antd": "^4.23.4",
     "arraybuffer-loader": "1.0.8",
     "react": "18.0.0",
     "react-dom": "18.0.0",
-    "three": "0.143",
+    "three": "0.153",
     "zustand": "4.1.4"
   },
   "devDependencies": {
@@ -62,7 +61,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@types/styled-components": "^5.1.14",
-    "@types/three": "0.143",
+    "@types/three": "0.152.1",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
