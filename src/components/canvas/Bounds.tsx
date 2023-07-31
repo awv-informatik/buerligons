@@ -50,6 +50,7 @@ type GoalT = {
   target: THREE.Vector3 | undefined
 }
 
+// eslint-disable-next-line no-shadow
 enum AnimationState {
   NONE = 0,
   START = 1,
