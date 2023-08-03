@@ -7,16 +7,11 @@
   "private": true,
   "scripts": {
     "clean": "rimraf ./build",
-    "start": "npm run dev",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test --env=jsdom",
-    "eject": "react-scripts eject",
-    "dev": "react-app-rewired start",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
     "compile": "tsc",
     "lint": "eslint \"./src/**/*.ts?(x)\""
-  },
-  "engines": {
-    "node": ">=14 <17"
   },
   "husky": {
     "hooks": {
@@ -63,14 +58,15 @@
     "@types/styled-components": "^5.1.14",
     "@types/three": "0.152.1",
     "@types/uuid": "^8.3.1",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
-    "@typescript-eslint/parser": "^4.32.0",
+    "@typescript-eslint/eslint-plugin": "5.21.0",
+    "@typescript-eslint/parser": "5.21.0",
+    "@vitejs/plugin-react": "^4.0.4",
     "babel-plugin-import": "^1.13.3",
-    "customize-cra": "^1.0.0",
-    "customize-cra-react-refresh": "^1.1.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-no-only-tests": "^2.6.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.26.1",
     "eslint-plugin-react-hooks": "^4.2.0",
     "husky": "^7.0.2",
@@ -78,12 +74,14 @@
     "less-loader": "^5.0.0",
     "lint-staged": "^11.1.2",
     "prettier": "^2.4.1",
-    "react-app-rewired": "^2.1.8",
-    "react-scripts": "4.0.3",
     "rimraf": "^3.0.2",
     "ts-loader": "^9.2.6",
-    "typescript": "4.4.3",
+    "typescript": "^5.1.6",
     "url-loader": "^4.1.1",
+    "vite": "^4.4.8",
+    "vite-plugin-checker": "^0.6.1",
+    "vite-plugin-svgr": "^3.2.0",
+    "vite-tsconfig-paths": "^4.2.0",
     "webpack-bundle-analyzer": "^4.4.2"
   }
 }

@@ -9,8 +9,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "prettier",
-    "plugin:promise/recommended",
-    "react-app"
+    "plugin:promise/recommended"
   ],
   "plugins": ["@typescript-eslint", "react-hooks", "react", "promise"],
   "rules": {
