@@ -1,10 +1,9 @@
 import * as THREE from 'three'
-import { ItemType } from 'antd/lib/menu/hooks/useItems'
 
 import { CCClasses } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes, LineGeometry, EdgeGeometry, ArcGeometry } from '@buerli.io/core'
 
-import { MenuInfo, MenuElement, MenuObjType } from './types'
+import { MenuObjType, CanvasMenuInfo } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
 
 const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
@@ -113,13 +112,10 @@ export const getGeometryNormal = (drawingId: DrawingID, intersection: THREE.Inte
   return normal.applyNormalMatrix(mN)
 }
 
-export const getObjType = (drawingId: DrawingID, menuInfo: MenuInfo): MenuObjType => {
+export const getObjType = (drawingId: DrawingID, menuInfo: CanvasMenuInfo): MenuObjType => {
   const drawing = getDrawing(drawingId)
 
-  if (!menuInfo.interactionInfo) {
-    return 'background'
-  }
-  else if (menuInfo.interactionInfo.containerId && menuInfo.interactionInfo.graphicId) {
+  if (menuInfo.interactionInfo.containerId && menuInfo.interactionInfo.graphicId) {
     const solid = drawing.geometry.cache[menuInfo.interactionInfo.containerId]
     const grType =
       solid.map[menuInfo.interactionInfo.graphicId]?.type ||
@@ -136,17 +132,7 @@ export const getObjType = (drawingId: DrawingID, menuInfo: MenuInfo): MenuObjTyp
       return 'mesh'
     }
   }
-  else if (menuInfo.interactionInfo.objectId) {
-    const obj = drawing.structure.tree[menuInfo.interactionInfo.objectId]
-    return obj.class as CCClasses
-  }
-
-  return 'background'
-}
-
-export const menuElementToItem = (menuElement: MenuElement) => {
-  const menuItem = { ...menuElement }
-  delete menuItem.onClick
-
-  return menuItem as ItemType
+  
+  const obj = drawing.structure.tree[menuInfo.interactionInfo.objectId]
+  return obj.class as CCClasses
 }

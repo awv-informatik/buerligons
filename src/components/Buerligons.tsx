@@ -7,7 +7,7 @@ import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects, ContextMenu, useMenuCommands } from './canvas'
+import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects, CanvasContextMenu, useContextMenuItems } from './canvas'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
@@ -67,11 +67,11 @@ const useInteractionReset = (drawingId: DrawingID) => {
   }, [resetInteraction, currentInstance])
 }
 
-const ContextMenuImpl: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
-  const menuContent = useMenuCommands(drawingId)
+const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
+  const menuContent = useContextMenuItems(drawingId)
 
   return (
-    <ContextMenu drawingId={drawingId} menuContent={menuContent} />
+    <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
   )
 }
 
@@ -112,7 +112,7 @@ export const Buerligons: React.FC = () => {
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />
-                <ContextMenuImpl drawingId={drawingId} />
+                <ContextMenu drawingId={drawingId} />
               </Fit>
 
               <BuerliPluginsGeometry drawingId={drawingId} />

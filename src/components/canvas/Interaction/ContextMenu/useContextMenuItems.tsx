@@ -3,6 +3,7 @@ import * as THREE from 'three'
 
 import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem } from '@buerli.io/core'
+import { MenuElement } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined } from '@ant-design/icons'
 
@@ -12,7 +13,7 @@ import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
 import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
 import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 
-import { MenuInfo, MenuDescriptor, MenuElement } from './types'
+import { CanvasMenuInfo, MenuDescriptor } from './types'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { useBounds, BoundsApi } from '../../Bounds'
 
@@ -25,16 +26,16 @@ const zoomToFit = (boundsControls: BoundsApi) => {
   boundsControls?.refresh().reset().fit().clip()
 }
 
-const viewNormalToProduct = (menuInfo: MenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
-  const target = menuInfo.clickPos
-  const normal = menuInfo.clickNormal || new THREE.Vector3(0, 0, 1)
+const viewNormalToProduct = (menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+  const target = menuInfo.clickInfo.clickPos
+  const normal = menuInfo.clickInfo.clickNormal || new THREE.Vector3(0, 0, 1)
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
   const up = normal.clone().cross(camera.up.clone().cross(normal))
 
   boundsControls?.refresh().moveTo(position).lookAt({ target, up })
 }
 
-const deleteSolid = (drawingId: DrawingID, menuInfo: MenuInfo) => {
+const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct
   const solidId = menuInfo.interactionInfo?.containerId
@@ -64,7 +65,7 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: MenuInfo) => {
   drawing.api.interaction.setSelected([])
 }
 
-const deleteInstance = (drawingId: DrawingID, menuInfo: MenuInfo) => {
+const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
   const nodeId = menuInfo.interactionInfo?.prodRefId
@@ -99,7 +100,7 @@ const getSketchBounds = (boundsMember: ArrayMem) => {
   return { center: sphere.center, radius: sphere.radius, box }
 }
 
-const viewNormalToSketch = (drawingId: DrawingID, menuInfo: MenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+const viewNormalToSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
   const drawing = getDrawing(drawingId)
   const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
   if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
@@ -126,13 +127,13 @@ const viewNormalToSketch = (drawingId: DrawingID, menuInfo: MenuInfo, camera: TH
 
   const matrix4 = MathUtils.convertToMatrix4(csys)
   const globBox = box.clone().applyMatrix4(matrix4)
-  const target = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, origin).projectPoint(menuInfo.clickPos, new THREE.Vector3())
+  const target = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, origin).projectPoint(menuInfo.clickInfo.clickPos, new THREE.Vector3())
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
 
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up })
 }
 
-const fitSketch = (drawingId: DrawingID, menuInfo: MenuInfo, boundsControls: BoundsApi) => {
+const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControls: BoundsApi) => {
   const drawing = getDrawing(drawingId)
   const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
   if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
@@ -166,14 +167,14 @@ const fitSketch = (drawingId: DrawingID, menuInfo: MenuInfo, boundsControls: Bou
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
 }
 
-const viewNormalToPlane = (drawingId: DrawingID, menuInfo: MenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+const viewNormalToPlane = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
   const drawing = getDrawing(drawingId)
   const workPlaneObj = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
   if (!workPlaneObj || !ccUtils.base.isA(workPlaneObj.class, CCClasses.CCWorkPlane)) {
     return
   }
 
-  const target = menuInfo.clickPos
+  const target = menuInfo.clickInfo.clickPos
   const normal = convertToVector(workPlaneObj.members?.Normal as PointMem).normalize()
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
   const up = normal.clone().cross(camera.up.clone().cross(normal))
@@ -181,7 +182,7 @@ const viewNormalToPlane = (drawingId: DrawingID, menuInfo: MenuInfo, camera: THR
   boundsControls?.refresh().moveTo(position).lookAt({ target, up })
 }
 
-export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
+export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   const drawing = getDrawing(drawingId)
   const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
   const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
@@ -197,7 +198,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
         label: 'Zoom to fit',
         icon: <ZoomInOutlined />,
         key: 'zoomToFit',
-        onClick: (menuInfo: MenuInfo) => {
+        onClick: (menuInfo: CanvasMenuInfo) => {
           zoomToFit(boundsControls)
         },
       }
@@ -208,7 +209,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
         label: 'View normal to',
         icon: <VerticalAlignTopOutlined />,
         key: 'viewNormalToProduct',
-        onClick: (menuInfo: MenuInfo) => {
+        onClick: (menuInfo: CanvasMenuInfo) => {
           viewNormalToProduct(menuInfo, camera, controls, boundsControls)
         },
       },
@@ -216,7 +217,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
         label: 'Delete',
         icon: <DeleteOutlined />,
         key: 'delete',
-        onClick: (menuInfo: MenuInfo) => {
+        onClick: (menuInfo: CanvasMenuInfo) => {
           if (isPartMode) {
             deleteSolid(drawingId, menuInfo)
           }
@@ -229,33 +230,39 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
 
     return [
       {
-        objType: 'background',
-        headerName: isPartMode ? 'Part' : 'Assembly',
-        headerIcon: <MenuHeaderIcon url={isPartMode ? partURL : assemblyURL} />,
-        menuElements: common,
-      },
-      {
         objType: 'point',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
         menuElements: [...common, { type: 'divider' }, ...graphic],
       },
       {
         objType: 'line',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
         menuElements: [...common, { type: 'divider' }, ...graphic],
       },
       {
         objType: 'mesh',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
         menuElements: [...common, { type: 'divider' }, ...graphic],
+      },
+      {
+        objType: CCClasses.CCPart,
+        headerName: 'Part',
+        headerIcon: <MenuHeaderIcon url={partURL} size={14} />,
+        menuElements: common,
+      },
+      {
+        objType: CCClasses.CCAssembly,
+        headerName: 'Assembly',
+        headerIcon: <MenuHeaderIcon url={assemblyURL} size={14} />,
+        menuElements: common,
       },
       {
         objType: CCClasses.CCSketch,
         headerName: 'Sketch',
-        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        headerIcon: <MenuHeaderIcon url={sketchURL} size={14} />,
         menuElements: [
           ...common,
           { type: 'divider' },
@@ -263,7 +270,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
             label: 'View normal to sketch',
             icon: <VerticalAlignTopOutlined />,
             key: 'viewNormalToSketch',
-            onClick: (menuInfo: MenuInfo) => {
+            onClick: (menuInfo: CanvasMenuInfo) => {
               viewNormalToSketch(drawingId, menuInfo, camera, controls, boundsControls)
             },
           },
@@ -271,7 +278,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
             label: 'Fit sketch',
             icon: <BorderOuterOutlined />,
             key: 'fitSketch',
-            onClick: (menuInfo: MenuInfo) => {
+            onClick: (menuInfo: CanvasMenuInfo) => {
               fitSketch(drawingId, menuInfo, boundsControls)
             },
           },
@@ -280,7 +287,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
       {
         objType: CCClasses.CCWorkPlane,
         headerName: 'Workplane',
-        headerIcon: <MenuHeaderIcon url={workplaneURL} />,
+        headerIcon: <MenuHeaderIcon url={workplaneURL} size={14} />,
         menuElements: [
           ...common,
           { type: 'divider' },
@@ -288,7 +295,7 @@ export const useMenuCommands = (drawingId: DrawingID): MenuDescriptor[] => {
             label: 'View normal to plane',
             icon: <VerticalAlignTopOutlined />,
             key: 'viewNormalToPlane',
-            onClick: (menuInfo: MenuInfo) => {
+            onClick: (menuInfo: CanvasMenuInfo) => {
               viewNormalToPlane(drawingId, menuInfo, camera, controls, boundsControls)
             },
           },

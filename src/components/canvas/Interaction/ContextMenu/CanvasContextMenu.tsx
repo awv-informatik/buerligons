@@ -1,16 +1,15 @@
 import React from 'react'
 import * as THREE from 'three'
-import styled from 'styled-components'
-import Dropdown from 'antd/lib/dropdown'
 
-import { createInfo, DrawingID, GeometryElement, getDrawing } from '@buerli.io/core'
+import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
+import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { CameraHelper } from '@buerli.io/react'
-import { getCADState } from '@buerli.io/react-cad'
+import { ContextMenu, getCADState } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 
-import { MenuInfo, MenuDescriptor } from './types'
-import { findSuitableIntersection, getGeometryNormal, getObjType, menuElementToItem } from './utils'
+import { CanvasMenuInfo, MenuDescriptor } from './types'
+import { findSuitableIntersection, getGeometryNormal, getObjType } from './utils'
 
 class ContextMenuTrigger extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -37,36 +36,7 @@ declare global {
   }
 }
 
-const MenuWrapper = styled.div`
-  border: 1px solid #e0e0e0;
-  margin-top: -4px;
-  .ant-dropdown-menu-root {
-    padding: 2px 0px;
-    border: 0px;
-    border-radius: 0px;
-    .ant-dropdown-menu-item {
-      padding: 2px 12px;
-    }
-    .ant-dropdown-menu-item-divider {
-      margin: 2px 0px;
-    }
-  }
-`
-
-const MenuHeader = styled.div`
-  padding: 3px 11px;
-  background: -webkit-radial-gradient(center, circle, rgba(255,255,255,.35), rgba(255,255,255,0) 20%, rgba(255,255,255,0) 21%), -webkit-radial-gradient(center, circle, rgba(0,0,0,.2), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 21%), #fbfbfb;
-  background-size: 10px 10px, 10px 10px, 100% 100%;
-  background-position: 1px 1px, 0px 0px, center center;
-  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
-`
-
-const MenuHeaderCaption = styled.span`
-  font-weight: 700;
-  font-size: 14px;
-`
-
-export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDescriptor[] }> = ({ drawingId, menuContent }) => {
+export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDescriptor[] }> = ({ drawingId, menuContent }) => {
   const lnTh = useThree(state => state.raycaster.params.Line?.threshold)
   const ptsTh = useThree(state => state.raycaster.params.Points?.threshold)
   const { camera, size } = useThree()
@@ -77,7 +47,7 @@ export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDesc
     }
   }, [camera, size, lnTh, ptsTh])
 
-  const [menuInfo, setMenuInfo] = React.useState<MenuInfo | null>(null)
+  const [menuInfo, setMenuInfo] = React.useState<CanvasMenuInfo | null>(null)
   
   React.useEffect(() => {
     if (menuInfo) {
@@ -110,8 +80,15 @@ export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDesc
     const uData = intersection?.object?.userData
 
     if (!intersection) {
+      // If there are no valid intersections, consider the current product being clicked
+      const drawing = getDrawing(drawingId)
+      const currentProduct = drawing.structure.currentProduct as ObjectID
+      const currentInstance = drawing.structure.currentInstance
+
       const clickPos = e.ray.origin.clone().addScaledVector(e.ray.direction, 100)
-      setMenuInfo({ clickPos })
+
+      const interactionInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
+      setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
     }
     else if (uData?.objId) {
       const object = getDrawing(drawingId).structure.tree[uData.objId]
@@ -122,7 +99,7 @@ export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDesc
       const clickPos = intersection.point.clone()
 
       const interactionInfo = createInfo({ objectId: object.id })
-      setMenuInfo({ clickPos, interactionInfo })
+      setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
     }
     else if (uData?.isBuerliGeometry) {
       const index = intersection?.index ?? -1
@@ -141,37 +118,23 @@ export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDesc
         containerId: object.container.id,
         prodRefId: uData.productId,
       })
-      setMenuInfo({ clickPos, clickNormal, interactionInfo })
+      setMenuInfo({ interactionInfo, clickInfo: { clickPos, clickNormal } })
     }
   }, [drawingId, lineThreshold, pointThreshold])
 
-  const onMenuClick = React.useCallback((e: { key: string }) => {
-    if (!menuInfo) {
-      return
-    }
-
-    const objType = getObjType(drawingId, menuInfo)
-
-    const menuDescriptor = menuContent.find(menuDescriptor_ => menuDescriptor_.objType === objType)
-    const menuElement = menuDescriptor?.menuElements.find(menuElement_ => menuElement_.key === e.key)
-    const onMenuClick_ = menuElement?.onClick
-    
-    onMenuClick_ && onMenuClick_(menuInfo)
-
-    setMenuInfo(null)
-  }, [drawingId, menuContent, menuInfo])
+  const onClick = React.useCallback(() => setMenuInfo(null), [])
 
   const { menuItems, caption, icon } = React.useMemo(() => {
     if (!menuInfo) {
-      return { menuItems: [], caption: '', icon: null }
+      return { menuItems: [], caption: '', icon: undefined }
     }
 
     const objType = getObjType(drawingId, menuInfo)
 
-    const menuDescriptor = menuContent.find(menuDescriptor_ => menuDescriptor_.objType === objType)
-    const menuItems_ = menuDescriptor?.menuElements.map(menuElementToItem) || []
+    const menuDescriptor = menuContent.find(menuDescriptor_ => menuDescriptor_.objType === objType || ccUtils.base.isA(objType, menuDescriptor_.objType as CCClasses))
+    const menuItems_ = menuDescriptor?.menuElements || []
     const caption_ = menuDescriptor?.headerName || ''
-    const icon_ = menuDescriptor?.headerIcon || null
+    const icon_ = menuDescriptor?.headerIcon
 
     return { menuItems: menuItems_, caption: caption_, icon: icon_ }
   }, [drawingId, menuContent, menuInfo])
@@ -180,21 +143,10 @@ export const ContextMenu: React.FC<{ drawingId: DrawingID; menuContent: MenuDesc
     <>
       <contextMenuTrigger onContextMenu={onContextMenu} />
       {menuInfo && (
-        <Html position={menuInfo.clickPos}>
-          <Dropdown
-            menu={{ items: menuItems, onClick: onMenuClick }}
-            dropdownRender={(menu) => (
-              <MenuWrapper onContextMenu={e => e.preventDefault()}>
-                <MenuHeader>
-                  {icon}
-                  <MenuHeaderCaption>{caption}</MenuHeaderCaption>
-                </MenuHeader>
-                {menu}
-              </MenuWrapper>
-            )}
-            open>
+        <Html position={menuInfo.clickInfo.clickPos}>
+          <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} onClick={onClick} open>
             <div onContextMenu={e => e.preventDefault() } />
-          </Dropdown>
+          </ContextMenu>
         </Html>
       )}
     </>
