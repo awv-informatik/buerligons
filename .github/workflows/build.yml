@@ -26,6 +26,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: npm i -g yarn typescript
       - run: yarn install
       - run: yarn build
