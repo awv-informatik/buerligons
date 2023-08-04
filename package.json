@@ -13,6 +13,9 @@
     "compile": "tsc",
     "lint": "eslint \"./src/**/*.ts?(x)\""
   },
+  "engines": {
+    "node": ">=16.14.0"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
