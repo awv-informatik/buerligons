@@ -11,7 +11,7 @@ jobs:
   install_build_test:
     strategy:
       matrix:
-        node-version: [17.x]
+        node-version: [16.x, 18.x, 20.x, latest]
         os: [[ubuntu-latest]]
 
     runs-on: ${{ matrix.os }}
