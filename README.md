@@ -12,6 +12,8 @@ First of all you need to install all required dependencies.
 yarn install
 ```
 
+> Since there were a lot of problems finding node.js compatibility, we put `--ignore-engines true` in .yarnrc. This is not the ideal solution, but for most cases it should fit. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version.
+
 ### ClassCAD Server
 
 To be able to use buerligons, you need a running ClassCAD Server which offers the CAD service via WebSockets.
