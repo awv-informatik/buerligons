@@ -12,7 +12,7 @@ First of all you need to install all required dependencies.
 yarn install
 ```
 
-> Since there were a lot of problems finding node.js compatibility, a github action is used to install dependencies on several node.js versions. Please take a look at the github action [build.yml](./.github/workflows/build.yml) to see what node.js versions are used. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version you are currently running on your system.
+> Note about node.js compatiblity of the development tools used for buerligons. A github action is used to install dependencies on several node.js versions. Please have a look at the github action [build.yml](./.github/workflows/build.yml) to see what node.js versions are tested. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version you are currently running on your system.
 
 ### ClassCAD Server
 
