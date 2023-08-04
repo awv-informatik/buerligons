@@ -12,7 +12,7 @@ First of all you need to install all required dependencies.
 yarn install
 ```
 
-> Since there were a lot of problems finding node.js compatibility, we put `--ignore-engines true` in .yarnrc. This is not the ideal solution, but for most cases it should fit. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version.
+> Since there were a lot of problems finding node.js compatibility, a github action is used to install dependencies on several node.js versions. Please take a look at the github action [build.yml](./.github/workflows/build.yml) to see what node.js versions are used. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version you are currently running on your system.
 
 ### ClassCAD Server
 
