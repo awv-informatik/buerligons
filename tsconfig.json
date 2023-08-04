@@ -1,28 +1,22 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "target": "ES2017",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "outDir": "build/",
-    "paths": {},
-    "jsx": "react",
     "allowJs": false,
-    "declaration": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "noImplicitAny": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "react-jsx",
+    "types": ["vite/client", "vite-plugin-svgr/client"],
+    "skipDefaultLibCheck": true
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./src/index.tsx", "./src/App.tsx", "./src/initBuerli.ts"]
+  "include": ["src"]
 }
