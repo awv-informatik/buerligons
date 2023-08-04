@@ -1,0 +1,31 @@
+name: Install and Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  install_build_test:
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x, latest]
+        os: [[ubuntu-latest]]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: yarn install
+      - run: yarn build
+      - run: yarn lint
