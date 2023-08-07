@@ -14,10 +14,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@classcad/node@12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-12.0.1.tgz#7748dcff66e54b2b2f836917bd5cb5a302fc02da"
-  integrity sha512-iGXyxRGj9Lc4cVC7I9z3f0TD5TaamLnIRYjC0kymN/gKQ9H2XioH0p77c/6ktfvDo+koV6NWhUvlFlwQtkBd9Q==
+"@classcad/node@12.0.2":
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-12.0.2.tgz#41aa48fc4d3baaf10d38a6f51cc47936ef908592"
+  integrity sha512-oYVvo5xju98XYdv9F7T7xbi8n5UuoSZDN9EA/jSaexUpy4zzzGwD2cH03dP9cKCvhbzRv3daoOCCiUNIYUgbcQ==
   dependencies:
     adm-zip "^0.5.10"
     chalk "^2.4.1"
@@ -29,7 +29,6 @@
     express "^4.16.3"
     fix-path "^2.1.0"
     fs-extra "^7.0.0"
-    guid "^0.0.12"
     is-port-available "^0.1.5"
     lodash "^4.17.12"
     moment "^2.22.2"
@@ -44,17 +43,18 @@
     stoppable "^1.0.6"
     stringify-object-extract-functions "^2.4.1"
     threads "^0.12.0"
+    uuid "^9.0.0"
     ws "^6.0.0"
   optionalDependencies:
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.6-beta.4":
-  version "0.0.6-beta.4"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.6-beta.4.tgz#b8944e384714e648de118f67cfafa12c2f319e59"
-  integrity sha512-3KfLQ5noGUmfXoSLkvajqdQf3nacvyeVy9gDNL4Q4nicLV9Nkr44v26nnE5tmD1aG5sX2r2MF+Ma6am+rKRf/w==
+"@classcad/windows-x64@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.6.tgz#ed1a08b3fee9895b2e7251e0cca6c06e6e2e5f0f"
+  integrity sha512-vuQ98qpFNrtwzJNnNeKsH2JIvdBGMitgqQklpI41moWNPyTDjldQhszKvyOPY9llGkBMZ4JOfGQFhlCbSc+RgA==
   dependencies:
-    "@classcad/node" "12.0.1"
+    "@classcad/node" "12.0.2"
     yargs "15.4.1"
 
 "@develar/schema-utils@~2.6.5":
@@ -1484,11 +1484,6 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
   integrity sha512-8tLu60LgxF6XpdbK8OW3FA+IfTNBn1ZHGHKF4KQbEeSkajYw5PlYJcKluntgegDPTg8UkHjpet1T82vk6TQ68w==
-
-guid@^0.0.12:
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/guid/-/guid-0.0.12.tgz#9137c52b185f7de12490b9bebcc1660b9025fe0c"
-  integrity sha512-J0MCgzgJcvLarLGTeVIhXdQwqlEJ9rxmxc/X71GR4VR5V/BIQ9FFfzGL52qYKgREQI8qPevc1qFNwB/4VnBuRA==
 
 has-flag@^3.0.0:
   version "3.0.0"
@@ -2935,6 +2930,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 vary@^1, vary@~1.1.2:
   version "1.1.2"
