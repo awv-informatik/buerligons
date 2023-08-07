@@ -76,19 +76,18 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
 
     e.stopPropagation()
 
+    const drawing = getDrawing(drawingId)
+    const currentProduct = drawing.structure.currentProduct as ObjectID
+    const currentInstance = drawing.structure.currentInstance
+    const defaultIInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
+
     const intersection = findSuitableIntersection(e.intersections, lineThreshold, pointThreshold)
     const uData = intersection?.object?.userData
 
     if (!intersection) {
       // If there are no valid intersections, consider the current product being clicked
-      const drawing = getDrawing(drawingId)
-      const currentProduct = drawing.structure.currentProduct as ObjectID
-      const currentInstance = drawing.structure.currentInstance
-
       const clickPos = e.ray.origin.clone().addScaledVector(e.ray.direction, 100)
-
-      const interactionInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
-      setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
+      setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
     }
     else if (uData?.objId) {
       const object = getDrawing(drawingId).structure.tree[uData.objId]
@@ -99,7 +98,15 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       const clickPos = intersection.point.clone()
 
       const interactionInfo = createInfo({ objectId: object.id })
-      setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
+      const objType = getObjType(drawingId, interactionInfo)
+      if (menuContent.find(menuDescriptor => ccUtils.base.isA(objType, menuDescriptor.objType as CCClasses))) {
+        // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
+        setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
+      }
+      else {
+        // Otherwise - consider the current product being clicked
+        setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
+      }
     }
     else if (uData?.isBuerliGeometry) {
       const index = intersection?.index ?? -1
@@ -118,7 +125,16 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
         containerId: object.container.id,
         prodRefId: uData.productId,
       })
-      setMenuInfo({ interactionInfo, clickInfo: { clickPos, clickNormal } })
+      const objType = getObjType(drawingId, interactionInfo)
+      if (menuContent.find(menuDescriptor => menuDescriptor.objType === objType)) {
+        // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
+        setMenuInfo({ interactionInfo, clickInfo: { clickPos, clickNormal } })
+      }
+      else {
+        // Otherwise - consider the current product being clicked
+        setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
+      }
+
     }
   }, [drawingId, lineThreshold, pointThreshold])
 
@@ -126,13 +142,13 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
 
   const { menuItems, caption, icon } = React.useMemo(() => {
     if (!menuInfo) {
-      return { menuItems: [], caption: '', icon: undefined }
+      return { menuItems: undefined, caption: '', icon: undefined }
     }
 
-    const objType = getObjType(drawingId, menuInfo)
+    const objType = getObjType(drawingId, menuInfo.interactionInfo)
 
     const menuDescriptor = menuContent.find(menuDescriptor_ => menuDescriptor_.objType === objType || ccUtils.base.isA(objType, menuDescriptor_.objType as CCClasses))
-    const menuItems_ = menuDescriptor?.menuElements || []
+    const menuItems_ = menuDescriptor?.menuElements
     const caption_ = menuDescriptor?.headerName || ''
     const icon_ = menuDescriptor?.headerIcon
 
@@ -142,7 +158,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
   return (
     <>
       <contextMenuTrigger onContextMenu={onContextMenu} />
-      {menuInfo && (
+      {menuInfo && menuItems && (
         <Html position={menuInfo.clickInfo.clickPos}>
           <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} onClick={onClick} open>
             <div onContextMenu={e => e.preventDefault() } />

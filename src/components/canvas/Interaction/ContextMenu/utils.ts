@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes, LineGeometry, EdgeGeometry, ArcGeometry } from '@buerli.io/core'
+import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo } from '@buerli.io/core'
 
 import { MenuObjType, CanvasMenuInfo } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
@@ -112,14 +112,14 @@ export const getGeometryNormal = (drawingId: DrawingID, intersection: THREE.Inte
   return normal.applyNormalMatrix(mN)
 }
 
-export const getObjType = (drawingId: DrawingID, menuInfo: CanvasMenuInfo): MenuObjType => {
+export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInfo): MenuObjType => {
   const drawing = getDrawing(drawingId)
 
-  if (menuInfo.interactionInfo.containerId && menuInfo.interactionInfo.graphicId) {
-    const solid = drawing.geometry.cache[menuInfo.interactionInfo.containerId]
+  if (interactionInfo.containerId && interactionInfo.graphicId) {
+    const solid = drawing.geometry.cache[interactionInfo.containerId]
     const grType =
-      solid.map[menuInfo.interactionInfo.graphicId]?.type ||
-      solid.points.find(point => point.graphicId === menuInfo.interactionInfo?.graphicId)?.type
+      solid.map[interactionInfo.graphicId]?.type ||
+      solid.points.find(point => point.graphicId === interactionInfo?.graphicId)?.type
 
     if (PointTypes.indexOf(grType) !== -1) {
       return 'point'
@@ -133,6 +133,6 @@ export const getObjType = (drawingId: DrawingID, menuInfo: CanvasMenuInfo): Menu
     }
   }
   
-  const obj = drawing.structure.tree[menuInfo.interactionInfo.objectId]
+  const obj = drawing.structure.tree[interactionInfo.objectId]
   return obj.class as CCClasses
 }
