@@ -3,18 +3,22 @@ import * as THREE from 'three'
 
 import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem } from '@buerli.io/core'
-import { MenuElement } from '@buerli.io/react-cad'
+import { MenuElement, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
-import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined } from '@ant-design/icons'
+import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined } from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
 import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
 import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
 import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
+import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
+import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
 import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
+import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
+import { MenuItemIcon } from './MenuItemIcon'
 import { useBounds, BoundsApi } from '../../Bounds'
 
 type ControlsProto = {
@@ -24,6 +28,50 @@ type ControlsProto = {
 
 const zoomToFit = (boundsControls: BoundsApi) => {
   boundsControls?.refresh().reset().fit().clip()
+}
+
+const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
+  if (menuInfo.interactionInfo.containerId) {
+    const geomApi = getDrawing(drawingId).api.geometry
+    geomApi.setConfig(menuInfo.interactionInfo.containerId, { meshes: { hidden: true }, edges: { hidden: true } })
+  }
+  else {
+    const pluginApi = getDrawing(drawingId).api.plugin
+    pluginApi.setVisiblePlugin(menuInfo.interactionInfo.objectId, false)
+  }
+
+}
+
+const showOrHideInstance = (drawingId: DrawingID, instanceId: ObjectID, show: boolean) => {
+  const drawing = getDrawing(drawingId)
+  drawing.api.geometry.setConfig(instanceId, { meshes: { hidden: !show }, edges: { hidden: !show } })
+
+  const children = drawing.structure.tree[instanceId]?.children || []
+  children.forEach(instanceId_ => showOrHideInstance(drawingId, instanceId_, show))
+}
+
+const showAllFeaturesAndSolids = (drawingId: DrawingID, opSeqId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+  
+  const pluginAPI = drawing.api.plugin
+  const featureRefIds = tree[opSeqId].children || []
+  const featureIds = featureRefIds.map(featureRefId => tree[featureRefId]?.members?.refObj.value as ObjectID)
+  featureIds.forEach(featureId => pluginAPI.setVisiblePlugin(featureId, true))
+
+  const geomApi = drawing.api.geometry
+  const curProd = drawing.structure.currentProduct
+  const product = tree[curProd || -1]
+  const solidIds = product?.solids || []
+  solidIds.forEach(solidId => geomApi.setConfig(solidId, { meshes: { hidden: false }, edges: { hidden: false } }))
+}
+
+const showAllInstances = (drawingId: DrawingID) => {
+  const drawing = getDrawing(drawingId)
+  const curInstance = drawing.structure.currentInstance
+
+  const children = drawing.structure.tree[curInstance || -1]?.children || []
+  children.forEach(instanceId => showOrHideInstance(drawingId, instanceId, true))
 }
 
 const viewNormalToProduct = (menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
@@ -167,6 +215,21 @@ const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControl
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
 }
 
+const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
+  const drawing = getDrawing(drawingId)
+  const curProdId = drawing.structure.currentProduct as ObjectID
+
+  const sketchId = await ccAPI.sketcher.createSketch(drawingId, curProdId)
+  if (!sketchId) {
+    return
+  }
+
+  await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
+
+  const pluginApi = drawing.api.plugin
+  pluginApi.setActiveFeature(sketchId)
+}
+
 const viewNormalToPlane = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
   const drawing = getDrawing(drawingId)
   const workPlaneObj = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
@@ -192,19 +255,62 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
   const boundsControls = useBounds()
 
+  const opSeqId = useOperationSequence(drawingId, drawing.structure.currentProduct || -1)
+
   return React.useMemo(() => {
-    const common = [
-      {
-        label: 'Zoom to fit',
-        icon: <ZoomInOutlined />,
-        key: 'zoomToFit',
-        onClick: (menuInfo: CanvasMenuInfo) => {
-          zoomToFit(boundsControls)
-        },
+    const zoomToFitEl = {
+      label: 'Zoom to fit',
+      icon: <ZoomInOutlined />,
+      key: 'zoomToFit',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        zoomToFit(boundsControls)
+      },
+    } as MenuElement
+
+    const hideEl = {
+      label: 'Hide',
+      icon: <EyeInvisibleOutlined />,
+      key: 'hide',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (isPartMode) {
+          hideFeatureOrSolid(drawingId, menuInfo)
+        }
+        else if (menuInfo.interactionInfo.prodRefId) {
+          showOrHideInstance(drawingId, menuInfo.interactionInfo.prodRefId, false)
+        }
+      },
+    } as MenuElement
+
+    const showAllEl = {
+      label: 'Show all',
+      icon: <EyeOutlined />,
+      key: 'showAll',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (isPartMode && opSeqId) {
+          showAllFeaturesAndSolids(drawingId, opSeqId)
+        }
+        else {
+          showAllInstances(drawingId)
+        }
       }
-    ] as MenuElement[]
+    } as MenuElement
 
     const graphic = [
+      hideEl,
+      showAllEl,
+      { type: 'divider' },
+      {
+        label: 'Edit',
+        icon: <SelectOutlined />,
+        key: 'editProduct',
+        onClick: (menuInfo: CanvasMenuInfo) => {
+          if (menuInfo.interactionInfo.prodRefId) {
+            getCADState().api.assemblyTree.startProdEditing(drawingId, menuInfo.interactionInfo.prodRefId)
+          }
+        },
+      },
+      { type: 'divider' },
+      zoomToFitEl,
       {
         label: 'View normal to',
         icon: <VerticalAlignTopOutlined />,
@@ -228,43 +334,50 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     ] as MenuElement[]
 
+    const workGeometry = [
+      hideEl,
+      showAllEl,
+      { type: 'divider' },
+      zoomToFitEl,
+    ] as MenuElement[]
+
     return [
       {
         objType: 'point',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
-        menuElements: [...common, { type: 'divider' }, ...graphic],
+        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        menuElements: graphic,
       },
       {
         objType: 'line',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
-        menuElements: [...common, { type: 'divider' }, ...graphic],
+        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        menuElements: graphic,
       },
       {
         objType: 'mesh',
         headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} size={14} />,
-        menuElements: [...common, { type: 'divider' }, ...graphic],
+        headerIcon: <MenuHeaderIcon url={isometricURL} />,
+        menuElements: graphic,
       },
       {
         objType: CCClasses.CCPart,
         headerName: 'Part',
-        headerIcon: <MenuHeaderIcon url={partURL} size={14} />,
-        menuElements: common,
+        headerIcon: <MenuHeaderIcon url={partURL} />,
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
       },
       {
         objType: CCClasses.CCAssembly,
         headerName: 'Assembly',
-        headerIcon: <MenuHeaderIcon url={assemblyURL} size={14} />,
-        menuElements: common,
+        headerIcon: <MenuHeaderIcon url={assemblyURL} />,
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
       },
       {
         objType: CCClasses.CCSketch,
         headerName: 'Sketch',
-        headerIcon: <MenuHeaderIcon url={sketchURL} size={14} />,
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: [
-          ...common,
+          zoomToFitEl,
           { type: 'divider' },
           {
             label: 'View normal to sketch',
@@ -285,12 +398,32 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         ] as MenuElement[],
       },
       {
+        objType: CCClasses.CCWorkPoint,
+        headerName: 'Workpoint',
+        headerIcon: <MenuHeaderIcon url={workpointURL} />,
+        menuElements: workGeometry,
+      },
+      {
+        objType: CCClasses.CCWorkAxis,
+        headerName: 'Workaxis',
+        headerIcon: <MenuHeaderIcon url={workaxisURL} />,
+        menuElements: workGeometry,
+      },
+      {
         objType: CCClasses.CCWorkPlane,
         headerName: 'Workplane',
-        headerIcon: <MenuHeaderIcon url={workplaneURL} size={14} />,
+        headerIcon: <MenuHeaderIcon url={workplaneURL} />,
         menuElements: [
-          ...common,
+          {
+            label: 'New sketch',
+            icon: <MenuItemIcon url={sketchURL} />,
+            key: 'newSketch',
+            onClick: (menuInfo: CanvasMenuInfo) => {
+              newSketch(drawingId, menuInfo)
+            },
+          },
           { type: 'divider' },
+          ...workGeometry,
           {
             label: 'View normal to plane',
             icon: <VerticalAlignTopOutlined />,
@@ -300,6 +433,18 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
             },
           },
         ] as MenuElement[],
+      },
+      {
+        objType: CCClasses.CCWorkCSys,
+        headerName: 'Workcsys',
+        headerIcon: <MenuHeaderIcon url={workcsysURL} />,
+        menuElements: workGeometry,
+      },
+      {
+        objType: CCClasses.CCWorkCoordSystem,
+        headerName: 'Workcsys',
+        headerIcon: <MenuHeaderIcon url={workcsysURL} />,
+        menuElements: workGeometry,
       },
     ]
   }, [drawingId, isPartMode, camera, controls, boundsControls])
