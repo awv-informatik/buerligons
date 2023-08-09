@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem } from '@buerli.io/core'
+import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType } from '@buerli.io/core'
 import { MenuElement, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined } from '@ant-design/icons'
@@ -224,7 +224,12 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
     return
   }
 
-  await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
+  if (menuInfo.interactionInfo.graphicId) {
+    await ccAPI.sketcher.createAndSetWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.graphicId)
+  }
+  else {
+    await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
+  }
 
   const pluginApi = drawing.api.plugin
   pluginApi.setActiveFeature(sketchId)
@@ -298,8 +303,8 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     const graphic = [
       hideEl,
       showAllEl,
-      { type: 'divider' },
-      {
+      isPartMode ? null : { type: 'divider' },
+      isPartMode ? null : {
         label: 'Edit',
         icon: <SelectOutlined />,
         key: 'editProduct',
@@ -319,6 +324,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           viewNormalToProduct(menuInfo, camera, controls, boundsControls)
         },
       },
+      { type: 'divider' },
       {
         label: 'Delete',
         icon: <DeleteOutlined />,
@@ -334,6 +340,12 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     ] as MenuElement[]
 
+    const grDescriptor = {
+      headerName: isPartMode ? 'Solid' : 'Product instance',
+      headerIcon: <MenuHeaderIcon url={isometricURL} />,
+      menuElements: graphic,
+    }
+
     const workGeometry = [
       hideEl,
       showAllEl,
@@ -342,24 +354,32 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     ] as MenuElement[]
 
     return [
+      { objType: GraphicType.POINT, ...grDescriptor },
+      { objType: GraphicType.CURVEPOINT, ...grDescriptor },
+      { objType: GraphicType.LINE, ...grDescriptor },
+      { objType: GraphicType.ARC, ...grDescriptor },
+      { objType: GraphicType.CIRCLE, ...grDescriptor },
+      { objType: GraphicType.NURBSCURVE, ...grDescriptor },
       {
-        objType: 'point',
-        headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
-        menuElements: graphic,
-      },
-      {
-        objType: 'line',
-        headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
-        menuElements: graphic,
-      },
-      {
-        objType: 'mesh',
-        headerName: isPartMode ? 'Solid' : 'Product instance',
-        headerIcon: <MenuHeaderIcon url={isometricURL} />,
-        menuElements: graphic,
-      },
+        objType: GraphicType.PLANE,
+        ...grDescriptor,
+        menuElements: [
+          isPartMode ? {
+            label: 'New Sketch',
+            icon: <MenuItemIcon url={sketchURL} />,
+            key: 'newSketch',
+            onClick: (menuInfo: CanvasMenuInfo) => {
+              newSketch(drawingId, menuInfo)
+            },
+          } : null,
+          isPartMode ? { type: 'divider' } : null,
+          ...graphic,
+        ]
+      } as MenuDescriptor,
+      { objType: GraphicType.CYLINDER, ...grDescriptor },
+      { objType: GraphicType.CONE, ...grDescriptor },
+      { objType: GraphicType.SPHERE, ...grDescriptor },
+      { objType: GraphicType.NURBSSURFACE, ...grDescriptor },
       {
         objType: CCClasses.CCPart,
         headerName: 'Part',

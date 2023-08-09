@@ -121,16 +121,7 @@ export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInf
       solid.map[interactionInfo.graphicId]?.type ||
       solid.points.find(point => point.graphicId === interactionInfo?.graphicId)?.type
 
-    if (PointTypes.indexOf(grType) !== -1) {
-      return 'point'
-    }
-    else if (EdgeTypes.indexOf(grType) !== -1) {
-      // TODO: Also process CurveTypes as 'line'? Or what?
-      return 'line'
-    }
-    else if (MeshTypes.indexOf(grType) !== -1) {
-      return 'mesh'
-    }
+    return grType
   }
   
   const obj = drawing.structure.tree[interactionInfo.objectId]
