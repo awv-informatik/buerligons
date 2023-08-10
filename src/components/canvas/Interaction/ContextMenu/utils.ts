@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, PointTypes, EdgeTypes, MeshTypes, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo } from '@buerli.io/core'
+import { DrawingID, getDrawing, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo, IStructureTree, ObjectID } from '@buerli.io/core'
 
-import { MenuObjType, CanvasMenuInfo } from './types'
+import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
 
 const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
@@ -126,4 +126,27 @@ export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInf
   
   const obj = drawing.structure.tree[interactionInfo.objectId]
   return obj.class as CCClasses
+}
+
+export const getAncestors = (drawingId: DrawingID, objectId: ObjectID) => {
+  const tree = getDrawing(drawingId).structure.tree
+
+  let curId: ObjectID = objectId
+  const ancestors: ObjectID[] = []
+  while (Boolean(curId) && tree[curId]) {
+    ancestors.push(tree[curId].parent as ObjectID)
+    curId = tree[curId].parent as ObjectID
+  }
+
+  return ancestors
+}
+
+export function getDescendants(drawingId: DrawingID, objectId: ObjectID) {
+  const object = getDrawing(drawingId).structure.tree[objectId]
+  const descendants: ObjectID[] = []
+  object?.children &&
+    object.children.forEach(child => {
+      descendants.push(child, ...getDescendants(drawingId, child))
+    })
+  return descendants
 }

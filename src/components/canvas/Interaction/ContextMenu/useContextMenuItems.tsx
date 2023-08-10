@@ -17,6 +17,7 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
+import { getAncestors, getDescendants } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { useBounds, BoundsApi } from '../../Bounds'
@@ -33,7 +34,7 @@ const zoomToFit = (boundsControls: BoundsApi) => {
 const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   if (menuInfo.interactionInfo.containerId) {
     const geomApi = getDrawing(drawingId).api.geometry
-    geomApi.setConfig(menuInfo.interactionInfo.containerId, { meshes: { hidden: true }, edges: { hidden: true } })
+    geomApi.setConfig(menuInfo.interactionInfo.containerId, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
   }
   else {
     const pluginApi = getDrawing(drawingId).api.plugin
@@ -43,10 +44,51 @@ const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
 const showOrHideInstance = (drawingId: DrawingID, instanceId: ObjectID, show: boolean) => {
   const drawing = getDrawing(drawingId)
-  drawing.api.geometry.setConfig(instanceId, { meshes: { hidden: !show }, edges: { hidden: !show } })
+  if (!ccUtils.base.isA(drawing.structure.tree[instanceId]?.class, CCClasses.IProductReference)) {
+    return
+  }
+
+  drawing.api.geometry.setConfig(instanceId, show ? null : { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
 
   const children = drawing.structure.tree[instanceId]?.children || []
   children.forEach(instanceId_ => showOrHideInstance(drawingId, instanceId_, show))
+}
+
+const hideOtherFeatures = (drawingId: DrawingID, opSeqId: ObjectID, featureId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+  
+  const pluginAPI = drawing.api.plugin
+  const featureRefIds = tree[opSeqId].children || []
+  const featureIds = featureRefIds.map(featureRefId => tree[featureRefId]?.members?.refObj.value as ObjectID)
+  featureIds.forEach(id => id !== featureId && pluginAPI.setVisiblePlugin(id, false))
+}
+
+const hideOtherSolids = (drawingId: DrawingID, solidId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+
+  const geomApi = drawing.api.geometry
+  const curProd = drawing.structure.currentProduct
+  const product = tree[curProd || -1]
+  const solidIds = product?.solids || []
+  solidIds.forEach(id => id !== solidId && geomApi.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true }))
+}
+
+const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const curInstance = drawing.structure.currentInstance
+  const tree = drawing.structure.tree
+
+  const descendants = getDescendants(drawingId, curInstance || -1)
+  const instances = descendants.filter(id => ccUtils.base.isA(tree[id].class, CCClasses.IProductReference))
+  const instDescendants = getDescendants(drawingId, instanceId)
+  const ancestors = getAncestors(drawingId, instanceId)
+
+  const instancesToHide = instances.filter(id => instDescendants.indexOf(id) === -1 && ancestors.indexOf(id) === -1 && id !== instanceId)
+  instancesToHide.forEach(
+    id => drawing.api.geometry.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
+  )
 }
 
 const showOrHideAllFeatures = (drawingId: DrawingID, opSeqId: ObjectID, show: boolean) => {
@@ -67,7 +109,7 @@ const showOrHideAllSolids = (drawingId: DrawingID, show: boolean) => {
   const curProd = drawing.structure.currentProduct
   const product = tree[curProd || -1]
   const solidIds = product?.solids || []
-  solidIds.forEach(solidId => geomApi.setConfig(solidId, { meshes: { hidden: !show }, edges: { hidden: !show } }))
+  solidIds.forEach(solidId => geomApi.setConfig(solidId, show ? null : { meshes: { hidden: true}, edges: { hidden: true }, disabled: true }))
 }
 
 const showAllFeaturesAndSolids = (drawingId: DrawingID, opSeqId: ObjectID) => {
@@ -295,6 +337,39 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     } as MenuElement
 
+    const hideOtherFeaturesEl = {
+      label: 'Hide other features',
+      icon: <EyeInvisibleOutlined />,
+      key: 'hideOtherFeatures',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (opSeqId) {
+          hideOtherFeatures(drawingId, opSeqId, menuInfo.interactionInfo.objectId)
+        }
+      },
+    } as MenuElement
+
+    const hideOtherSolidsEl = {
+      label: 'Hide other solids',
+      icon: <EyeInvisibleOutlined />,
+      key: 'hideOtherSolids',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.containerId) {
+          hideOtherSolids(drawingId, menuInfo.interactionInfo.containerId)
+        }
+      },
+    }
+
+    const hideOtherInstancesEl = {
+      label: 'Hide other instances',
+      icon: <EyeInvisibleOutlined />,
+      key: 'hideOtherInstances',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.prodRefId) {
+          hideOtherInstances(drawingId, menuInfo.interactionInfo.prodRefId)
+        }
+      },
+    }
+
     const hideAllFeatures = {
       label: 'Hide all features',
       icon: <EyeInvisibleOutlined />,
@@ -306,7 +381,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     }
 
-    const hideAllSolids = {
+    const hideAllSolidsEl = {
       label: 'Hide all solids',
       icon: <EyeInvisibleOutlined />,
       key: 'hideAllSolids',
@@ -315,7 +390,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     }
 
-    const hideAllInstances = {
+    const hideAllInstancesEl = {
       label: 'Hide all instances',
       icon: <EyeInvisibleOutlined />,
       key: 'hideAllInstances',
@@ -340,7 +415,8 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const graphic = [
       hideEl,
-      isPartMode ? hideAllSolids : hideAllInstances,
+      isPartMode ? hideOtherSolidsEl : hideOtherInstancesEl,
+      isPartMode ? hideAllSolidsEl : hideAllInstancesEl,
       showAllEl,
       isPartMode ? null : { type: 'divider' },
       isPartMode ? null : {
@@ -387,6 +463,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const workGeometry = [
       hideEl,
+      hideOtherFeaturesEl,
       hideAllFeatures,
       showAllEl,
       { type: 'divider' },
