@@ -47,16 +47,23 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
     }
   }, [camera, size, lnTh, ptsTh])
 
+  const onHide = React.useCallback(() => {
+    const setHovered = getDrawing(drawingId).api.interaction.setHovered
+    setHovered(null)
+    setMenuInfo(null)
+  }, [drawingId])
+
   const [menuInfo, setMenuInfo] = React.useState<CanvasMenuInfo | null>(null)
   
   React.useEffect(() => {
     if (menuInfo) {
-      getCADState().api.blankDiv.show(() => setMenuInfo(null))
+      getCADState().api.blankDiv.show(onHide)
     }
     else {
+      onHide()
       getCADState().api.blankDiv.hide()
     }
-  }, [menuInfo])
+  }, [menuInfo, onHide])
   
   React.useEffect(() => {
     const cm = (e: MouseEvent) => {
@@ -138,8 +145,6 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
     }
   }, [drawingId, lineThreshold, pointThreshold])
 
-  const onClick = React.useCallback(() => setMenuInfo(null), [])
-
   const { menuItems, caption, icon } = React.useMemo(() => {
     if (!menuInfo) {
       return { menuItems: undefined, caption: '', icon: undefined }
@@ -160,7 +165,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       <contextMenuTrigger onContextMenu={onContextMenu} />
       {menuInfo && menuItems && (
         <Html position={menuInfo.clickInfo.clickPos}>
-          <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} onClick={onClick} open>
+          <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} open>
             <div onContextMenu={e => e.preventDefault() } />
           </ContextMenu>
         </Html>
