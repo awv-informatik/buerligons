@@ -60,7 +60,6 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       getCADState().api.blankDiv.show(onHide)
     }
     else {
-      onHide()
       getCADState().api.blankDiv.hide()
     }
   }, [menuInfo, onHide])
@@ -165,7 +164,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       <contextMenuTrigger onContextMenu={onContextMenu} />
       {menuInfo && menuItems && (
         <Html position={menuInfo.clickInfo.clickPos}>
-          <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} open>
+          <ContextMenu items={menuItems} menuInfo={menuInfo} caption={caption} icon={icon} onHide={onHide} open>
             <div onContextMenu={e => e.preventDefault() } />
           </ContextMenu>
         </Html>
