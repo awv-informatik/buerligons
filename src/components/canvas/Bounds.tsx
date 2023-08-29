@@ -38,13 +38,13 @@ type ControlsProto = {
 
 type OriginT = {
   camPos: THREE.Vector3
-  camRot: THREE.Euler
+  camRot: THREE.Quaternion
   camZoom: number
 }
 
 type GoalT = {
   camPos: THREE.Vector3 | undefined
-  camRot: THREE.Euler | undefined
+  camRot: THREE.Quaternion | undefined
   camZoom: number | undefined
   camUp: THREE.Vector3 | undefined
   target: THREE.Vector3 | undefined
@@ -64,15 +64,14 @@ function interpolate(v0: number, v1: number, t: number) {
   return v0 * (1 - k) + v1 * k
 }
 
-function interpolateV(
-  v: THREE.Vector3 | THREE.Euler,
-  v0: THREE.Vector3 | THREE.Euler,
-  v1: THREE.Vector3 | THREE.Euler,
-  t: number,
-) {
-  v.x = interpolate(v0.x, v1.x, t)
-  v.y = interpolate(v0.y, v1.y, t)
-  v.z = interpolate(v0.z, v1.z, t)
+function interpolateV(v: THREE.Vector3, v0: THREE.Vector3, v1: THREE.Vector3, t: number) {
+  const k = interpolate(0, 1, t)
+  v.lerpVectors(v0, v1, k)
+}
+
+function interpolateQ(q: THREE.Quaternion, q0: THREE.Quaternion, q1: THREE.Quaternion, t: number) {
+  const k = interpolate(0, 1, t)
+  q.slerpQuaternions(q0, q1, k)
 }
 
 const context = React.createContext<BoundsApi>(null!)
@@ -85,7 +84,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
 
   const origin = React.useRef<OriginT>({
     camPos: new THREE.Vector3(),
-    camRot: new THREE.Euler(),
+    camRot: new THREE.Quaternion(),
     camZoom: 1,
   })
   const goal = React.useRef<GoalT>({
@@ -126,7 +125,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         }
 
         origin.current.camPos.copy(camera.position)
-        origin.current.camRot.copy(camera.rotation)
+        origin.current.camRot.copy(camera.quaternion)
         origin.current.camZoom = camera.zoom
 
         goal.current.camPos = undefined
@@ -144,7 +143,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.camPos = center.clone().addScaledVector(direction, distance)
         goal.current.target = center.clone()
         const mCamRot = new THREE.Matrix4().lookAt(goal.current.camPos, goal.current.target, camera.up)
-        goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
+        goal.current.camRot = new THREE.Quaternion().setFromRotationMatrix(mCamRot)
 
         controls && (controls.enabled = false)
         animationState.current = AnimationState.START
@@ -165,7 +164,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         goal.current.target = target.clone()
         goal.current.camUp = up ? up.clone() : camera.up.clone()
         const mCamRot = new THREE.Matrix4().lookAt(goal.current.camPos || camera.position, target, goal.current.camUp)
-        goal.current.camRot = new THREE.Euler().setFromRotationMatrix(mCamRot)
+        goal.current.camRot = new THREE.Quaternion().setFromRotationMatrix(mCamRot)
 
         controls && (controls.enabled = false)
         animationState.current = AnimationState.START
@@ -250,7 +249,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
 
       if (t.current >= 1) {
         goal.current.camPos && camera.position.copy(goal.current.camPos)
-        goal.current.camRot && camera.rotation.copy(goal.current.camRot)
+        goal.current.camRot && camera.quaternion.copy(goal.current.camRot)
         goal.current.camUp && camera.up.copy(goal.current.camUp)
         goal.current.camZoom && (camera.zoom = goal.current.camZoom)
 
@@ -266,7 +265,7 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
         animationState.current = AnimationState.NONE
       } else {
         goal.current.camPos && interpolateV(camera.position, origin.current.camPos, goal.current.camPos, t.current)
-        goal.current.camRot && interpolateV(camera.rotation, origin.current.camRot, goal.current.camRot, t.current)
+        goal.current.camRot && interpolateQ(camera.quaternion, origin.current.camRot, goal.current.camRot, t.current)
         goal.current.camZoom && (camera.zoom = interpolate(origin.current.camZoom, goal.current.camZoom, t.current))
 
         camera.updateMatrixWorld()
