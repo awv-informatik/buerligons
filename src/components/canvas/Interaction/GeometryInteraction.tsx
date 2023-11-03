@@ -99,9 +99,18 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
   const onBackgroundMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
+      const drawing = getDrawing(drawingId)
+      const isSelActive = drawing.selection.active !== null
+      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
+      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
+      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
+
+      if (isSketchActive && !isSelActive) {
+        return
+      }
+
       e.stopPropagation()
 
-      const drawing = getDrawing(drawingId)
       const hovered = drawing.interaction.hovered
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
@@ -175,10 +184,21 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   const onBackgroundClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (e.delta > 4) return
-      e.stopPropagation()
+
       const drawing = getDrawing(drawingId)
-      drawing?.api.interaction.setSelected([])
-      drawing?.api.selection?.unselectAll()
+      const isSelActive = drawing.selection.active !== null
+      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
+      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
+      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
+
+      if (isSketchActive && !isSelActive) {
+        return
+      }
+
+      e.stopPropagation()
+      
+      drawing.api.interaction.setSelected([])
+      drawing.api.selection?.unselectAll()
     },
     [drawingId],
   )
