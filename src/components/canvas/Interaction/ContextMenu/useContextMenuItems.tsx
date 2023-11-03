@@ -5,7 +5,7 @@ import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType } from '@buerli.io/core'
 import { MenuElement, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
-import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined } from '@ant-design/icons'
+import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined, BgColorsOutlined } from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
 import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
@@ -29,6 +29,29 @@ type ControlsProto = {
 
 const zoomToFit = (boundsControls: BoundsApi) => {
   boundsControls?.refresh().reset().fit().clip()
+}
+
+const editAppearance = (drawingId: DrawingID, solidId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const curProdId = drawing.structure.currentProduct
+  const gPluginIds = drawing.plugin.global
+  const editAppearanceId = gPluginIds.find(id => drawing.plugin.refs[id].name === 'AppearanceEditor')
+  if (!curProdId || !editAppearanceId) {
+    return
+  }
+  
+  const selectedInfo = drawing.interaction.selected || []
+  const curSolids = drawing.structure.tree[curProdId]?.solids || []
+  const selectedSolids = selectedInfo
+    .filter(info => info.containerId && curSolids.indexOf(info.containerId) !== -1)
+    .map(info => info.containerId as ObjectID)
+  const solidIds = selectedSolids.indexOf(solidId) === -1 && curSolids.indexOf(solidId) !== -1 ? [...selectedSolids, solidId] : selectedSolids
+
+  const editAppearance = drawing.plugin.refs[editAppearanceId]
+  editAppearance.set({ solidIds })
+
+  const pluginApi = drawing.api.plugin
+  pluginApi.setActiveGlobal(editAppearanceId, true)
 }
 
 const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
@@ -323,6 +346,17 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     } as MenuElement
 
+    const editAppearanceEl = {
+      label: 'Edit appearance',
+      icon: <BgColorsOutlined />,
+      key: 'editAppearance',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.containerId) {
+          editAppearance(drawingId, menuInfo.interactionInfo.containerId)
+        }
+      }
+    }
+
     const hideEl = {
       label: 'Hide',
       icon: <EyeInvisibleOutlined />,
@@ -414,6 +448,8 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     } as MenuElement
 
     const graphic = [
+      editAppearanceEl,
+      { type: 'divider' },
       hideEl,
       isPartMode ? hideOtherSolidsEl : hideOtherInstancesEl,
       isPartMode ? hideAllSolidsEl : hideAllInstancesEl,
