@@ -35,7 +35,7 @@ const editAppearance = (drawingId: DrawingID, solidId: ObjectID) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct
   const gPluginIds = drawing.plugin.global
-  const editAppearanceId = gPluginIds.find(id => drawing.plugin.refs[id].name === 'AppearanceEditor')
+  const editAppearanceId = gPluginIds.find(id => drawing.plugin.refs[id].name === 'Appearance Editor')
   if (!curProdId || !editAppearanceId) {
     return
   }
