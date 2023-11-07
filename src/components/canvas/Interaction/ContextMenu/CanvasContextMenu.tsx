@@ -142,7 +142,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       }
 
     }
-  }, [drawingId, lineThreshold, pointThreshold])
+  }, [drawingId, lineThreshold, menuContent, pointThreshold])
 
   const { menuItems, caption, icon } = React.useMemo(() => {
     if (!menuInfo) {
