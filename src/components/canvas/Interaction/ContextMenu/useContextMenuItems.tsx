@@ -47,8 +47,8 @@ const editAppearance = (drawingId: DrawingID, solidId: ObjectID) => {
     .map(info => info.containerId as ObjectID)
   const solidIds = selectedSolids.indexOf(solidId) === -1 && curSolids.indexOf(solidId) !== -1 ? [...selectedSolids, solidId] : selectedSolids
 
-  const editAppearance = drawing.plugin.refs[editAppearanceId]
-  editAppearance.set({ solidIds })
+  const editAppearancePl = drawing.plugin.refs[editAppearanceId]
+  editAppearancePl.set({ solidIds })
 
   const pluginApi = drawing.api.plugin
   pluginApi.setActiveGlobal(editAppearanceId, true)
