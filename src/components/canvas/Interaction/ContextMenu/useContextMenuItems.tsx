@@ -449,8 +449,8 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     } as MenuElement
 
     const graphic = [
-      editAppearanceEl,
-      { type: 'divider' },
+      isPartMode ? editAppearanceEl : null,
+      isPartMode ? { type: 'divider' } : null,
       hideEl,
       isPartMode ? hideOtherSolidsEl : hideOtherInstancesEl,
       isPartMode ? hideAllSolidsEl : hideAllInstancesEl,
