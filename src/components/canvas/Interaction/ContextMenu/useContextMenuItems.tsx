@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import React from 'react'
 import * as THREE from 'three'
 
@@ -620,5 +621,5 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         menuElements: workGeometry,
       },
     ]
-  }, [drawingId, isPartMode, camera, controls, boundsControls])
+  }, [isPartMode, boundsControls, drawingId, opSeqId, camera, controls])
 }

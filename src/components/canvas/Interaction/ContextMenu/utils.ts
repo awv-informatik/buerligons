@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
 import { CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo, IStructureTree, ObjectID } from '@buerli.io/core'
+import { DrawingID, getDrawing, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo, ObjectID } from '@buerli.io/core'
 
 import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
