@@ -9,6 +9,7 @@ import {
   Cone,
   Cylinder,
   Cylindrical,
+  Dimensions,
   Expressions,
   Extrusion,
   EntityDeletion,
@@ -60,7 +61,7 @@ export const initBuerli = () => {
       },
     },
     elements,
-    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement],
+    globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement],
     plugins: {
       [CCClasses.CCSketch]: Sketch,
       [CCClasses.CCExtrusion]: Extrusion,
