@@ -14,10 +14,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@classcad/node@12.0.2":
-  version "12.0.2"
-  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-12.0.2.tgz#41aa48fc4d3baaf10d38a6f51cc47936ef908592"
-  integrity sha512-oYVvo5xju98XYdv9F7T7xbi8n5UuoSZDN9EA/jSaexUpy4zzzGwD2cH03dP9cKCvhbzRv3daoOCCiUNIYUgbcQ==
+"@classcad/node@12.0.3":
+  version "12.0.3"
+  resolved "https://registry.yarnpkg.com/@classcad/node/-/node-12.0.3.tgz#951fb638cc58cff57d59704a245a5036c9df2817"
+  integrity sha512-MeFXAt5SAsSGlkEWMUWQXculu41uRzgoawJOwJvYREciLr3glcSZHFi1gCivuL+oC1DT+Vrmlgun/3EtQ1zb3w==
   dependencies:
     adm-zip "^0.5.10"
     chalk "^2.4.1"
@@ -49,12 +49,12 @@
     bufferutil "4.x.x"
     utf-8-validate "5.x.x"
 
-"@classcad/windows-x64@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.6.tgz#ed1a08b3fee9895b2e7251e0cca6c06e6e2e5f0f"
-  integrity sha512-vuQ98qpFNrtwzJNnNeKsH2JIvdBGMitgqQklpI41moWNPyTDjldQhszKvyOPY9llGkBMZ4JOfGQFhlCbSc+RgA==
+"@classcad/windows-x64@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@classcad/windows-x64/-/windows-x64-0.0.7.tgz#9d4ebbde6526e3c6c1a88f4e6711ce1441218718"
+  integrity sha512-JfCqVglLuzAMW7tOjMYIwpmiwW++DSDV5enK2iiEChiyTue/Gk/PZ2Ab8oi7a65A8fwO9AVepoPGATggGsK+Fw==
   dependencies:
-    "@classcad/node" "12.0.2"
+    "@classcad/node" "12.0.3"
     yargs "15.4.1"
 
 "@develar/schema-utils@~2.6.5":
