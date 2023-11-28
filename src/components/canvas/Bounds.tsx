@@ -111,13 +111,21 @@ export function Bounds({ children, maxDuration = 1.0, margin = 1.2 }: BoundsProp
 
     return {
       getSize,
-      refresh(object?: THREE.Object3D | THREE.Box3) {
+      refresh(object?: THREE.Object3D | THREE.Box3) {        
         if (isBox3(object)) box.copy(object)
         else {
           const target = object || ref.current
+
+          let scene = ""
+          target.traverse(child => {
+            scene = scene + " > " + (child.name || child.type)
+          })
+          console.log(scene)
+
           if (!target) return this
           target.updateWorldMatrix(true, true)
-          box.setFromObject(target)
+          target.updateMatrixWorld(true)
+          box.setFromObject(target, true)
         }
         if (box.isEmpty()) {
           const max = camera.position.length() || 10

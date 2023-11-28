@@ -3,9 +3,8 @@ import * as THREE from 'three'
 
 import { ObjectID, DrawingID, GeometryBounds, PointMem, ArrayMem, getDrawing, MathUtils } from '@buerli.io/core'
 import { useBuerli, useDrawing } from '@buerli.io/react'
-import { useEditMode, useIsLoading, useIsSketchActive, useVisibleSolids, EditMode } from '@buerli.io/react-cad'
+import { useEditMode, useIsSketchActive, useVisibleSolids, EditMode } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
-
 import { Bounds, useBounds } from './Bounds'
 
 /**
@@ -14,7 +13,6 @@ import { Bounds, useBounds } from './Bounds'
 function DefaultBounds({ drawingId }: { drawingId: DrawingID }) {
   const visibleSolids = useVisibleSolids(drawingId)
   const noSolids = visibleSolids.length === 0
-
   const bb = React.useMemo(() => {
     const min = new THREE.Vector3(-100, -100, -100)
     const max = new THREE.Vector3(100, 100, 100)
@@ -34,20 +32,20 @@ const convertToVector = (p: PointMem | undefined) => {
 
 const getSketchBounds = (boundsMember: ArrayMem) => {
   const [min, max] = boundsMember.members.map(memb => convertToVector(memb as PointMem))
-
   const box = new THREE.Box3(min, max)
   const sphere = new THREE.Sphere()
   box.getBoundingSphere(sphere)
-
   return { center: sphere.center, radius: sphere.radius, box }
 }
 
 function FitSketch({ drawingId }: { drawingId: DrawingID }) {
   const boundsControls = useBounds()
-
   const isSketchActive = useIsSketchActive(drawingId)
   const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
-  const planeRef = useDrawing(drawingId, d => d.structure.tree[activeId || -1]?.members?.planeReference?.value as ObjectID)
+  const planeRef = useDrawing(
+    drawingId,
+    d => d.structure.tree[activeId || -1]?.members?.planeReference?.value as ObjectID,
+  )
 
   const margin = 1.2
 
@@ -78,36 +76,18 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     const globBox = box.clone().applyMatrix4(matrix4)
     const target = bounds.center.clone().applyMatrix4(matrix4)
     const position = target.clone().addScaledVector(normal, bounds.radius * margin * 4)
-
+    
     boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive, planeRef])
 
   React.useEffect(() => {
     // Reset camera bounds when sketch is disabled
-    if (!isSketchActive) {
+    if (!isSketchActive) {      
       window.setTimeout(() => boundsControls?.refresh().fit().clip(), 100)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive])
-
-  return null
-}
-
-/**
- * Fit to scene bounds on geometry bounds change when the model is loading.
- */
-function FitLoading({ drawingId }: { drawingId: DrawingID }) {
-  const bounds = useBounds()
-
-  const isLoading = useIsLoading(drawingId)
-  const ccBounds = useDrawing(drawingId, d => d.geometry.bounds) as GeometryBounds
-
-  React.useEffect(() => {
-    if (isLoading) {
-      bounds?.refresh().reset().fit().clip()
-    }
-  }, [bounds, ccBounds, isLoading])
 
   return null
 }
@@ -118,19 +98,15 @@ function FitLoading({ drawingId }: { drawingId: DrawingID }) {
 function FitPartProduct({ drawingId }: { drawingId: DrawingID }) {
   const bounds = useBounds()
   const editMode = useEditMode(drawingId)
-
   React.useEffect(() => {
     if (editMode === EditMode.Part) {
-      // Without setTimeout, fit would happen in old bounds
-      // TODO: Check how this works with bigger, slower processed models!
-      window.setTimeout(() => bounds?.refresh().reset().fit().clip(), 100)
+      bounds?.refresh().reset().fit().clip()
       return () => {
-        window.setTimeout(() => bounds?.refresh().reset().fit().clip(), 100)
+        bounds?.refresh().reset().fit().clip()
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode])
-
   return null
 }
 
@@ -140,11 +116,10 @@ function FitPartProduct({ drawingId }: { drawingId: DrawingID }) {
 function SwitchDrawing() {
   const bounds = useBounds()
   const currDrId = useBuerli(b => b.drawing.active) || ''
-
+  const ccBounds = useDrawing(currDrId, d => d.geometry.bounds) as GeometryBounds
   React.useEffect(() => {
     bounds?.refresh().reset().fit().clip()
-  }, [bounds, currDrId])
-
+  }, [bounds, currDrId, ccBounds])
   return null
 }
 
@@ -154,30 +129,18 @@ function SwitchDrawing() {
 function DblClick() {
   const bounds = useBounds()
   const gl = useThree(state => state.gl)
-
   React.useEffect(() => {
-    function onDoubleClick() {
-      bounds?.refresh().reset().fit().clip()
-    }
+    const onDoubleClick = () => bounds?.refresh().reset().fit().clip()
     gl.domElement.addEventListener('dblclick', onDoubleClick, { passive: true })
-    return () => {
-      gl.domElement.removeEventListener('dblclick', onDoubleClick)
-    }
+    return () => gl.domElement.removeEventListener('dblclick', onDoubleClick)
   }, [bounds, gl.domElement])
-
   return null
 }
 
 /**
  * Fits three scene to its bounds.
  */
-export function Fit({
-  drawingId,
-  children,
-}: {
-  drawingId: DrawingID
-  children?: React.ReactNode
-}) {
+export function Fit({ drawingId, children }: { drawingId: DrawingID; children?: React.ReactNode }) {
   return (
     <Bounds maxDuration={1}>
       {children}
@@ -185,7 +148,6 @@ export function Fit({
       <DblClick />
       <SwitchDrawing />
       <FitSketch drawingId={drawingId} />
-      <FitLoading drawingId={drawingId} />
       <FitPartProduct drawingId={drawingId} />
     </Bounds>
   )
