@@ -5,7 +5,7 @@ import { ObjectID, DrawingID, GeometryBounds, PointMem, ArrayMem, getDrawing, Ma
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import { useEditMode, useIsSketchActive, useVisibleSolids, EditMode } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
-import { Bounds, useBounds } from './Bounds'
+import { Bounds, useBounds } from '@react-three/drei'
 
 /**
  * Artifical bounds for when there is no visible geometry on the scene
@@ -41,6 +41,7 @@ const getSketchBounds = (boundsMember: ArrayMem) => {
 function FitSketch({ drawingId }: { drawingId: DrawingID }) {
   const boundsControls = useBounds()
   const isSketchActive = useIsSketchActive(drawingId)
+  const sketchWasActive = React.useRef(false)
   const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
   const planeRef = useDrawing(
     drawingId,
@@ -54,6 +55,8 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     if (!isSketchActive || !activeId || !planeRef) {
       return
     }
+
+    sketchWasActive.current = true
 
     const drawing = getDrawing(drawingId)
     const boundsMember = drawing.structure.tree[activeId]?.members?.boundingBox as ArrayMem
@@ -76,15 +79,20 @@ function FitSketch({ drawingId }: { drawingId: DrawingID }) {
     const globBox = box.clone().applyMatrix4(matrix4)
     const target = bounds.center.clone().applyMatrix4(matrix4)
     const position = target.clone().addScaledVector(normal, bounds.radius * margin * 4)
-    
+
+    console.log('FitSketch (isSketchActive, planeRef).refresh')
     boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive, planeRef])
 
   React.useEffect(() => {
+    if (!sketchWasActive.current) return
     // Reset camera bounds when sketch is disabled
-    if (!isSketchActive) {      
-      window.setTimeout(() => boundsControls?.refresh().fit().clip(), 100)
+    if (!isSketchActive) {
+      window.setTimeout(() => {
+        console.log('FitSketch (isSketchActive).refresh')
+        boundsControls?.refresh().fit().clip()
+      }, 100)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive])
@@ -100,8 +108,10 @@ function FitPartProduct({ drawingId }: { drawingId: DrawingID }) {
   const editMode = useEditMode(drawingId)
   React.useEffect(() => {
     if (editMode === EditMode.Part) {
+      console.log('FitPartProduct (mount).refresh')
       bounds?.refresh().reset().fit().clip()
       return () => {
+        console.log('FitPartProduct (unmount).refresh')
         bounds?.refresh().reset().fit().clip()
       }
     }
@@ -118,6 +128,7 @@ function SwitchDrawing() {
   const currDrId = useBuerli(b => b.drawing.active) || ''
   const ccBounds = useDrawing(currDrId, d => d.geometry.bounds) as GeometryBounds
   React.useEffect(() => {
+    console.log('SwitchDrawing.refresh')
     bounds?.refresh().reset().fit().clip()
   }, [bounds, currDrId, ccBounds])
   return null
@@ -130,7 +141,10 @@ function DblClick() {
   const bounds = useBounds()
   const gl = useThree(state => state.gl)
   React.useEffect(() => {
-    const onDoubleClick = () => bounds?.refresh().reset().fit().clip()
+    const onDoubleClick = () => {
+      console.log('onDoubleClick.refresh')
+      bounds?.refresh().reset().fit().clip()
+    }
     gl.domElement.addEventListener('dblclick', onDoubleClick, { passive: true })
     return () => gl.domElement.removeEventListener('dblclick', onDoubleClick)
   }, [bounds, gl.domElement])
