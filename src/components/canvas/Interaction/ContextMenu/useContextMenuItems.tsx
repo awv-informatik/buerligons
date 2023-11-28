@@ -21,7 +21,7 @@ import { CanvasMenuInfo, MenuDescriptor } from './types'
 import { getAncestors, getDescendants } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
-import { useBounds, BoundsApi } from '../../Bounds'
+import { useBounds, BoundsApi } from '@react-three/drei'
 
 type ControlsProto = {
   update(): void
