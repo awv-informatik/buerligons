@@ -46,17 +46,17 @@ export const initBuerli = () => {
   init(id => {
     const socket = new SocketIOClient(CCSERVERURL, id)
 
+    // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
+    // This mechanism allows the application (client) to individually override settings, which have been initially made by the server. 
     const initSettings = async () => {
-      // init settings will be called after new drawing has been connected.
-      // This happens after new Part/Assembly or loading a model
       await ccAPI.common.setSettings(id, {
-        isGraphicEnabled: true, // default server: true
-        isCCGraphicEnabled: false,  // default server: false
+        isGraphicEnabled: true,           // default server: true
+        isCCGraphicEnabled: false,        // default server: false
         isInvisibleGraphicEnabled: true,  // default server: false
-        isSketchGraphicEnabled: false,  // default server: false
-        facetingParamsMode: 1, // default server: 1
-        facetingChordHeightTol: 0.1, // default server: 0.1
-        facetingAngleTol: 0 // default server: 0
+        isSketchGraphicEnabled: false,    // default server: false
+        facetingParamsMode: 1,            // default server: 1
+        facetingChordHeightTol: 0.1,      // default server: 0.1
+        facetingAngleTol: 0               // default server: 0
       })
     }
     socket.on('connected', initSettings)
