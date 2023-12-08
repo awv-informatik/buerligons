@@ -1,4 +1,5 @@
-import { CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
+import { showMessage } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
@@ -43,7 +44,21 @@ const CCSERVERURL = 'ws://localhost:9091'
 export const initBuerli = () => {
   console.info('initBuerli')
 
-  init(id => new SocketIOClient(CCSERVERURL, id), {
+  init(
+    id => {
+      const socket = new SocketIOClient(CCSERVERURL, id)
+
+      const reconnect = async () => {
+        console.warn('Connection lost, attempting to re-connect ...')
+        showMessage({ drawingId: id, type: 'error', text: `Connection lost, attempting to re-connect ...` })
+        await ccAPI.base.reconnectCCDrawing(id)
+      }
+
+      socket.on('conn_error', reconnect)
+      socket.on('conn_timeout', reconnect)
+
+      return socket
+    }, {
     theme: {
       primary: '#e36b7c',
       secondary: '#fcc7cb',
