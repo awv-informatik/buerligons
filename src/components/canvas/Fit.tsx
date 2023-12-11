@@ -40,6 +40,8 @@ const getSketchBounds = (boundsMember: ArrayMem) => {
   return { center: sphere.center, radius: sphere.radius, box }
 }
 
+const defaultCCBounds = { center: new THREE.Vector3(), radius: 200, min: new THREE.Vector3(-100, -100, -100), max: new THREE.Vector3(100, 100, 100) }
+
 const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const bounds = useBounds()
   const editMode = useEditMode(drawingId)
@@ -57,7 +59,10 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
     const root = drawing.structure.root
 
     const structureApi = getDrawing(drawingId).api.structure
-    const ccBounds = structureApi.calculateProductBounds(editMode === EditMode.Part ? curProd : root)
+    let ccBounds = structureApi.calculateProductBounds(editMode === EditMode.Part ? curProd : root)
+    if (ccBounds.radius === -1) {
+      ccBounds = defaultCCBounds
+    }
 
     const target = ccBounds.center
     const up = new THREE.Vector3(0, 1, 0)
