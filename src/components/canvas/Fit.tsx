@@ -50,25 +50,20 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
 
   const margin = 1.2
 
-  const prevValues = React.useRef<{ drawingId: DrawingID; curProd: ObjectID; editMode: EditMode }>({ drawingId: '', curProd: 0, editMode: EditMode.None })
-
+  // Set camera on top of the model after loading / product type change (Part <---> Assembly)
   React.useEffect(() => {
-    if (editMode !== prevValues.current.editMode) {
-      const drawing = getDrawing(drawingId)
-      const curProd = drawing.structure.currentProduct as ObjectID
-      const root = drawing.structure.root
+    const drawing = getDrawing(drawingId)
+    const curProd = drawing.structure.currentProduct as ObjectID
+    const root = drawing.structure.root
 
-      const structureApi = getDrawing(drawingId).api.structure
-      const ccBounds = structureApi.calculateProductBounds(editMode === EditMode.Part ? curProd : root)
+    const structureApi = getDrawing(drawingId).api.structure
+    const ccBounds = structureApi.calculateProductBounds(editMode === EditMode.Part ? curProd : root)
 
-      const target = ccBounds.center
-      const up = new THREE.Vector3(0, 1, 0)
-      const position = new THREE.Vector3(0, 0, ccBounds.radius * margin * 4).add(target)
+    const target = ccBounds.center
+    const up = new THREE.Vector3(0, 1, 0)
+    const position = new THREE.Vector3(0, 0, ccBounds.radius * margin * 4).add(target)
 
-      bounds?.refresh().moveTo(position).lookAt({ target, up }).fit().clip()
-
-      prevValues.current = { drawingId, curProd, editMode }
-    }
+    bounds?.refresh().moveTo(position).lookAt({ target, up }).fit().clip()
   }, [drawingId, editMode])
 
   // Set camera in front of sketch and adjust zoom to make visible all sketch objects after the sketch is enabled and has planeRef set
