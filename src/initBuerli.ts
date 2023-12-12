@@ -1,5 +1,4 @@
 import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
-import { showMessage } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
@@ -46,10 +45,6 @@ export const initBuerli = () => {
 
   init(id => {
     const socket = new SocketIOClient(CCSERVERURL, id)
-
-    // TODO: What about the errors?
-    socket.on('conn_error', () => showMessage({ drawingId: id, type: 'error', text: `Connection lost, attempting to re-connect ...` }))
-    socket.on('conn_timeout', () => showMessage({ drawingId: id, type: 'error', text: `Connection lost, attempting to re-connect ...` }))
 
     // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
     // This mechanism allows the application (client) to individually override settings, which have been initially made by the server. 

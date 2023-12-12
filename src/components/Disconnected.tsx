@@ -7,10 +7,8 @@ import React from 'react'
  * user inputs if the CAD-Server is not connected anymore.
  */
 export const Disconnected = ({ drawingId }: { drawingId: DrawingID }) => {
-  // TODO: styling
-  // TODO: handle and display connection retries right here instead of `initBuerli`?
-  const isActive = useDrawing(drawingId, d => d.cad.active)
-  const isConnected = useDrawing(drawingId, d => d.cad.connected)
+  const isActive = useDrawing(drawingId, d => d.cad.connection.active)
+  const isConnected = useDrawing(drawingId, d => d.cad.connection.connected)
   if (isConnected) {
     return null
   }
@@ -33,7 +31,7 @@ export const Disconnected = ({ drawingId }: { drawingId: DrawingID }) => {
         textAlign: 'center',
       }}>
       <div style={{ fontSize: '48px' }}>DISCONNECTED</div>
-      <div>Please check your network</div>
+      <div>Please check your network. Trying to re-connect...</div>
     </div>
   )
 }
