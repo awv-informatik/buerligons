@@ -1,5 +1,6 @@
 import { DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
+import React from 'react'
 
 /**
  * Adds an absolute positioned div with a high z-Index to block
@@ -7,10 +8,16 @@ import { useDrawing } from '@buerli.io/react'
  */
 export const Disconnected = ({ drawingId }: { drawingId: DrawingID }) => {
   // TODO: styling
-  // TODO: keep it hidden right after buerli drawing creation?
   // TODO: handle and display connection retries right here instead of `initBuerli`?
+  const isActive = useDrawing(drawingId, d => d.cad.active)
   const isConnected = useDrawing(drawingId, d => d.cad.connected)
-  return isConnected ? null : (
+  if (isConnected) {
+    return null
+  }
+  if (!isActive) {
+    return null
+  }
+  return (
     <div
       style={{
         display: 'grid',
