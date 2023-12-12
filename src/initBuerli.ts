@@ -1,4 +1,4 @@
-import { ccAPI, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   Boolean as BooleanPlg,
