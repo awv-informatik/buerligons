@@ -1,6 +1,7 @@
-import { ccAPI, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
+  AppearanceEditor,
   Boolean as BooleanPlg,
   BoundingBoxInfo,
   Box,
@@ -32,6 +33,7 @@ import {
   Sphere,
   TransformByCsys,
   Translate,
+  Twist,
   WorkAxis,
   WorkCSys,
   WorkPlane,
@@ -78,7 +80,7 @@ export const initBuerli = () => {
       },
     },
     elements,
-    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement],
+    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor],
     plugins: {
       [CCClasses.CCSketch]: Sketch,
       [CCClasses.CCExtrusion]: Extrusion,
@@ -102,6 +104,7 @@ export const initBuerli = () => {
       [CCClasses.CCCircularPattern]: CircularPattern,
       [CCClasses.CCTransformationByCSys]: TransformByCsys,
       [CCClasses.CCTranslation]: Translate,
+      [CCClasses.CCTwist]: Twist,
       [CCClasses.CCRotation]: Rotate,
       [CCClasses.CCFastenedOriginConstraint]: FastenedOrigin,
       [CCClasses.CCFastenedConstraint]: Fastened,
