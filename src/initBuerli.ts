@@ -1,6 +1,7 @@
-import { ccAPI, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
+  AppearanceEditor,
   Boolean as BooleanPlg,
   BoundingBoxInfo,
   Box,
@@ -79,7 +80,7 @@ export const initBuerli = () => {
       },
     },
     elements,
-    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement],
+    globalPlugins: [Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor],
     plugins: {
       [CCClasses.CCSketch]: Sketch,
       [CCClasses.CCExtrusion]: Extrusion,
