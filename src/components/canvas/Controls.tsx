@@ -28,7 +28,7 @@ export const Controls = React.forwardRef<OrthographicTrackballControls, Controls
 
     useFrame(() => {
       if (controls.enabled) controls.update()
-    })
+    }, -1)
 
     React.useEffect(() => {
       const callback = (e: THREE.Event) => {

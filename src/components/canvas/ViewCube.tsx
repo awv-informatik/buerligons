@@ -33,7 +33,7 @@ const getUpVector = (normal: THREE.Vector3) => {
 export const ViewCube: React.FC<{}> = ({}) => {
   const bounds = useBounds()
 
-  const camera = useThree(s => s.camera)
+  const { camera, invalidate } = useThree()
   const controls = useThree(s => s.controls as unknown as ControlsProto)
 
   const onClick = React.useCallback((e: ThreeEvent<MouseEvent>) => {
@@ -53,9 +53,11 @@ export const ViewCube: React.FC<{}> = ({}) => {
 
     bounds?.refresh().moveTo(position).lookAt({ target, up })
 
+    invalidate()
+
     // Idk why GizmoViewcube's onClick is typed to have to return null...
     return null
-  }, [bounds, camera, controls])
+  }, [bounds, camera, controls, invalidate])
 
   return (
     <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
