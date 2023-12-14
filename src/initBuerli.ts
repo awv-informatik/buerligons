@@ -1,6 +1,7 @@
-import { CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
+  AppearanceEditor,
   Boolean as BooleanPlg,
   BoundingBoxInfo,
   Box,
@@ -44,7 +45,25 @@ const CCSERVERURL = 'ws://localhost:9091'
 export const initBuerli = () => {
   console.info('initBuerli')
 
-  init(id => new SocketIOClient(CCSERVERURL, id), {
+  init(id => {
+    const socket = new SocketIOClient(CCSERVERURL, id)
+
+    // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
+    // This mechanism allows the application (client) to individually override settings, which have been initially made by the server. 
+    const initSettings = async () => {
+      await ccAPI.common.setSettings(id, {
+        isGraphicEnabled: true,           // default server: true
+        isCCGraphicEnabled: false,        // default server: false
+        isInvisibleGraphicEnabled: true,  // default server: false
+        isSketchGraphicEnabled: false,    // default server: false
+        facetingParamsMode: 1,            // default server: 1
+        facetingChordHeightTol: 0.1,      // default server: 0.1
+        facetingAngleTol: 0               // default server: 0
+      })
+    }
+    socket.on('connected', initSettings)
+    return socket
+  }, {
     theme: {
       primary: '#e36b7c',
       secondary: '#fcc7cb',
@@ -61,7 +80,7 @@ export const initBuerli = () => {
       },
     },
     elements,
-    globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement],
+    globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor],
     plugins: {
       [CCClasses.CCSketch]: Sketch,
       [CCClasses.CCExtrusion]: Extrusion,
