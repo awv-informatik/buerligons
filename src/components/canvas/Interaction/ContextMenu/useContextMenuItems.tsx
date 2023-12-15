@@ -6,6 +6,7 @@ import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType } from '@buerli.io/core'
 import { MenuElement, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
+import { useBounds, BoundsApi } from '@react-three/drei'
 import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined, BgColorsOutlined } from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
@@ -21,7 +22,6 @@ import { CanvasMenuInfo, MenuDescriptor } from './types'
 import { getAncestors, getDescendants } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
-import { useBounds, BoundsApi } from '../../Bounds'
 
 type ControlsProto = {
   update(): void
