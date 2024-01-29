@@ -1,16 +1,29 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, HoveredConstraintDisplay, PluginGeometryBounds, GeometryOverridesManager } from '@buerli.io/react-cad'
+import { Drawing, GeometryOverridesManager, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport } from '@react-three/drei'
 import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
+import {
+  CanvasContextMenu,
+  Composer,
+  Controls,
+  Fit,
+  GeometryInteraction,
+  HighlightedObjects,
+  Lights,
+  raycastFilter,
+  Threshold,
+  useContextMenuItems,
+} from './canvas'
 import { ChooseCCApp } from './ChooseCCApp'
-import { Composer, Controls, Fit, Lights, Threshold, raycastFilter, GeometryInteraction, HighlightedObjects } from './canvas'
+import { Disconnected } from './Disconnected'
 import { FileMenu } from './FileMenu'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
+import { ViewCube } from './canvas/ViewCube'
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ children, drawingId }) => {
   const handleMiss = React.useCallback(() => {
@@ -30,7 +43,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
     <Canvas
       orthographic
       flat
-      frameloop="demand"      
+      frameloop="demand"
       dpr={[1, 2]}
       events={s => ({ ...events(s), filter: raycastFilter })}
       camera={{ position: [0, 0, 10], zoom: 50 }}
@@ -60,11 +73,17 @@ const useInteractionReset = (drawingId: DrawingID) => {
       resetInteraction()
     }
   }, [resetInteraction, isSelActive, isSketchActive])
-  
+
   // Reset hover and selection when switching nodes
   React.useEffect(() => {
     resetInteraction()
   }, [resetInteraction, currentInstance])
+}
+
+const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
+  const menuContent = useContextMenuItems(drawingId)
+
+  return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
 export const Buerligons: React.FC = () => {
@@ -100,35 +119,25 @@ export const Buerligons: React.FC = () => {
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} width={5}>
                   <GeometryInteraction drawingId={drawingId}>
-                    <BuerliGeometry suspend={['.Load']} drawingId={drawingId} productId={isPart ? currentProduct : currentInstance} selection={false} />
+                    <BuerliGeometry
+                      suspend={['.Load']}
+                      drawingId={drawingId}
+                      productId={isPart ? currentProduct : currentInstance}
+                      selection={false}
+                    />
                   </GeometryInteraction>
                 </Composer>
                 <PluginGeometryBounds drawingId={drawingId} />
+                <ContextMenu drawingId={drawingId} />
+                <ViewCube />
               </Fit>
 
               <BuerliPluginsGeometry drawingId={drawingId} />
               <HighlightedObjects drawingId={drawingId} />
-
-              <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
-                <group scale={0.8}>
-                  <group scale={2.25} position={[-30, -30, -30]} rotation={[0, 0, 0]}>
-                    <GizmoViewport
-                      disabled
-                      axisScale={[0.8, 0.02, 0.02]}
-                      axisHeadScale={0.45}
-                      hideNegativeAxes
-                      labelColor="black"
-                    />
-                  </group>
-                  <GizmoViewcube
-                    font="24px Inter var, Arial, sans-serif"
-                    faces={['Right', 'Left', 'Back', 'Front', 'Top', 'Bottom']}
-                  />
-                </group>
-              </GizmoHelper>
             </CanvasImpl>
             <UndoRedoKeyHandler />
           </Drawing>
+          <Disconnected drawingId={drawingId} />
         </>
       )}
     </div>

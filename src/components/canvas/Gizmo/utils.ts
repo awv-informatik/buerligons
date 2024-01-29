@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 
 // Intersection object should be a line
-const getAdjacentMeshNormal = (
+export const getAdjacentMeshNormal = (
   drawingId: DrawingID,
   graphicId: ObjectID,
   intersection: THREE.Intersection,
