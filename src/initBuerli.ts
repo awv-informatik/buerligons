@@ -39,6 +39,7 @@ import {
   WorkCSys,
   WorkPlane,
   WorkPoint,
+  Helix,
 } from '@buerli.io/react-cad'
 
 const CCSERVERURL = 'ws://localhost:9091'
@@ -119,6 +120,7 @@ export const initBuerli = () => {
       [CCClasses.CCImport]: Import,
       [CCClasses.CCEntityDeletion]: EntityDeletion,
       [CCClasses.CCMirror]: Mirror,
+      [CCClasses.CCHelix]: Helix,
     },
   })
 }
