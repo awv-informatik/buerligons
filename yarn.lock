@@ -486,12 +486,12 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
-"@buerli.io/classcad@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.10.0.tgz#f289ac9a506bb0ce12730bd13e2698e10a760458"
-  integrity sha512-+NFqCi9vd7bryp+ropLw5rJMcOd0RMUj6yzUl6kLtMy5ED7hUn5rvZD4s1JdIQH4vUXxmd2pqpgeoY5F6cR8DQ==
+"@buerli.io/classcad@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.11.0.tgz#f15deb6ac621219449b9774a440d8372a4cfa9ce"
+  integrity sha512-9qvPFJR1z4vBnyPPB3a3PcnTBSE9Jl7c+kgRcdeiw0GsES0wSe7RydIaqFEbaRYcL90rfPKCIgThw9NU09Sgeg==
   dependencies:
-    "@buerli.io/core" "0.10.0"
+    "@buerli.io/core" "0.11.0"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
@@ -504,22 +504,22 @@
     uuid "^9.0.0"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.10.0.tgz#02d80a1741bca0f0bdbcfed9f4d63c3a701652ab"
-  integrity sha512-QNl44088Ib3EJpFlOuKq6wRQnuemi+cazyfGCVT59j6Btqvb5AKIwvqgZ1A0Bz//A8qFJKhOi1VJ5Xw+VxQ2tw==
+"@buerli.io/core@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.11.0.tgz#cda9f4290f9cede99c34a6d617fb602acf2d3399"
+  integrity sha512-dOtlwDe7xljngjalYAazk8+JD14z3Hv/iKAsB6m/x4HORWMcppGhSQ9D8865DVHajPJHe3crsev/gquWWbN4+A==
   dependencies:
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/headless@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.10.0.tgz#33d879af2b830785ab308b03cdf07e72d906f0e3"
-  integrity sha512-MbYLML6UyLc5IEkfacQvV9rc3pjhK500XKRwxklLaUBp6iIeZ0My3+N2jW+jQA5w2QeLZ3dfuWwgKvFq7g1+lg==
+"@buerli.io/headless@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.11.0.tgz#4d33bea2fa56d43f177eb7a6dbf3d061e9491489"
+  integrity sha512-UOlb9jKtAFbnyBIDwzni5VW2iyz/Shb8mduq6aGRrjP383Iz1cU8hHbcSHu0i5dT5+IBri615bkIKans8kVcjg==
   dependencies:
-    "@buerli.io/classcad" "0.10.0"
+    "@buerli.io/classcad" "0.11.0"
     flat-promise "^1.0.3"
 
 "@buerli.io/icons@^1.0.12":
@@ -527,13 +527,13 @@
   resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.12.tgz#afec11e32eeeddd479129b597bc5187bd38898d0"
   integrity sha512-Hd7jdrX6pRCihN2vg0nPZfdz/4wr6Q3rWyqzHeqkY8llXO72xoo44g38iBKzk155iTcqBc1lsakNIm6tqjUESg==
 
-"@buerli.io/react-cad@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.10.0.tgz#59ccd261204889e2b8e088d3985674e09fe80dbb"
-  integrity sha512-GgMtT/65EONC45zH51ZEOg8SYUq+p2V00FPxArhLT445GSbgl/Ao8XIyFb7/7VUbmEZyq4jq862UMkuHELn2Xw==
+"@buerli.io/react-cad@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.11.0.tgz#044a3aa9a665c76ce87e7b0f4b71a852a64b5e35"
+  integrity sha512-3QOWQmzqR9VVn/T5uL0U9LMBNjYIwy0L7hvmmmCeIYkxZN+NmYJeHzb/HZzrvGlVnWCdwzy9qmOoZMUa8m1Q0g==
   dependencies:
-    "@buerli.io/classcad" "0.10.0"
-    "@buerli.io/react" "0.10.0"
+    "@buerli.io/classcad" "0.11.0"
+    "@buerli.io/react" "0.11.0"
     "@dnd-kit/core" "^6.0.8"
     "@dnd-kit/modifiers" "^6.0.1"
     "@dnd-kit/sortable" "^7.0.2"
@@ -548,14 +548,14 @@
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/react@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.10.0.tgz#3265a70927318a17e56a06f9abe3dca380ece46b"
-  integrity sha512-ojEBJMCGxhdz6AOYGykAnKFyDLLuezNsOgOuydruXaLJHjWpK6Dj/zE9uf3niewLC2duxUrd1LW5whioJWVk/w==
+"@buerli.io/react@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.11.0.tgz#a853227922184f332e58e5abb3b22583e6204117"
+  integrity sha512-hbz/rvyUE6PceXAp3Ria0tC5ltctTHnGEuxfLBzIEKo5ztwme0XBG/ZyzTQMzz/oZcLoZOSBDExYkqxlS3hyQQ==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "0.10.0"
-    "@buerli.io/headless" "0.10.0"
+    "@buerli.io/core" "0.11.0"
+    "@buerli.io/headless" "0.11.0"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
@@ -1024,18 +1024,21 @@
     uuid "^9.0.1"
     zustand "^3.5.13"
 
-"@react-three/fiber@8.13.0":
-  version "8.13.0"
-  resolved "https://registry.yarnpkg.com/@react-three/fiber/-/fiber-8.13.0.tgz#c9eabe60f2276a66d7ce9a3b927083894f4202f9"
-  integrity sha512-hPFzFNgikEMyEbL+NpSA7q+UWZxInrrkJldWaCR2w34Fwf20x9p68bsyN0/yn9oM2VlWoJcJjR8hw1tN9AxHuA==
+"@react-three/fiber@8.15.14":
+  version "8.15.14"
+  resolved "https://registry.yarnpkg.com/@react-three/fiber/-/fiber-8.15.14.tgz#2585dcef580d6974a98ce81f636c31c58a7ffc74"
+  integrity sha512-Mtc/qG0OMFvXFttzKmYdbKU2vjiTuyJMNfm4nmiKhwd7Hmql+gk9mwhtoofFLLyANrNW8UgTFmCTjf7Fz5h00Q==
   dependencies:
     "@babel/runtime" "^7.17.8"
     "@types/react-reconciler" "^0.26.7"
+    "@types/webxr" "*"
+    base64-js "^1.5.1"
+    buffer "^6.0.3"
     its-fine "^1.0.6"
     react-reconciler "^0.27.0"
     react-use-measure "^2.1.1"
     scheduler "^0.21.0"
-    suspend-react "^0.0.8"
+    suspend-react "^0.1.3"
     zustand "^3.7.1"
 
 "@react-three/postprocessing@2.15.0":
@@ -1771,6 +1774,11 @@ base64-arraybuffer@^0.2.0:
   resolved "https://registry.yarnpkg.com/base64-arraybuffer/-/base64-arraybuffer-0.2.0.tgz#4b944fac0191aa5907afe2d8c999ccc57ce80f45"
   integrity sha512-7emyCsu1/xiBXgQZrscw/8KPRT44I4Yq9Pe6EGs3aPRTsWuggML1/1DTuZUuIaJPIm1FTDUVXl4x/yW8s0kQDQ==
 
+base64-js@^1.3.1, base64-js@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
+  integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+
 bidi-js@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/bidi-js/-/bidi-js-1.0.2.tgz#1a497a762c2ddea377429d2649c9ce0f8a91527f"
@@ -1824,6 +1832,14 @@ browserslist@^4.21.9:
     electron-to-chromium "^1.4.477"
     node-releases "^2.0.13"
     update-browserslist-db "^1.0.11"
+
+buffer@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-6.0.3.tgz#2ace578459cc8fbe2a70aaa8f52ee63b6a74c6c6"
+  integrity sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
+  dependencies:
+    base64-js "^1.3.1"
+    ieee754 "^1.2.1"
 
 bundle-name@^3.0.0:
   version "3.0.0"
@@ -2929,6 +2945,11 @@ iconv-lite@^0.6.3:
   integrity sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==
   dependencies:
     safer-buffer ">= 2.1.2 < 3.0.0"
+
+ieee754@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
+  integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
 
 ignore@^5.2.0:
   version "5.2.1"
@@ -4889,11 +4910,6 @@ suspend-react@^0.0.10:
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/suspend-react/-/suspend-react-0.0.10.tgz#9b1cc83d13e0ded81fd6f65a3d564bbbfa7024ab"
   integrity sha512-7yyJ1aBr9Ap4XZQOBaYlOelNcRc42zv50C0pVNOHfhW/DwTbHGFVZKKJsVndyQvQTv/fAkIO9TAMvGiSCjT0Zw==
-
-suspend-react@^0.0.8:
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/suspend-react/-/suspend-react-0.0.8.tgz#b0740c1386b4eb652f17affe4339915ee268bd31"
-  integrity sha512-ZC3r8Hu1y0dIThzsGw0RLZplnX9yXwfItcvaIzJc2VQVi8TGyGDlu92syMB5ulybfvGLHAI5Ghzlk23UBPF8xg==
 
 suspend-react@^0.1.3:
   version "0.1.3"
