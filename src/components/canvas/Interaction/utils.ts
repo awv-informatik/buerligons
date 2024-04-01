@@ -44,7 +44,36 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
   return intersection
 }
 
-export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
+export const attemptSHover = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
+  const drawing = getDrawing(drawingId)
+  const activeSelId = drawing.selection.active
+  if (!object || !activeSelId) {
+    return
+  }
+
+  const selection = drawing.selection.refs[drawing.selection.active]
+
+  if (
+    !selection.isSelectable(BuerliScope, object.type) &&
+    !selection.isSelectable(BuerliScope, object.container.type) &&
+    !(selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0)
+  ) {
+    return
+  }
+
+  const interactionInfo = createInfo({
+    objectId: object.container.ownerId,
+    graphicId: object.graphicId,
+    containerId: object.container.id,
+    prodRefId: productId,
+  })
+  if (interactionInfo.uniqueIdent !== drawing.interaction.hovered?.uniqueIdent) {
+    const setHovered = drawing.api.interaction.setHovered
+    setHovered(interactionInfo)
+  }
+}
+
+export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
   const selApi = drawing.api.selection
   const activeSelId = drawing.selection.active

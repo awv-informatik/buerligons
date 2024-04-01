@@ -2,12 +2,12 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
+import { BuerliScope, createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, attemptSelection } from './utils'
+import { findGeometryIntersection, attemptSHover, attemptSSelection } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -53,6 +53,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
+      const selection = drawing.selection.refs[drawing.selection.active || '']
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
       const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
@@ -80,6 +81,11 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const object: GeometryElement | undefined =
         uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
       if (!object || !uData) {
+        return
+      }
+
+      if (isSelActive) {
+        attemptSHover(drawingId,uData.productId, object)
         return
       }
 
@@ -120,7 +126,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const object: GeometryElement | undefined =
         uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
 
-      if (!object && hovered) {
+      // Only unhover if BuerliGometry item was hovered
+      if (!object && hovered && hovered.graphicId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
       }
@@ -158,7 +165,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       if (isSelActive) {
-        attemptSelection(drawingId, uData.productId, object)
+        attemptSSelection(drawingId, uData.productId, object)
         return
       }
 
