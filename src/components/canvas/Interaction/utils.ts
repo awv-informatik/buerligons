@@ -14,7 +14,8 @@ import {
   createInfo,
   InteractionInfo,
 } from '@buerli.io/core'
-import { TreeObjScope, MateScope } from '@buerli.io/react-cad'
+import { TreeObjScope, MateScope, createTreeObjSelItem } from '@buerli.io/react-cad'
+import { ccUtils } from '@buerli.io/classcad'
 
 const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
 const isLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
@@ -46,6 +47,7 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
 
 export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
   const selApi = drawing.api.selection
   const activeSelId = drawing.selection.active
   if (!object || !activeSelId) {
@@ -53,6 +55,22 @@ export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, obje
   }
 
   const selection = drawing.selection.refs[drawing.selection.active]
+
+  const curProdId = drawing.structure.currentProduct || -1
+  const curProdChildren = tree[curProdId]?.children || []
+  // const instanceId = curProdChildren.find(id => id === productId || getDescendants(drawingId, id).some(descId => descId === productId)) || -1
+  const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
+  const instance = tree[instanceId]
+  if (instance && selection.isSelectable(TreeObjScope, { object: instance })) {
+    const selItem = createTreeObjSelItem(curProdId, instance)
+    if (selApi.isItemSelected(selItem)) {
+      selApi.unselect([selItem], activeSelId)
+    } else {
+      selApi.select([selItem], activeSelId)
+    }
+
+    return
+  }
 
   let prodElements: ProductElement[] = []
   if (selection.isSelectable(BuerliScope, object.container.type)) {

@@ -2,12 +2,13 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { useThree } from '@react-three/fiber'
-import { DrawingID, InteractionInfo, BuerliScope } from '@buerli.io/core'
+import { DrawingID, InteractionInfo, BuerliScope, getDrawing } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
-import { getMateRefIds } from '@buerli.io/react-cad'
+import { TreeObjScope, getMateRefIds } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
+import { getDescendants } from './ContextMenu/utils'
 
 const OutlinedObject: React.FC<{ group: string; id: number; children?: React.ReactNode }> = ({
   children,
@@ -95,6 +96,22 @@ export function OutlinedObjects({
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
   const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
 
+  const curInstanceChildren = useDrawing(drawingId, d => d.structure.tree[d.structure.currentInstance || -1]?.children)
+  // Hovering an instance in the View and selection / node list is different.
+  // In the View, a correct instance has to be derived from the graphic's prodRefId.
+  // Elsewhere, it should match info.objectId.
+  const tree = getDrawing(drawingId).structure.tree
+  let instanceId = -1
+  if (info.graphicId && info.prodRefId) {
+    instanceId = curInstanceChildren?.find(id => id === info.prodRefId || getDescendants(drawingId, id).some(descId => descId === info.prodRefId)) || -1
+  }
+  else {
+    // TODO: finalize the html-related hover
+    // instanceId = curInstanceChildren?.find(id => info.objectId === (tree[id].members?.productRef?.value || id)) || -1
+    instanceId = curInstanceChildren?.find(id => id === info.objectId || getDescendants(drawingId, id).some(descId => descId === info.objectId)) || -1
+  }
+  const instance = useDrawing(drawingId, d => d.structure.tree[instanceId])
+
   if (!activeSel && !isPartMode && ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
     // Constraint
     const mateRefIds = getMateRefIds(drawingId, info.objectId)
@@ -139,6 +156,11 @@ export function OutlinedObjects({
         )}
       </>
     )
+  }
+
+  if (instance && activeSel?.isSelectable(TreeObjScope, { object: instance })) {
+    // Assembly node
+    return <OutlinedProduct key={instanceId} group={group} id={instanceId} />
   }
 
   if (solid && activeSel?.isSelectable(BuerliScope, solid.type)) {
