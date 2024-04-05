@@ -93,24 +93,18 @@ export function OutlinedObjects({
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
   const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
+  const instanceId = info.graphicId && info.prodRefId ? info.prodRefId : info.objectId
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
-  const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
+  const instanceClass = useDrawing(drawingId, d => d.structure.tree[instanceId]?.class) || ''
 
-  const curInstanceChildren = useDrawing(drawingId, d => d.structure.tree[d.structure.currentInstance || -1]?.children)
-  // Hovering an instance in the View and selection / node list is different.
-  // In the View, a correct instance has to be derived from the graphic's prodRefId.
-  // Elsewhere, it should match info.objectId.
   const tree = getDrawing(drawingId).structure.tree
-  let instanceId = -1
-  if (info.graphicId && info.prodRefId) {
-    instanceId = curInstanceChildren?.find(id => id === info.prodRefId || getDescendants(drawingId, id).some(descId => descId === info.prodRefId)) || -1
-  }
-  else {
-    // TODO: finalize the html-related hover
-    // instanceId = curInstanceChildren?.find(id => info.objectId === (tree[id].members?.productRef?.value || id)) || -1
-    instanceId = curInstanceChildren?.find(id => id === info.objectId || getDescendants(drawingId, id).some(descId => descId === info.objectId)) || -1
-  }
-  const instance = useDrawing(drawingId, d => d.structure.tree[instanceId])
+  const curInstanceChildren = useDrawing(drawingId, d => d.structure.tree[d.structure.currentInstance || -1]?.children)
+  const availableInstanceId = curInstanceChildren?.find(id => (
+    id === instanceId ||
+    tree[id].members?.productRef?.value === instanceId ||
+    getDescendants(drawingId, id).some(descId => descId === instanceId)
+  )) || -1
+  const instance = useDrawing(drawingId, d => d.structure.tree[availableInstanceId])
 
   if (!activeSel && !isPartMode && ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
     // Constraint
@@ -122,14 +116,14 @@ export function OutlinedObjects({
     return null
   }
 
-  if (!activeSel && !isPartMode && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
+  if (!activeSel && !isPartMode && ccUtils.base.isA(instanceClass, CCClasses.IProductReference)) {
     // Assembly node with hovered / selected mesh (if it exists)
     return (
       <>
-        <OutlinedProduct key={info.prodRefId} group={group} id={info.prodRefId} />
+        <OutlinedProduct key={instanceId} group={group} id={instanceId} />
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <GlobalTransform drawingId={drawingId} objectId={instanceId}>
               <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
             </GlobalTransform>
           </OutlinedObject>
@@ -160,7 +154,7 @@ export function OutlinedObjects({
 
   if (instance && activeSel?.isSelectable(TreeObjScope, { object: instance })) {
     // Assembly node
-    return <OutlinedProduct key={instanceId} group={group} id={instanceId} />
+    return <OutlinedProduct key={availableInstanceId} group={group} id={availableInstanceId} />
   }
 
   if (solid && activeSel?.isSelectable(BuerliScope, solid.type)) {

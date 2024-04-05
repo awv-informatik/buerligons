@@ -57,7 +57,6 @@ export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, obje
   const selection = drawing.selection.refs[drawing.selection.active]
 
   const curProdId = drawing.structure.currentProduct || -1
-  const curProdChildren = tree[curProdId]?.children || []
   // const instanceId = curProdChildren.find(id => id === productId || getDescendants(drawingId, id).some(descId => descId === productId)) || -1
   const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
   const instance = tree[instanceId]
