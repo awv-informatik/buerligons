@@ -20,6 +20,11 @@ const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.objec
 const isLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
 
 export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
+  if (intersections.some(i => i.object.userData?.onHUD)) {
+    // If there is an object on HUD within intersections, consider there are no geometry intersections
+    return undefined
+  }
+
   let index = intersections.findIndex(i => i.object.userData?.isBuerliGeometry)
   let intersection = intersections[index]
   if (!intersection) {
@@ -42,35 +47,6 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
   }
 
   return intersection
-}
-
-export const attemptSHover = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
-  const drawing = getDrawing(drawingId)
-  const activeSelId = drawing.selection.active
-  if (!object || !activeSelId) {
-    return
-  }
-
-  const selection = drawing.selection.refs[drawing.selection.active]
-
-  if (
-    !selection.isSelectable(BuerliScope, object.type) &&
-    !selection.isSelectable(BuerliScope, object.container.type) &&
-    !(selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0)
-  ) {
-    return
-  }
-
-  const interactionInfo = createInfo({
-    objectId: object.container.ownerId,
-    graphicId: object.graphicId,
-    containerId: object.container.id,
-    prodRefId: productId,
-  })
-  if (interactionInfo.uniqueIdent !== drawing.interaction.hovered?.uniqueIdent) {
-    const setHovered = drawing.api.interaction.setHovered
-    setHovered(interactionInfo)
-  }
 }
 
 export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
