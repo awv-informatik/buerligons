@@ -20,6 +20,11 @@ const isPoint = (intersection: THREE.Intersection) => Boolean(intersection.objec
 const isLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
 
 export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
+  if (intersections.some(i => i.object.userData?.onHUD)) {
+    // If there is an object on HUD within intersections, consider there are no geometry intersections
+    return undefined
+  }
+
   let index = intersections.findIndex(i => i.object.userData?.isBuerliGeometry)
   let intersection = intersections[index]
   if (!intersection) {
@@ -44,7 +49,7 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
   return intersection
 }
 
-export const attemptSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
+export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, object: GeometryElement | null) => {
   const drawing = getDrawing(drawingId)
   const selApi = drawing.api.selection
   const activeSelId = drawing.selection.active
