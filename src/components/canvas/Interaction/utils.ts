@@ -62,7 +62,6 @@ export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, obj
   const selection = drawing.selection.refs[drawing.selection.active]
 
   const curProdId = drawing.structure.currentProduct || -1
-  // const instanceId = curProdChildren.find(id => id === productId || getDescendants(drawingId, id).some(descId => descId === productId)) || -1
   const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
   const instance = tree[instanceId]
   if (instance && selection.isSelectable(TreeObjScope, { object: instance })) {
