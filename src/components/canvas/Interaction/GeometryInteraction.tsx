@@ -2,12 +2,12 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
+import { BuerliScope, createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, attemptSelection } from './utils'
+import { findGeometryIntersection, attemptSSelection } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -120,7 +120,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const object: GeometryElement | undefined =
         uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
 
-      if (!object && hovered) {
+      // Only unhover if BuerliGometry item was hovered
+      if (!object && hovered && hovered.graphicId) {
         const setHovered = drawing.api.interaction.setHovered
         setHovered(null)
       }
@@ -158,7 +159,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       if (isSelActive) {
-        attemptSelection(drawingId, uData.productId, object)
+        attemptSSelection(drawingId, uData.productId, object)
         return
       }
 
