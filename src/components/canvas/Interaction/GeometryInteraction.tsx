@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { BuerliScope, createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
+import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 

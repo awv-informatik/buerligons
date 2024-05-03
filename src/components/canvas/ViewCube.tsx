@@ -30,7 +30,7 @@ const getUpVector = (normal: THREE.Vector3) => {
   return new THREE.Vector3(0, 1, 0)
 }
 
-export const ViewCube: React.FC<{}> = ({}) => {
+export const ViewCube: React.FC = () => {
   const bounds = useBounds()
 
   const { camera, invalidate } = useThree()
