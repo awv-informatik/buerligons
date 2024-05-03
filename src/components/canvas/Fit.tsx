@@ -70,7 +70,7 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
     const bb = new THREE.Box3(ccBounds.min, ccBounds.max)
 
     bounds?.refresh(bb).moveTo(position).lookAt({ target, up }).fit().clip()
-  }, [drawingId, editMode])
+  }, [drawingId, editMode, bounds])
 
   // Set camera in front of sketch and adjust zoom to make visible all sketch objects after the sketch is enabled and has planeRef set
   React.useEffect(() => {
