@@ -522,10 +522,10 @@
     "@buerli.io/classcad" "0.12.0"
     flat-promise "^1.0.3"
 
-"@buerli.io/icons@^1.0.13":
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.13.tgz#a55bd222dcf0783d95b7a174768f391e280bbfa9"
-  integrity sha512-a+aPu309cr3kroLbaA8AEYsWsgliaIhhphyxXuLGpYuTbMH3bapfIVTOjdUFEYGyjhfMpbvi33hckHDpbm9j5A==
+"@buerli.io/icons@^1.0.14":
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.14.tgz#4187587d75c1b6c5635fa86233ef371ac7043789"
+  integrity sha512-aKmgHvuemet7Lwrrxnb/DCG9gVH2s7lxvUxhY09gAkmhTFQjIY1jmCrivupQTClOvFA+ei+7PG4j3tTApKh7uw==
 
 "@buerli.io/react-cad@0.12.0":
   version "0.12.0"
