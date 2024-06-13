@@ -4,7 +4,7 @@ import { DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { CSysDisplay, CSysDisplayMode } from '@buerli.io/react-cad'
 
-const pluginBlacklist = ['Fastened Origin', 'Fastened', 'Slider', 'Revolute', 'Cylindrical', 'Planar', 'Parallel']
+const pluginBlacklist = ['Fastened Origin', 'Fastened', 'Slider', 'Revolute', 'Cylindrical', 'Planar', 'Parallel', 'LinearPattern', 'CircularPattern']
 
 export const GlobalCSysDisplay: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const activePluginId = useDrawing(drawingId, drawing => drawing.plugin.active.feature)
