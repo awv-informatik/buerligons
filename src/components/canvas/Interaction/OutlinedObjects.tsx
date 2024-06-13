@@ -2,12 +2,13 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { useThree } from '@react-three/fiber'
-import { DrawingID, InteractionInfo, BuerliScope } from '@buerli.io/core'
+import { DrawingID, ObjectID, InteractionInfo, BuerliScope, getDrawing, ArrayMem } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
-import { getMateRefIds } from '@buerli.io/react-cad'
+import { TreeObjScope, getMateRefIds } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
+import { getDescendants } from './ContextMenu/utils'
 
 const OutlinedObject: React.FC<{ group: string; id: number; children?: React.ReactNode }> = ({
   children,
@@ -92,11 +93,32 @@ export function OutlinedObjects({
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
   const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
+  const instanceId = info.graphicId && info.prodRefId ? info.prodRefId : info.objectId
   const objClass = useDrawing(drawingId, d => d.structure.tree[info.objectId]?.class) || ''
-  const prodRefClass = useDrawing(drawingId, d => d.structure.tree[info.prodRefId || -1]?.class) || ''
+  const instanceClass = useDrawing(drawingId, d => d.structure.tree[instanceId]?.class) || ''
+
+  const tree = getDrawing(drawingId).structure.tree
+  const curInstanceChildren = useDrawing(drawingId, d => d.structure.tree[d.structure.currentInstance || -1]?.children)
+  const availableInstanceId = curInstanceChildren?.find(id => (
+    id === instanceId ||
+    tree[id].members?.productRef?.value === instanceId ||
+    getDescendants(drawingId, id).some(descId => descId === instanceId)
+  )) || -1
+  const instance = useDrawing(drawingId, d => d.structure.tree[availableInstanceId])
+
+  if (!activeSel && !isPartMode && (
+    ccUtils.base.isA(objClass, CCClasses.CCGroupConstraint) ||
+    ccUtils.base.isA(objClass, CCClasses.CCLinearPatternConstraint) ||
+    ccUtils.base.isA(objClass, CCClasses.CCCircularPatternConstraint)
+  )) {
+    // Constraints with direct instance selection - outline all these instances
+    const instancesMember = getDrawing(drawingId).structure.tree[info.objectId].members?.instances as ArrayMem
+    const intances = instancesMember?.members.map(member => member.value as ObjectID)
+    return <>{intances?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
+  }
 
   if (!activeSel && !isPartMode && ccUtils.base.isA(objClass, CCClasses.CCHLConstraint)) {
-    // Constraint
+    // All other constraints - outline instances of mates
     const mateRefIds = getMateRefIds(drawingId, info.objectId)
     return <>{mateRefIds?.map(id => <OutlinedProduct key={id} group={group} id={id} />) || null}</>
   }
@@ -105,14 +127,14 @@ export function OutlinedObjects({
     return null
   }
 
-  if (!activeSel && !isPartMode && ccUtils.base.isA(prodRefClass, CCClasses.IProductReference)) {
+  if (!activeSel && !isPartMode && ccUtils.base.isA(instanceClass, CCClasses.IProductReference)) {
     // Assembly node with hovered / selected mesh (if it exists)
     return (
       <>
-        <OutlinedProduct key={info.prodRefId} group={group} id={info.prodRefId} />
+        <OutlinedProduct key={instanceId} group={group} id={instanceId} />
         {mesh && (
           <OutlinedObject key={mesh.graphicId} group={group} id={mesh.graphicId}>
-            <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
+            <GlobalTransform drawingId={drawingId} objectId={instanceId}>
               <Overlay.Mesh elem={mesh as any} color={solidColor} opacity={0} />
             </GlobalTransform>
           </OutlinedObject>
@@ -139,6 +161,11 @@ export function OutlinedObjects({
         )}
       </>
     )
+  }
+
+  if (instance && activeSel?.isSelectable(TreeObjScope, { object: instance })) {
+    // Assembly node
+    return <OutlinedProduct key={availableInstanceId} group={group} id={availableInstanceId} />
   }
 
   if (solid && activeSel?.isSelectable(BuerliScope, solid.type)) {
