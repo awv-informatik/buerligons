@@ -2,7 +2,7 @@ import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import { Drawing, GeometryOverridesManager, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
-import { Canvas, events } from '@react-three/fiber'
+import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
 import {
@@ -24,34 +24,40 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { WelcomePage } from './WelcomePage'
 import { ViewCube } from './canvas/ViewCube'
 
-const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = ({ children, drawingId }) => {
-  const handleMiss = React.useCallback(() => {
-    const setSelected = getDrawing(drawingId).api.interaction.setSelected
-    setSelected([])
-    getDrawing(drawingId)?.api.selection?.unselectAll()
-  }, [drawingId])
+const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
+  ReactThreeFiber.PerspectiveCameraProps &
+  ReactThreeFiber.OrthographicCameraProps
+const EVENTS = (store: any) => ({ ...events(store), filter: raycastFilter })
 
-  // Remove selection on ESC
-  React.useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [handleMiss])
+const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(
+  ({ children, drawingId }) => {
+    const handleMiss = React.useCallback(() => {
+      const setSelected = getDrawing(drawingId).api.interaction.setSelected
+      setSelected([])
+      getDrawing(drawingId)?.api.selection?.unselectAll()
+    }, [drawingId])
 
-  return (
-    <Canvas
-      orthographic
-      flat
-      frameloop="demand"
-      dpr={[1, 2]}
-      events={s => ({ ...events(s), filter: raycastFilter })}
-      camera={{ position: [0, 0, 10], zoom: 50 }}
-      onPointerMissed={handleMiss}>
-      <HoveredConstraintDisplay drawingId={drawingId} />
-      <React.Suspense fallback={null}>{children}</React.Suspense>
-    </Canvas>
-  )
-}
+    // Remove selection on ESC
+    React.useEffect(() => {
+      const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
+      window.addEventListener('keydown', handleKey)
+      return () => window.removeEventListener('keydown', handleKey)
+    }, [handleMiss])
+
+    return (
+      <Canvas
+        flat
+        orthographic
+        frameloop="demand"
+        events={EVENTS}
+        camera={CAMERA}
+        onPointerMissed={handleMiss}>
+        <HoveredConstraintDisplay drawingId={drawingId} />
+        <React.Suspense fallback={null}>{children}</React.Suspense>
+      </Canvas>
+    )
+  },
+)
 
 const useInteractionReset = (drawingId: DrawingID) => {
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance)
@@ -81,7 +87,6 @@ const useInteractionReset = (drawingId: DrawingID) => {
 
 const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const menuContent = useContextMenuItems(drawingId)
-
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
@@ -92,11 +97,9 @@ export const Buerligons: React.FC = () => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
-
   const ipc = useIPC()
 
   React.useEffect(() => void (document.title = 'buerligons'), [])
-
   useInteractionReset(drawingId)
 
   return (
@@ -114,12 +117,11 @@ export const Buerligons: React.FC = () => {
               <Lights drawingId={drawingId} />
               <Threshold />
               <GeometryOverridesManager drawingId={drawingId} />
-
               <Fit drawingId={drawingId}>
                 <Composer drawingId={drawingId} width={5}>
                   <GeometryInteraction drawingId={drawingId}>
                     <BuerliGeometry
-                      suspend={['.Load']}
+                      suspend=".Load"
                       drawingId={drawingId}
                       productId={isPart ? currentProduct : currentInstance}
                       selection={false}
@@ -130,7 +132,6 @@ export const Buerligons: React.FC = () => {
                 <ContextMenu drawingId={drawingId} />
                 <ViewCube />
               </Fit>
-
               <BuerliPluginsGeometry drawingId={drawingId} />
               <HighlightedObjects drawingId={drawingId} />
             </CanvasImpl>
