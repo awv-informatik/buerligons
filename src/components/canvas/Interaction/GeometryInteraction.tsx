@@ -7,7 +7,7 @@ import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, attemptSSelection } from './utils'
+import { findGeometryIntersection, attemptSSelection, isSketchActive } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -53,11 +53,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
-      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive && !isSelActive) {
+      if (isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -101,11 +98,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
     (e: ThreeEvent<PointerEvent>) => {
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
-      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive && !isSelActive) {
+      if (isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -135,11 +129,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
-      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive && !isSelActive) {
+      if (isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -188,11 +179,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
-      const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
 
-      if (isSketchActive && !isSelActive) {
+      if (isSketchActive(drawingId) && !isSelActive) {
         return
       }
 

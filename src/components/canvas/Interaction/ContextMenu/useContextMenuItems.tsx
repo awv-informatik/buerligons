@@ -2,16 +2,23 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { ccAPI, ccUtils, CCClasses } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType } from '@buerli.io/core'
-import { MenuElement, getCADState, useOperationSequence } from '@buerli.io/react-cad'
+import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
+import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType, createInfo } from '@buerli.io/core'
+import { MenuElement, TreeObjScope, createTreeObjSelItem, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
 import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined, BgColorsOutlined } from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
+import arcURL from '@buerli.io/icons/SVG/arc-center.svg'
 import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
+import circleURL from '@buerli.io/icons/SVG/circle-center-radius.svg'
+import constraintURL from '@buerli.io/icons/SVG/dimension.svg'
+import fastenedURL from '@buerli.io/icons/SVG/fastened.svg'
+import groupURL from '@buerli.io/icons/SVG/group.svg'
 import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
+import lineURL from '@buerli.io/icons/SVG/line.svg'
+import pointURL from '@buerli.io/icons/SVG/point.svg'
 import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
 import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
 import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
@@ -19,13 +26,36 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { getAncestors, getDescendants } from './utils'
+import { getAncestors, getDescendants, getSelectedInstances, getSelectedSolids, getWCSystems, is2DConstraint, isSketchGeometry } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 
 type ControlsProto = {
   update(): void
   target: THREE.Vector3
+}
+
+const getSketchIconURL = (drawingId: DrawingID, objectId: ObjectID) => {
+  const tree = getDrawing(drawingId).structure.tree
+
+  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCPoint)) {
+    return pointURL
+  }
+
+  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCLine)) {
+    return lineURL
+  }
+
+  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCArc)) {
+    return arcURL
+  }
+
+  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCCircle)) {
+    return circleURL
+  }
+
+  // Assume the object is constraint otherwise
+  return constraintURL
 }
 
 const zoomToFit = (boundsControls: BoundsApi) => {
@@ -41,18 +71,110 @@ const editAppearance = (drawingId: DrawingID, solidId: ObjectID) => {
     return
   }
   
-  const selectedInfo = drawing.interaction.selected || []
-  const curSolids = drawing.structure.tree[curProdId]?.solids || []
-  const selectedSolids = selectedInfo
-    .filter(info => info.containerId && curSolids.indexOf(info.containerId) !== -1)
-    .map(info => info.containerId as ObjectID)
-  const solidIds = selectedSolids.indexOf(solidId) === -1 && curSolids.indexOf(solidId) !== -1 ? [...selectedSolids, solidId] : selectedSolids
+  const solidIds = getSelectedSolids(drawingId, solidId, false)
 
   const editAppearancePl = drawing.plugin.refs[editAppearanceId]
   editAppearancePl.set({ solidIds })
 
   const pluginApi = drawing.api.plugin
   pluginApi.setActiveGlobal(editAppearanceId, true)
+}
+
+const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const curProdId = drawing.structure.currentProduct
+  const tree = drawing.structure.tree
+  if (!curProdId) {
+    return
+  }
+
+  // TODO: Make it work for all the selected instances. A function for multiple constraint creation is required!
+  const productId = tree[instanceId]?.members?.productId?.value as ObjectID || instanceId
+  const wcSystems1 = getWCSystems(drawingId, curProdId)
+  const wcSystems2 = getWCSystems(drawingId, productId)
+  if (wcSystems1.length === 0 || wcSystems2.length === 0) {
+    return
+  }
+
+  const matePath = ccUtils.assembly.getMatePath(drawingId, instanceId)
+  const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
+  const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
+  const defaultParam = { value: 0, isExpr: false }
+  ccAPI.assemblyBuilder.create3DConstraint(drawingId, curProdId, CCClasses.CCFastenedConstraint, "Fix")
+    .then(id => {
+        if (!id) {
+          return null
+        }
+  
+        ccAPI.assemblyBuilder.updateFastenedConstraints(
+          drawingId,
+          [{ constrId: id, mate1, mate2, xOffset: defaultParam, yOffset: defaultParam, zOffset: defaultParam, useCurrentTransform: true }]
+        )
+    })
+    .catch(console.warn)
+}
+
+const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
+  const drawing = getDrawing(drawingId)
+  const curProdId = drawing.structure.currentProduct
+  if (!curProdId) {
+    return
+  }
+
+  const instanceIds = getSelectedInstances(drawingId, instanceId)
+
+  ccAPI.assemblyBuilder.create3DConstraint(drawingId, curProdId, CCClasses.CCGroupConstraint, "Group")
+    .then(id => {
+        if (!id) {
+          return null
+        }
+  
+        ccAPI.assemblyBuilder.updateGroupConstraints(
+          drawingId,
+          [{ constrId: id, instanceIds }]
+        )
+    })
+    .catch(console.warn)
+}
+
+const hoverObject = (drawingId: DrawingID, objectId: ObjectID | null) => {
+  const drawing = getDrawing(drawingId)
+  const curProduct = drawing.structure.currentProduct
+
+  const setHovered = drawing.api.interaction.setHovered
+  setHovered(objectId ? createInfo({ objectId, prodRefId: curProduct }) : null)
+}
+
+const selectObject = (drawingId: DrawingID, objectId: ObjectID, multi: boolean) => {
+  const drawing = getDrawing(drawingId)
+  const productId = drawing.structure.currentProduct
+  let object = drawing.structure.tree[objectId]
+  const selection = drawing.selection.refs[drawing.selection.active || '']
+  const isSelActive = selection !== undefined
+  const isSelectable = selection?.isSelectable(TreeObjScope, { object }) || false
+      
+  if (isSelActive && !isSelectable || !productId) {
+    return
+  }
+
+  if (selection) {
+    if (ccUtils.base.isA(object.class, CCClasses.IProductReference)) {
+      const instanceId = ccUtils.assembly.getMatePath(drawingId, object.id).pop() || -1
+      object = drawing.structure.tree[instanceId]
+    }
+    
+    if (selection.isSelectable(TreeObjScope, { object })) {
+      const item = createTreeObjSelItem(productId, object)
+
+      const selApi = drawing.api.selection
+      selApi.isItemSelected(item) ? selApi.unselect(item) : selApi.select(item)
+    }
+    
+    return
+  }
+
+  const select = drawing.api.interaction.select
+  select(createInfo({ objectId, prodRefId: productId }), multi)
 }
 
 const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
@@ -149,6 +271,24 @@ const showOrHideAllInstances = (drawingId: DrawingID, show: boolean) => {
   children.forEach(instanceId => showOrHideInstance(drawingId, instanceId, show))
 }
 
+const showOrHideMates = (drawingId: DrawingID, instanceId: ObjectID, show: boolean) => {
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+
+  const instanceIds = getSelectedInstances(drawingId, instanceId)
+  const mateIdsArr = instanceIds.map(instanceId_ => {
+    const productId = tree[instanceId_]?.members?.productId?.value as ObjectID || instanceId_
+    const prodChildren = tree[productId]?.children || []
+    const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, CCClasses.CCGeometrySet))
+    const geomSetChildren = tree[geomSetId || -1]?.children || []
+    return geomSetChildren.filter(
+      id => ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCSys) || ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCoordSystem)
+    )
+  })
+
+  getCADState().api.assemblyTree.setVisible(instanceIds, mateIdsArr, show)
+}
+
 const viewNormalToProduct = (menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
   const target = menuInfo.clickInfo.clickPos
   const normal = menuInfo.clickInfo.clickNormal || new THREE.Vector3(0, 0, 1)
@@ -166,14 +306,7 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
     return
   }
   
-  const solidOwner = drawing.graphic.containers[solidId]?.owner
-  
-  const selectedInfo = drawing.interaction.selected || []
-  const curSolids = drawing.structure.tree[curProdId]?.solids || []
-  const selectedSolids = selectedInfo
-    .filter(info => info.containerId && curSolids.indexOf(info.containerId) !== -1)
-    .map(info => info.objectId as ObjectID)
-  const ids = selectedSolids.indexOf(solidOwner) === -1 && curSolids.indexOf(solidId) !== -1 ? [...selectedSolids, solidOwner] : selectedSolids
+  const ids = getSelectedSolids(drawingId, solidId, true)
   
   ccAPI.feature.createFeature(drawingId, curProdId, 'CC_EntityDeletion', 'Entity Deletion')
     .then(res => {
@@ -189,21 +322,12 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 }
 
 const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
-  const drawing = getDrawing(drawingId)
-  const tree = drawing.structure.tree
-  const nodeId = menuInfo.interactionInfo?.prodRefId
-  if (!nodeId) {
+  const instanceId = menuInfo.interactionInfo?.prodRefId
+  if (!instanceId) {
     return
   }
 
-  const selectedInfo = drawing.interaction.selected || []
-  const selectedNodes = selectedInfo
-    .filter(info => {
-      const objClass = tree[info.prodRefId || -1]?.class
-      return ccUtils.base.isA(objClass, CCClasses.IProductReference)
-    })
-    .map(info => info.prodRefId as ObjectID)
-  const ids = selectedNodes.indexOf(nodeId) === -1 ? [...selectedNodes, nodeId] : selectedNodes
+  const ids = getSelectedInstances(drawingId, instanceId)
   const idsSorted = ids.sort((a, b) => b - a)
 
   ccAPI.baseModeler.deleteObjects(drawingId, idsSorted).catch(console.warn)
@@ -337,6 +461,19 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
   const opSeqId = useOperationSequence(drawingId, drawing.structure.currentProduct || -1)
 
+  const shiftKey = React.useRef<boolean>(false)
+  React.useEffect(() => {
+    const handleShift = (e: KeyboardEvent) => (shiftKey.current = e.shiftKey)
+
+    document.addEventListener("keydown", handleShift, true)
+    document.addEventListener("keyup", handleShift, true)
+
+    return () => {
+      document.removeEventListener("keydown", handleShift, true)
+      document.removeEventListener("keyup", handleShift, true)
+    }
+  })
+
   return React.useMemo(() => {
     const zoomToFitEl = {
       label: 'Zoom to fit',
@@ -354,6 +491,28 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.containerId) {
           editAppearance(drawingId, menuInfo.interactionInfo.containerId)
+        }
+      }
+    }
+
+    const fixEl = {
+      label: 'Fix',
+      icon: <MenuItemIcon url={fastenedURL} />,
+      key: 'fix',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.prodRefId) {
+          createFix(drawingId, menuInfo.interactionInfo.prodRefId)
+        }
+      }
+    }
+
+    const groupEl = {
+      label: 'Group',
+      icon: <MenuItemIcon url={groupURL} />,
+      key: 'group',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.prodRefId) {
+          createGroup(drawingId, menuInfo.interactionInfo.prodRefId)
         }
       }
     }
@@ -448,13 +607,40 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       }
     } as MenuElement
 
+    const showMatesEl = {
+      label: 'Show mates',
+      icon: <EyeOutlined />,
+      key: 'showMates',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.prodRefId) {
+          showOrHideMates(drawingId, menuInfo.interactionInfo.prodRefId, true)
+        }
+      }
+    }
+
+    const hideMatesEl = {
+      label: 'Hide mates',
+      icon: <EyeInvisibleOutlined />,
+      key: 'hideMates',
+      onClick: (menuInfo: CanvasMenuInfo) => {
+        if (menuInfo.interactionInfo.prodRefId) {
+          showOrHideMates(drawingId, menuInfo.interactionInfo.prodRefId, false)
+        }
+      }
+    }
+
     const graphic = [
       isPartMode ? editAppearanceEl : null,
-      isPartMode ? { type: 'divider' } : null,
+      isPartMode ? null : fixEl,
+      isPartMode ? null : groupEl,
+      { type: 'divider' },
       hideEl,
       isPartMode ? hideOtherSolidsEl : hideOtherInstancesEl,
       isPartMode ? hideAllSolidsEl : hideAllInstancesEl,
       showAllEl,
+      isPartMode ? null : { type: 'divider' },
+      isPartMode ? null : showMatesEl,
+      isPartMode ? null : hideMatesEl,
       isPartMode ? null : { type: 'divider' },
       isPartMode ? null : {
         label: 'Edit',
@@ -497,6 +683,58 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       headerIcon: <MenuHeaderIcon url={isometricURL} />,
       menuElements: graphic,
     }
+
+    const sketch = [
+      zoomToFitEl,
+      { type: 'divider' },
+      {
+        label: 'View normal to sketch',
+        icon: <VerticalAlignTopOutlined />,
+        key: 'viewNormalToSketch',
+        onClick: (menuInfo: CanvasMenuInfo) => {
+          viewNormalToSketch(drawingId, menuInfo, camera, controls, boundsControls)
+        },
+      },
+      {
+        label: 'Fit sketch',
+        icon: <BorderOuterOutlined />,
+        key: 'fitSketch',
+        onClick: (menuInfo: CanvasMenuInfo) => {
+          fitSketch(drawingId, menuInfo, boundsControls)
+        },
+      },
+    ] as MenuElement[]
+
+    const sketchItem = [
+      {
+        label: 'Select',
+        icon: <SelectOutlined />,
+        key: 'select',
+        children: (menuInfo: CanvasMenuInfo) => {
+          const tree = getDrawing(drawingId).structure.tree
+          const ids = menuInfo.clickInfo.intersections
+            .map(info => info.objectId)
+            .filter(id => isSketchGeometry(tree[id]) || is2DConstraint(tree[id]))
+
+          return ids.map(id => ({
+            label: tree[id].name,
+            icon: <MenuItemIcon url={getSketchIconURL(drawingId, id)} />,
+            key: 'select' + id,
+            onClick: (menuInfo: CanvasMenuInfo) => {
+              selectObject(drawingId, id, shiftKey.current)
+            },
+            onMouseEnter: (menuInfo: CanvasMenuInfo) => {
+              hoverObject(drawingId, id)
+            },
+            onMouseLeave: (menuInfo: CanvasMenuInfo) => {
+              hoverObject(drawingId, null)
+            },
+          }))
+        },
+      },
+      { type: 'divider' },
+      ...sketch
+    ] as MenuElement[]
 
     const workGeometry = [
       hideEl,
@@ -550,26 +788,37 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         objType: CCClasses.CCSketch,
         headerName: 'Sketch',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
-        menuElements: [
-          zoomToFitEl,
-          { type: 'divider' },
-          {
-            label: 'View normal to sketch',
-            icon: <VerticalAlignTopOutlined />,
-            key: 'viewNormalToSketch',
-            onClick: (menuInfo: CanvasMenuInfo) => {
-              viewNormalToSketch(drawingId, menuInfo, camera, controls, boundsControls)
-            },
-          },
-          {
-            label: 'Fit sketch',
-            icon: <BorderOuterOutlined />,
-            key: 'fitSketch',
-            onClick: (menuInfo: CanvasMenuInfo) => {
-              fitSketch(drawingId, menuInfo, boundsControls)
-            },
-          },
-        ] as MenuElement[],
+        menuElements: sketch,
+      },
+      {
+        objType: CCClasses.CCPoint,
+        headerName: 'Point',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: sketchItem,
+      },
+      {
+        objType: CCClasses.CCLine,
+        headerName: 'Line',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: sketchItem,
+      },
+      {
+        objType: CCClasses.CCArc,
+        headerName: 'Arc',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: sketchItem,
+      },
+      {
+        objType: CCClasses.CCCircle,
+        headerName: 'Circle',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: sketchItem,
+      },
+      {
+        objType: CCClasses.CC2DConstraint,
+        headerName: 'Constraint',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: sketchItem,
       },
       {
         objType: CCClasses.CCWorkPoint,

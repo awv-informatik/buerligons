@@ -1,7 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { createInfo, DrawingID, GeometryElement, getDrawing, ObjectID } from '@buerli.io/core'
+import { createInfo, DrawingID, getDrawing, InteractionInfo, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { CameraHelper } from '@buerli.io/react'
 import { ContextMenu, getCADState } from '@buerli.io/react-cad'
@@ -9,7 +9,7 @@ import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { findSuitableIntersection, getGeometryNormal, getObjType } from './utils'
+import { getFirstIntersection, getGeometryNormal, getInteractionInfo, getObjType, getSuitableIntersections } from './utils'
 
 class ContextMenuTrigger extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -85,63 +85,47 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
     const drawing = getDrawing(drawingId)
     const currentProduct = drawing.structure.currentProduct as ObjectID
     const currentInstance = drawing.structure.currentInstance
-    const defaultIInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
+    const defaultInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
 
-    const intersection = findSuitableIntersection(e.intersections, lineThreshold, pointThreshold)
-    const uData = intersection?.object?.userData
-
-    if (!intersection) {
+    const rawIntersections = getSuitableIntersections(e.intersections, drawingId)
+    const intersections = rawIntersections
+      .map(i => getInteractionInfo(drawingId, i))
+      .filter(i => i) as InteractionInfo[]
+    
+    const firstIntersection = getFirstIntersection(rawIntersections, drawingId, lineThreshold, pointThreshold)
+    if (!firstIntersection) {
       // If there are no valid intersections, consider the current product being clicked
       const clickPos = e.ray.origin.clone().addScaledVector(e.ray.direction, 100)
-      setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
+      setMenuInfo({ interactionInfo: defaultInfo, clickInfo: { clickPos, intersections } })
+
+      return
     }
-    else if (uData?.objId) {
-      const object = getDrawing(drawingId).structure.tree[uData.objId]
-      if (!object) {
-        return
-      }
-      
-      const clickPos = intersection.point.clone()
 
-      const interactionInfo = createInfo({ objectId: object.id })
-      const objType = getObjType(drawingId, interactionInfo)
-      if (menuContent.find(menuDescriptor => ccUtils.base.isA(objType, menuDescriptor.objType as CCClasses))) {
-        // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
-        setMenuInfo({ interactionInfo, clickInfo: { clickPos } })
-      }
-      else {
-        // Otherwise - consider the current product being clicked
-        setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
-      }
+    const uData = firstIntersection.object?.userData
+    const interactionInfo = getInteractionInfo(drawingId, firstIntersection)
+    if (!uData || !interactionInfo) {
+      // This should never really happen because of previous code checks, but just in case...
+      return
     }
-    else if (uData?.isBuerliGeometry) {
-      const index = intersection?.index ?? -1
-      const faceIndex = intersection?.faceIndex ?? -1
-      const object: GeometryElement | undefined = uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
-      if (!object) {
-        return
-      }
 
-      const clickPos = intersection.point.clone()
-      const clickNormal = getGeometryNormal(drawingId, intersection, e.ray)
+    const objType = getObjType(drawingId, interactionInfo)
+    const clickPos = firstIntersection.point.clone()
 
-      const interactionInfo = createInfo({
-        objectId: object.container.ownerId,
-        graphicId: object.graphicId,
-        containerId: object.container.id,
-        prodRefId: uData.productId,
-      })
-      const objType = getObjType(drawingId, interactionInfo)
-      if (menuContent.find(menuDescriptor => menuDescriptor.objType === objType)) {
-        // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
-        setMenuInfo({ interactionInfo, clickInfo: { clickPos, clickNormal } })
-      }
-      else {
-        // Otherwise - consider the current product being clicked
-        setMenuInfo({ interactionInfo: defaultIInfo, clickInfo: { clickPos } })
-      }
-
+    if (uData.objId && menuContent.find(menuDescriptor => ccUtils.base.isA(objType, menuDescriptor.objType as CCClasses))) {
+      // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
+      setMenuInfo({ interactionInfo, clickInfo: { clickPos, intersections } })
+      return
     }
+
+    if (uData.isBuerliGeometry && menuContent.find(menuDescriptor => menuDescriptor.objType === objType)) {
+      const clickNormal = getGeometryNormal(drawingId, firstIntersection, e.ray)
+      // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
+      setMenuInfo({ interactionInfo, clickInfo: { clickPos, clickNormal, intersections } })
+      return
+    }
+    
+    // If an object couldn't be identified for whatever reason, consider the current product being clicked
+    setMenuInfo({ interactionInfo: defaultInfo, clickInfo: { clickPos, intersections } })
   }, [drawingId, lineThreshold, menuContent, pointThreshold])
 
   const { menuItems, caption, icon } = React.useMemo(() => {
