@@ -171,7 +171,7 @@ export const getFirstIntersection = (intersections: THREE.Intersection[], drawin
   const minDist = intersection.distance
   const maxThreshold = Math.max(lineThreshold, pointThreshold)
   
-  while (intersections[index].distance - minDist < maxThreshold) {
+  while (intersections[index] && intersections[index].distance - minDist < maxThreshold) {
     const intersectionNext = intersections[index]
     if (isBPoint(intersectionNext) && intersectionNext.distance - minDist < pointThreshold) {
       // If we find a point within point threshold, just return it
