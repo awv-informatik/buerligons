@@ -28,6 +28,14 @@ export const isSketchActive = (drawingId: DrawingID) => {
   return ccUtils.base.isA(objClass, CCClasses.CCSketch)
 }
 
+export const getBuerliGeometry = (intersection: THREE.Intersection | undefined) => {
+  const uData = intersection?.object?.userData
+  const index = intersection?.index ?? -1
+  const faceIndex = intersection?.faceIndex ?? -1
+
+  return (uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]) as GeometryElement | undefined
+}
+
 export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
   if (intersections.some(i => i.object.userData?.onHUD)) {
     // If there is an object on HUD within intersections, consider there are no geometry intersections

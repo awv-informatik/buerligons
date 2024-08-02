@@ -190,8 +190,9 @@ export const getInteractionInfo = (drawingId: DrawingID, intersection: THREE.Int
   const drawing = getDrawing(drawingId)
   const uData = intersection.object?.userData
   if (uData?.objId) {
+    const curProdId = drawing.structure.currentProduct || -1
     const object = drawing.structure.tree[uData.objId]
-    return object ? createInfo({ objectId: object.id }) : undefined
+    return object ? createInfo({ objectId: object.id, prodRefId: curProdId }) : undefined
   }
   else if (uData?.isBuerliGeometry) {
     const index = intersection.index ?? -1

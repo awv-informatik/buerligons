@@ -3,7 +3,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType, createInfo } from '@buerli.io/core'
+import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType, createInfo, InteractionInfo, SelectorID, BuerliScope, GeometryElement, ProductElement, MeshTypes, MeshGeometry, GraphicID, createGraphicItem, PointTypes } from '@buerli.io/core'
 import { MenuElement, TreeObjScope, createTreeObjSelItem, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
@@ -26,13 +26,23 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { getAncestors, getDescendants, getSelectedInstances, getSelectedSolids, getWCSystems, is2DConstraint, isSketchGeometry } from './utils'
+import { getAncestors, getDescendants, getInteractionInfo, getSelectedInstances, getSelectedSolids, getWCSystems, is2DConstraint, isSketchGeometry, isSketchObj } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
+import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
 
 type ControlsProto = {
   update(): void
   target: THREE.Vector3
+}
+
+const getBuerliGeometryName = (drawingId: DrawingID, productId: ObjectID, geom: GeometryElement, isPartMode: boolean) => {
+  const tree = getDrawing(drawingId).structure.tree
+  const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
+  const solidName = tree[geom?.container.ownerId || -1]?.name || ''
+  const instanceName = tree[instanceId]?.name
+  
+  return (isPartMode ? solidName : instanceName) + ' ' + geom.type
 }
 
 const getSketchIconURL = (drawingId: DrawingID, objectId: ObjectID) => {
@@ -137,22 +147,19 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
     .catch(console.warn)
 }
 
-const hoverObject = (drawingId: DrawingID, objectId: ObjectID | null) => {
-  const drawing = getDrawing(drawingId)
-  const curProduct = drawing.structure.currentProduct
-
-  const setHovered = drawing.api.interaction.setHovered
-  setHovered(objectId ? createInfo({ objectId, prodRefId: curProduct }) : null)
+const hoverObject = (drawingId: DrawingID, info: InteractionInfo | null) => {
+  const setHovered = getDrawing(drawingId).api.interaction.setHovered
+  setHovered(info)
 }
 
-const selectObject = (drawingId: DrawingID, objectId: ObjectID, multi: boolean) => {
+const selectTreeObj = (drawingId: DrawingID, objectId: ObjectID, multi: boolean) => {
   const drawing = getDrawing(drawingId)
   const productId = drawing.structure.currentProduct
   let object = drawing.structure.tree[objectId]
   const selection = drawing.selection.refs[drawing.selection.active || '']
   const isSelActive = selection !== undefined
   const isSelectable = selection?.isSelectable(TreeObjScope, { object }) || false
-      
+  
   if (isSelActive && !isSelectable || !productId) {
     return
   }
@@ -175,6 +182,26 @@ const selectObject = (drawingId: DrawingID, objectId: ObjectID, multi: boolean) 
 
   const select = drawing.api.interaction.select
   select(createInfo({ objectId, prodRefId: productId }), multi)
+}
+
+const selectGrObj = (drawingId: DrawingID, productId: ObjectID, geom: GeometryElement, multi: boolean) => {
+  const drawing = getDrawing(drawingId)
+  const isSelActive = drawing.selection.active !== null
+
+  if (isSelActive) {
+    attemptSSelection(drawingId, productId, geom)
+    return
+  }
+
+  const interactionInfo = createInfo({
+    objectId: geom.container.ownerId,
+    graphicId: geom.graphicId,
+    containerId: geom.container.id,
+    prodRefId: productId,
+  })
+
+  const select = drawing.api.interaction.select
+  select(interactionInfo, multi)
 }
 
 const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
@@ -517,6 +544,60 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       }
     }
 
+    const selectEl = {
+      label: 'Select',
+      icon: <SelectOutlined />,
+      key: 'select',
+      children: (menuInfo: CanvasMenuInfo) => {
+        const drawing = getDrawing(drawingId)
+        const tree = drawing.structure.tree
+        const isSketchActive_ = isSketchActive(drawingId)
+        const intersections = menuInfo.clickInfo.intersections.filter(i => {
+          if (isSketchActive_) {
+            const treeObj = tree[i.object.userData?.objId || -1]
+            return treeObj && (isSketchGeometry(treeObj) || is2DConstraint(treeObj))
+          }
+
+          return true
+        })
+
+        return intersections.map((i, idx) => {
+          const objId = i.object.userData.objId
+          const treeObj = tree[objId]
+          const geom = getBuerliGeometry(i)
+          const isTreeObj = treeObj !== undefined
+          const isSketchObj_ = isTreeObj && isSketchObj(treeObj)
+          const label = isTreeObj
+            ? treeObj.name
+            : getBuerliGeometryName(drawingId, i.object.userData.productId, geom as GeometryElement, isPartMode)
+          const iconURL = isSketchObj_ ? getSketchIconURL(drawingId, objId) : isometricURL
+          
+          return {
+            label,
+            icon: <MenuItemIcon url={iconURL} />,
+            key: 'select' + idx,
+            onClick: (menuInfo: CanvasMenuInfo) => {
+              if (isTreeObj) {
+                selectTreeObj(drawingId, objId, shiftKey.current)
+              }
+              else if (geom) {
+                selectGrObj(drawingId, i.object.userData.productId, geom, shiftKey.current)
+              }
+            },
+            onMouseEnter: (menuInfo: CanvasMenuInfo) => {
+              const info = getInteractionInfo(drawingId, i)
+              if (info) {
+                hoverObject(drawingId, info)
+              }
+            },
+            onMouseLeave: (menuInfo: CanvasMenuInfo) => {
+              hoverObject(drawingId, null)
+            },
+          }
+        })
+      },
+    }
+
     const hideEl = {
       label: 'Hide',
       icon: <EyeInvisibleOutlined />,
@@ -634,6 +715,8 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       isPartMode ? null : fixEl,
       isPartMode ? null : groupEl,
       { type: 'divider' },
+      selectEl,
+      { type: 'divider' },
       hideEl,
       isPartMode ? hideOtherSolidsEl : hideOtherInstancesEl,
       isPartMode ? hideAllSolidsEl : hideAllInstancesEl,
@@ -706,37 +789,14 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     ] as MenuElement[]
 
     const sketchItem = [
-      {
-        label: 'Select',
-        icon: <SelectOutlined />,
-        key: 'select',
-        children: (menuInfo: CanvasMenuInfo) => {
-          const tree = getDrawing(drawingId).structure.tree
-          const ids = menuInfo.clickInfo.intersections
-            .map(info => info.objectId)
-            .filter(id => isSketchGeometry(tree[id]) || is2DConstraint(tree[id]))
-
-          return ids.map(id => ({
-            label: tree[id].name,
-            icon: <MenuItemIcon url={getSketchIconURL(drawingId, id)} />,
-            key: 'select' + id,
-            onClick: (menuInfo: CanvasMenuInfo) => {
-              selectObject(drawingId, id, shiftKey.current)
-            },
-            onMouseEnter: (menuInfo: CanvasMenuInfo) => {
-              hoverObject(drawingId, id)
-            },
-            onMouseLeave: (menuInfo: CanvasMenuInfo) => {
-              hoverObject(drawingId, null)
-            },
-          }))
-        },
-      },
+      selectEl,
       { type: 'divider' },
       ...sketch
     ] as MenuElement[]
 
     const workGeometry = [
+      selectEl,
+      { type: 'divider' },
       hideEl,
       hideOtherFeaturesEl,
       hideAllFeatures,

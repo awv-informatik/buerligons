@@ -7,7 +7,7 @@ import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, attemptSSelection, isSketchActive } from './utils'
+import { findGeometryIntersection, attemptSSelection, isSketchActive, getBuerliGeometry } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -72,10 +72,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
-      const index = intersection?.index ?? -1
-      const faceIndex = intersection?.faceIndex ?? -1
-      const object: GeometryElement | undefined =
-        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object = getBuerliGeometry(intersection)
       if (!object || !uData) {
         return
       }
@@ -108,11 +105,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const hovered = drawing.interaction.hovered
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
-      const uData = intersection?.object?.userData
-      const index = intersection?.index || -1
-      const faceIndex = intersection?.faceIndex || -1
-      const object: GeometryElement | undefined =
-        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object = getBuerliGeometry(intersection)
 
       // Only unhover if BuerliGometry item was hovered
       if (!object && hovered && hovered.graphicId) {
@@ -141,10 +134,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
-      const index = intersection?.index ?? -1
-      const faceIndex = intersection?.faceIndex ?? -1
-      const object: GeometryElement | undefined =
-        uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]
+      const object = getBuerliGeometry(intersection)
       if (!object || !uData) {
         return
       }
