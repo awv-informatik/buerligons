@@ -45,27 +45,50 @@ const getBuerliGeometryName = (drawingId: DrawingID, productId: ObjectID, geom: 
   return (isPartMode ? solidName : instanceName) + ' ' + geom.type
 }
 
-const getSketchIconURL = (drawingId: DrawingID, objectId: ObjectID) => {
+const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
   const tree = getDrawing(drawingId).structure.tree
+  const treeObj = tree[objectId || -1]
+  if (!treeObj) {
+    return isometricURL
+  }
 
-  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCPoint)) {
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCPoint)) {
     return pointURL
   }
 
-  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCLine)) {
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCLine)) {
     return lineURL
   }
 
-  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCArc)) {
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCArc)) {
     return arcURL
   }
 
-  if (ccUtils.base.isA(tree[objectId]?.class, CCClasses.CCCircle)) {
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCCircle)) {
     return circleURL
   }
 
-  // Assume the object is constraint otherwise
-  return constraintURL
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CC2DConstraint)) {
+    return constraintURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkPoint)) {
+    return workpointURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkAxis)) {
+    return workaxisURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkPlane)) {
+    return workplaneURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCSys) || ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCoordSystem)) {
+    return workcsysURL
+  }
+  
+  return isometricURL
 }
 
 const zoomToFit = (boundsControls: BoundsApi) => {
@@ -566,15 +589,13 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           const treeObj = tree[objId]
           const geom = getBuerliGeometry(i)
           const isTreeObj = treeObj !== undefined
-          const isSketchObj_ = isTreeObj && isSketchObj(treeObj)
           const label = isTreeObj
             ? treeObj.name
             : getBuerliGeometryName(drawingId, i.object.userData.productId, geom as GeometryElement, isPartMode)
-          const iconURL = isSketchObj_ ? getSketchIconURL(drawingId, objId) : isometricURL
           
           return {
             label,
-            icon: <MenuItemIcon url={iconURL} />,
+            icon: <MenuItemIcon url={getIconURL(drawingId, objId)} />,
             key: 'select' + idx,
             onClick: (menuInfo: CanvasMenuInfo) => {
               if (isTreeObj) {
