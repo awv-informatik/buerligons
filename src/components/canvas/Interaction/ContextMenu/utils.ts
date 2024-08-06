@@ -1,11 +1,25 @@
 import * as THREE from 'three'
 
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, LineGeometry, EdgeGeometry, ArcGeometry, InteractionInfo, ObjectID, GeometryElement, createInfo, IStructureObject, BuerliScope, GraphicType, MeshTypes } from '@buerli.io/core'
+import {
+  DrawingID,
+  getDrawing,
+  LineGeometry,
+  EdgeGeometry,
+  ArcGeometry,
+  InteractionInfo,
+  ObjectID,
+  GeometryElement,
+  createInfo,
+  IStructureObject,
+  BuerliScope,
+  GraphicType,
+  MeshTypes,
+} from '@buerli.io/core'
 
 import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
-import { isBLine, isBPoint, isSketchActive } from '../utils'
+import { getBuerliGeometry, isBLine, isBPoint, isSketchActive } from '../utils'
 import { TreeObjScope } from '@buerli.io/react-cad'
 
 
@@ -184,6 +198,55 @@ export const getFirstIntersection = (intersections: THREE.Intersection[], drawin
   }
 
   return intersection
+}
+
+export const getUniqueSelIntersections = (intersections: THREE.Intersection[], drawingId: DrawingID) => {
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+  const selection = drawing.selection.refs[drawing.selection.active || -1]
+  if (!selection) {
+    return intersections
+  }
+
+  const ids: string[] = []
+  const processId = (newId: string) => {
+    if (ids.indexOf(newId) === -1) {
+      ids.push(newId)
+      return true
+    }
+    else {
+      return false
+    }
+  }
+
+  return intersections.filter(i => {
+    const uData = i.object.userData
+    if (uData.objId) {
+      // If there is an objId, assume it is selectable because unselectable intersections should have been filtered already
+      return processId(uData.objId.toString() as string)
+    }
+
+    const productId = uData.productId
+    const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
+    const instance = tree[instanceId]
+    if (instance && selection.isSelectable(TreeObjScope, { object: instance })) {
+      return processId(instanceId.toString())
+    }
+
+    const geom = getBuerliGeometry(i)
+    if (!geom) {
+      return false
+    }
+
+    if (selection.isSelectable(BuerliScope, geom.container.type)) {
+      return processId(`${productId}|${geom.container.id}`)
+    } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(geom.type) >= 0 || selection.isSelectable(BuerliScope, geom.type)) {
+      // Assume there can't be multiple intersections that would point to exact same loop or BuerliGeometry, so just return true
+      return true
+    }
+    
+    return false
+  })
 }
 
 export const getInteractionInfo = (drawingId: DrawingID, intersection: THREE.Intersection) => {

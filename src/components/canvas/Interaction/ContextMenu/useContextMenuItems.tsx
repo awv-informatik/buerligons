@@ -3,11 +3,32 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
-import { DrawingID, getDrawing, MathUtils, ObjectID, PointMem, ArrayMem, GraphicType, createInfo, InteractionInfo, SelectorID, BuerliScope, GeometryElement, ProductElement, MeshTypes, MeshGeometry, GraphicID, createGraphicItem, PointTypes } from '@buerli.io/core'
+import {
+  DrawingID,
+  getDrawing,
+  MathUtils,
+  ObjectID,
+  PointMem,
+  ArrayMem,
+  GraphicType,
+  createInfo,
+  InteractionInfo,
+  BuerliScope,
+  GeometryElement,
+} from '@buerli.io/core'
 import { MenuElement, TreeObjScope, createTreeObjSelItem, getCADState, useOperationSequence } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
-import { ZoomInOutlined, VerticalAlignTopOutlined, BorderOuterOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, SelectOutlined, BgColorsOutlined } from '@ant-design/icons'
+import {
+  ZoomInOutlined,
+  VerticalAlignTopOutlined,
+  BorderOuterOutlined,
+  DeleteOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  SelectOutlined,
+  BgColorsOutlined,
+} from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
 import arcURL from '@buerli.io/icons/SVG/arc-center.svg'
@@ -26,7 +47,7 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { getAncestors, getDescendants, getInteractionInfo, getSelectedInstances, getSelectedSolids, getWCSystems, is2DConstraint, isSketchGeometry, isSketchObj } from './utils'
+import { getAncestors, getDescendants, getInteractionInfo, getSelectedInstances, getSelectedSolids, getUniqueSelIntersections, getWCSystems, is2DConstraint, isSketchGeometry } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
@@ -37,12 +58,18 @@ type ControlsProto = {
 }
 
 const getBuerliGeometryName = (drawingId: DrawingID, productId: ObjectID, geom: GeometryElement, isPartMode: boolean) => {
-  const tree = getDrawing(drawingId).structure.tree
+  const drawing = getDrawing(drawingId)
+  const tree = drawing.structure.tree
+  const selection = drawing.selection.refs[drawing.selection.active || -1]
   const instanceId = ccUtils.assembly.getMatePath(drawingId, productId).pop() || -1
-  const solidName = tree[geom?.container.ownerId || -1]?.name || ''
+  const instance = tree[instanceId]
   const instanceName = tree[instanceId]?.name
+  const solidName = tree[geom?.container.ownerId || -1]?.name || ''
+  const isInstanceSelectable = instance && selection ? selection.isSelectable(TreeObjScope, { object: instance }) : false
+  const isSolidSelectable = geom && selection ? selection.isSelectable(BuerliScope, geom.container.type) : false
+  const geomSuffix = isInstanceSelectable || isSolidSelectable ? '' : (' ' + geom.type)
   
-  return (isPartMode ? solidName : instanceName) + ' ' + geom.type
+  return (isPartMode ? solidName : instanceName) + geomSuffix
 }
 
 const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
@@ -574,15 +601,20 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       children: (menuInfo: CanvasMenuInfo) => {
         const drawing = getDrawing(drawingId)
         const tree = drawing.structure.tree
-        const isSketchActive_ = isSketchActive(drawingId)
-        const intersections = menuInfo.clickInfo.intersections.filter(i => {
-          if (isSketchActive_) {
+
+        let intersections = menuInfo.clickInfo.intersections
+
+        const selection = drawing.selection.refs[drawing.selection.active || '']
+        const isSelActive = selection !== undefined
+        if (isSelActive) {
+          intersections = getUniqueSelIntersections(intersections, drawingId)
+        }
+        else if (isSketchActive(drawingId)) {
+          intersections = intersections.filter(i => {
             const treeObj = tree[i.object.userData?.objId || -1]
             return treeObj && (isSketchGeometry(treeObj) || is2DConstraint(treeObj))
-          }
-
-          return true
-        })
+          })
+        }
 
         return intersections.map((i, idx) => {
           const objId = i.object.userData.objId
