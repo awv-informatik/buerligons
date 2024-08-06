@@ -11,6 +11,7 @@ import {
   Controls,
   Fit,
   GeometryInteraction,
+  GlobalCSysDisplay,
   HighlightedObjects,
   Lights,
   raycastFilter,
@@ -133,6 +134,7 @@ export const Buerligons: React.FC = () => {
                 <ViewCube />
               </Fit>
               <BuerliPluginsGeometry drawingId={drawingId} />
+              <GlobalCSysDisplay drawingId={drawingId} />
               <HighlightedObjects drawingId={drawingId} />
             </CanvasImpl>
             <UndoRedoKeyHandler />
