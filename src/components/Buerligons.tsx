@@ -31,7 +31,7 @@ const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps
 const EVENTS = (store: any) => ({ ...events(store), filter: raycastFilter })
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(
-  ({ children, drawingId }) => {
+  function CanvasImpl({ children, drawingId }) {
     const handleMiss = React.useCallback(() => {
       const setSelected = getDrawing(drawingId).api.interaction.setSelected
       setSelected([])
