@@ -1,6 +1,6 @@
 import { MenuInfo, MenuElement } from '@buerli.io/react-cad'
 import { CCClasses } from '@buerli.io/classcad'
-import { GraphicType, InteractionInfo } from '@buerli.io/core'
+import { GraphicType } from '@buerli.io/core'
 
 export type MenuObjType = GraphicType | CCClasses
 

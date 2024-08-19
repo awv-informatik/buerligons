@@ -16,7 +16,13 @@ import {
   BuerliScope,
   GeometryElement,
 } from '@buerli.io/core'
-import { MenuElement, TreeObjScope, createTreeObjSelItem, getCADState, useOperationSequence } from '@buerli.io/react-cad'
+import {
+  MenuElement,
+  TreeObjScope,
+  createTreeObjSelItem,
+  getCADState,
+  useOperationSequence,
+} from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
 import {
@@ -47,7 +53,17 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { getAncestors, getDescendants, getInteractionInfo, getSelectedInstances, getSelectedSolids, getUniqueSelIntersections, getWCSystems, is2DConstraint, isSketchGeometry } from './utils'
+import {
+  getAncestors,
+  getDescendants,
+  getInteractionInfo,
+  getSelectedInstances,
+  getSelectedSolids,
+  getUniqueSelIntersections,
+  getWCSystems,
+  is2DConstraint,
+  isSketchGeometry,
+} from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
@@ -57,7 +73,12 @@ type ControlsProto = {
   target: THREE.Vector3
 }
 
-const getBuerliGeometryName = (drawingId: DrawingID, productId: ObjectID, geom: GeometryElement, isPartMode: boolean) => {
+const getBuerliGeometryName = (
+  drawingId: DrawingID,
+  productId: ObjectID,
+  geom: GeometryElement,
+  isPartMode: boolean,
+) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
   const selection = drawing.selection.refs[drawing.selection.active || -1]
@@ -65,10 +86,11 @@ const getBuerliGeometryName = (drawingId: DrawingID, productId: ObjectID, geom: 
   const instance = tree[instanceId]
   const instanceName = tree[instanceId]?.name
   const solidName = tree[geom?.container.ownerId || -1]?.name || ''
-  const isInstanceSelectable = instance && selection ? selection.isSelectable(TreeObjScope, { object: instance }) : false
+  const isInstanceSelectable =
+    instance && selection ? selection.isSelectable(TreeObjScope, { object: instance }) : false
   const isSolidSelectable = geom && selection ? selection.isSelectable(BuerliScope, geom.container.type) : false
-  const geomSuffix = isInstanceSelectable || isSolidSelectable ? '' : (' ' + geom.type)
-  
+  const geomSuffix = isInstanceSelectable || isSolidSelectable ? '' : ' ' + geom.type
+
   return (isPartMode ? solidName : instanceName) + geomSuffix
 }
 
@@ -111,10 +133,13 @@ const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
     return workplaneURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCSys) || ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCoordSystem)) {
+  if (
+    ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCSys) ||
+    ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCoordSystem)
+  ) {
     return workcsysURL
   }
-  
+
   return isometricURL
 }
 
@@ -130,7 +155,7 @@ const editAppearance = (drawingId: DrawingID, solidId: ObjectID) => {
   if (!curProdId || !editAppearanceId) {
     return
   }
-  
+
   const solidIds = getSelectedSolids(drawingId, solidId, false)
 
   const editAppearancePl = drawing.plugin.refs[editAppearanceId]
@@ -149,7 +174,7 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   }
 
   // TODO: Make it work for all the selected instances. A function for multiple constraint creation is required!
-  const productId = tree[instanceId]?.members?.productId?.value as ObjectID || instanceId
+  const productId = (tree[instanceId]?.members?.productId?.value as ObjectID) || instanceId
   const wcSystems1 = getWCSystems(drawingId, curProdId)
   const wcSystems2 = getWCSystems(drawingId, productId)
   if (wcSystems1.length === 0 || wcSystems2.length === 0) {
@@ -160,16 +185,23 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const defaultParam = { value: 0, isExpr: false }
-  ccAPI.assemblyBuilder.create3DConstraint(drawingId, curProdId, CCClasses.CCFastenedConstraint, "Fix")
+  ccAPI.assemblyBuilder
+    .create3DConstraint(drawingId, curProdId, CCClasses.CCFastenedConstraint, 'Fix')
     .then(id => {
-        if (!id) {
-          return null
-        }
-  
-        ccAPI.assemblyBuilder.updateFastenedConstraints(
-          drawingId,
-          [{ constrId: id, mate1, mate2, xOffset: defaultParam, yOffset: defaultParam, zOffset: defaultParam, useCurrentTransform: true }]
-        )
+      if (id) {
+        ccAPI.assemblyBuilder.updateFastenedConstraints(drawingId, [
+          {
+            constrId: id,
+            mate1,
+            mate2,
+            xOffset: defaultParam,
+            yOffset: defaultParam,
+            zOffset: defaultParam,
+            useCurrentTransform: true,
+          },
+        ])
+      }
+      return null
     })
     .catch(console.warn)
 }
@@ -183,16 +215,13 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
 
-  ccAPI.assemblyBuilder.create3DConstraint(drawingId, curProdId, CCClasses.CCGroupConstraint, "Group")
+  ccAPI.assemblyBuilder
+    .create3DConstraint(drawingId, curProdId, CCClasses.CCGroupConstraint, 'Group')
     .then(id => {
-        if (!id) {
-          return null
-        }
-  
-        ccAPI.assemblyBuilder.updateGroupConstraints(
-          drawingId,
-          [{ constrId: id, instanceIds }]
-        )
+      if (id) {
+        ccAPI.assemblyBuilder.updateGroupConstraints(drawingId, [{ constrId: id, instanceIds }])
+      }
+      return null
     })
     .catch(console.warn)
 }
@@ -209,8 +238,8 @@ const selectTreeObj = (drawingId: DrawingID, objectId: ObjectID, multi: boolean)
   const selection = drawing.selection.refs[drawing.selection.active || '']
   const isSelActive = selection !== undefined
   const isSelectable = selection?.isSelectable(TreeObjScope, { object }) || false
-  
-  if (isSelActive && !isSelectable || !productId) {
+
+  if ((isSelActive && !isSelectable) || !productId) {
     return
   }
 
@@ -219,14 +248,14 @@ const selectTreeObj = (drawingId: DrawingID, objectId: ObjectID, multi: boolean)
       const instanceId = ccUtils.assembly.getMatePath(drawingId, object.id).pop() || -1
       object = drawing.structure.tree[instanceId]
     }
-    
+
     if (selection.isSelectable(TreeObjScope, { object })) {
       const item = createTreeObjSelItem(productId, object)
 
       const selApi = drawing.api.selection
       selApi.isItemSelected(item) ? selApi.unselect(item) : selApi.select(item)
     }
-    
+
     return
   }
 
@@ -257,9 +286,12 @@ const selectGrObj = (drawingId: DrawingID, productId: ObjectID, geom: GeometryEl
 const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   if (menuInfo.interactionInfo.containerId) {
     const geomApi = getDrawing(drawingId).api.geometry
-    geomApi.setConfig(menuInfo.interactionInfo.containerId, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
-  }
-  else {
+    geomApi.setConfig(menuInfo.interactionInfo.containerId, {
+      meshes: { hidden: true },
+      edges: { hidden: true },
+      disabled: true,
+    })
+  } else {
     const pluginApi = getDrawing(drawingId).api.plugin
     pluginApi.setVisiblePlugin(menuInfo.interactionInfo.objectId, false)
   }
@@ -271,7 +303,10 @@ const showOrHideInstance = (drawingId: DrawingID, instanceId: ObjectID, show: bo
     return
   }
 
-  drawing.api.geometry.setConfig(instanceId, show ? null : { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
+  drawing.api.geometry.setConfig(
+    instanceId,
+    show ? null : { meshes: { hidden: true }, edges: { hidden: true }, disabled: true },
+  )
 
   const children = drawing.structure.tree[instanceId]?.children || []
   children.forEach(instanceId_ => showOrHideInstance(drawingId, instanceId_, show))
@@ -280,7 +315,7 @@ const showOrHideInstance = (drawingId: DrawingID, instanceId: ObjectID, show: bo
 const hideOtherFeatures = (drawingId: DrawingID, opSeqId: ObjectID, featureId: ObjectID) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
-  
+
   const pluginAPI = drawing.api.plugin
   const featureRefIds = tree[opSeqId].children || []
   const featureIds = featureRefIds.map(featureRefId => tree[featureRefId]?.members?.refObj.value as ObjectID)
@@ -295,7 +330,10 @@ const hideOtherSolids = (drawingId: DrawingID, solidId: ObjectID) => {
   const curProd = drawing.structure.currentProduct
   const product = tree[curProd || -1]
   const solidIds = product?.solids || []
-  solidIds.forEach(id => id !== solidId && geomApi.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true }))
+  solidIds.forEach(
+    id =>
+      id !== solidId && geomApi.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true }),
+  )
 }
 
 const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
@@ -308,16 +346,18 @@ const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
   const instDescendants = getDescendants(drawingId, instanceId)
   const ancestors = getAncestors(drawingId, instanceId)
 
-  const instancesToHide = instances.filter(id => instDescendants.indexOf(id) === -1 && ancestors.indexOf(id) === -1 && id !== instanceId)
-  instancesToHide.forEach(
-    id => drawing.api.geometry.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true })
+  const instancesToHide = instances.filter(
+    id => instDescendants.indexOf(id) === -1 && ancestors.indexOf(id) === -1 && id !== instanceId,
+  )
+  instancesToHide.forEach(id =>
+    drawing.api.geometry.setConfig(id, { meshes: { hidden: true }, edges: { hidden: true }, disabled: true }),
   )
 }
 
 const showOrHideAllFeatures = (drawingId: DrawingID, opSeqId: ObjectID, show: boolean) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
-  
+
   const pluginAPI = drawing.api.plugin
   const featureRefIds = tree[opSeqId].children || []
   const featureIds = featureRefIds.map(featureRefId => tree[featureRefId]?.members?.refObj.value as ObjectID)
@@ -332,7 +372,9 @@ const showOrHideAllSolids = (drawingId: DrawingID, show: boolean) => {
   const curProd = drawing.structure.currentProduct
   const product = tree[curProd || -1]
   const solidIds = product?.solids || []
-  solidIds.forEach(solidId => geomApi.setConfig(solidId, show ? null : { meshes: { hidden: true}, edges: { hidden: true }, disabled: true }))
+  solidIds.forEach(solidId =>
+    geomApi.setConfig(solidId, show ? null : { meshes: { hidden: true }, edges: { hidden: true }, disabled: true }),
+  )
 }
 
 const showAllFeaturesAndSolids = (drawingId: DrawingID, opSeqId: ObjectID) => {
@@ -354,19 +396,26 @@ const showOrHideMates = (drawingId: DrawingID, instanceId: ObjectID, show: boole
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
   const mateIdsArr = instanceIds.map(instanceId_ => {
-    const productId = tree[instanceId_]?.members?.productId?.value as ObjectID || instanceId_
+    const productId = (tree[instanceId_]?.members?.productId?.value as ObjectID) || instanceId_
     const prodChildren = tree[productId]?.children || []
     const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, CCClasses.CCGeometrySet))
     const geomSetChildren = tree[geomSetId || -1]?.children || []
     return geomSetChildren.filter(
-      id => ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCSys) || ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCoordSystem)
+      id =>
+        ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCSys) ||
+        ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCoordSystem),
     )
   })
 
   getCADState().api.assemblyTree.setVisible(instanceIds, mateIdsArr, show)
 }
 
-const viewNormalToProduct = (menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+const viewNormalToProduct = (
+  menuInfo: CanvasMenuInfo,
+  camera: THREE.Camera,
+  controls: ControlsProto,
+  boundsControls: BoundsApi,
+) => {
   const target = menuInfo.clickInfo.clickPos
   const normal = menuInfo.clickInfo.clickNormal || new THREE.Vector3(0, 0, 1)
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
@@ -382,19 +431,20 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   if (!curProdId || !solidId) {
     return
   }
-  
+
   const ids = getSelectedSolids(drawingId, solidId, true)
-  
-  ccAPI.feature.createFeature(drawingId, curProdId, 'CC_EntityDeletion', 'Entity Deletion')
+
+  ccAPI.feature
+    .createFeature(drawingId, curProdId, 'CC_EntityDeletion', 'Entity Deletion')
     .then(res => {
       if (res) {
         return ccAPI.feature.updateEntityDeletion(drawingId, res, ids)
       }
-  
+
       return null
     })
     .catch(console.warn)
-  
+
   drawing.api.interaction.setSelected([])
 }
 
@@ -424,13 +474,19 @@ const getSketchBounds = (boundsMember: ArrayMem) => {
   return { center: sphere.center, radius: sphere.radius, box }
 }
 
-const viewNormalToSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+const viewNormalToSketch = (
+  drawingId: DrawingID,
+  menuInfo: CanvasMenuInfo,
+  camera: THREE.Camera,
+  controls: ControlsProto,
+  boundsControls: BoundsApi,
+) => {
   const drawing = getDrawing(drawingId)
   const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
   if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
     return
   }
-  
+
   const boundsMember = sketch.members?.boundingBox as ArrayMem
   const bounds = getSketchBounds(boundsMember)
 
@@ -451,7 +507,9 @@ const viewNormalToSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, came
 
   const matrix4 = MathUtils.convertToMatrix4(csys)
   const globBox = box.clone().applyMatrix4(matrix4)
-  const target = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, origin).projectPoint(menuInfo.clickInfo.clickPos, new THREE.Vector3())
+  const target = new THREE.Plane()
+    .setFromNormalAndCoplanarPoint(normal, origin)
+    .projectPoint(menuInfo.clickInfo.clickPos, new THREE.Vector3())
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
 
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up })
@@ -463,7 +521,7 @@ const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControl
   if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
     return
   }
-  
+
   const boundsMember = sketch.members?.boundingBox as ArrayMem
   const bounds = getSketchBounds(boundsMember)
 
@@ -502,8 +560,7 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
   if (menuInfo.interactionInfo.graphicId) {
     await ccAPI.sketcher.createAndSetWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.graphicId)
-  }
-  else {
+  } else {
     await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
   }
 
@@ -511,7 +568,13 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   pluginApi.setActiveFeature(sketchId)
 }
 
-const viewNormalToPlane = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, camera: THREE.Camera, controls: ControlsProto, boundsControls: BoundsApi) => {
+const viewNormalToPlane = (
+  drawingId: DrawingID,
+  menuInfo: CanvasMenuInfo,
+  camera: THREE.Camera,
+  controls: ControlsProto,
+  boundsControls: BoundsApi,
+) => {
   const drawing = getDrawing(drawingId)
   const workPlaneObj = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
   if (!workPlaneObj || !ccUtils.base.isA(workPlaneObj.class, CCClasses.CCWorkPlane)) {
@@ -542,12 +605,12 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   React.useEffect(() => {
     const handleShift = (e: KeyboardEvent) => (shiftKey.current = e.shiftKey)
 
-    document.addEventListener("keydown", handleShift, true)
-    document.addEventListener("keyup", handleShift, true)
+    document.addEventListener('keydown', handleShift, true)
+    document.addEventListener('keyup', handleShift, true)
 
     return () => {
-      document.removeEventListener("keydown", handleShift, true)
-      document.removeEventListener("keyup", handleShift, true)
+      document.removeEventListener('keydown', handleShift, true)
+      document.removeEventListener('keyup', handleShift, true)
     }
   })
 
@@ -569,7 +632,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         if (menuInfo.interactionInfo.containerId) {
           editAppearance(drawingId, menuInfo.interactionInfo.containerId)
         }
-      }
+      },
     }
 
     const fixEl = {
@@ -580,7 +643,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         if (menuInfo.interactionInfo.prodRefId) {
           createFix(drawingId, menuInfo.interactionInfo.prodRefId)
         }
-      }
+      },
     }
 
     const groupEl = {
@@ -591,7 +654,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         if (menuInfo.interactionInfo.prodRefId) {
           createGroup(drawingId, menuInfo.interactionInfo.prodRefId)
         }
-      }
+      },
     }
 
     const selectEl = {
@@ -599,17 +662,16 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       icon: <SelectOutlined />,
       key: 'select',
       children: (menuInfo: CanvasMenuInfo) => {
-        const drawing = getDrawing(drawingId)
-        const tree = drawing.structure.tree
+        const drawing_ = getDrawing(drawingId)
+        const tree = drawing_.structure.tree
 
         let intersections = menuInfo.clickInfo.intersections
 
-        const selection = drawing.selection.refs[drawing.selection.active || '']
+        const selection = drawing_.selection.refs[drawing_.selection.active || '']
         const isSelActive = selection !== undefined
         if (isSelActive) {
           intersections = getUniqueSelIntersections(intersections, drawingId)
-        }
-        else if (isSketchActive(drawingId)) {
+        } else if (isSketchActive(drawingId)) {
           intersections = intersections.filter(i => {
             const treeObj = tree[i.object.userData?.objId || -1]
             return treeObj && (isSketchGeometry(treeObj) || is2DConstraint(treeObj))
@@ -624,26 +686,25 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           const label = isTreeObj
             ? treeObj.name
             : getBuerliGeometryName(drawingId, i.object.userData.productId, geom as GeometryElement, isPartMode)
-          
+
           return {
             label,
             icon: <MenuItemIcon url={getIconURL(drawingId, objId)} />,
             key: 'select' + idx,
-            onClick: (menuInfo: CanvasMenuInfo) => {
+            onClick: () => {
               if (isTreeObj) {
                 selectTreeObj(drawingId, objId, shiftKey.current)
-              }
-              else if (geom) {
+              } else if (geom) {
                 selectGrObj(drawingId, i.object.userData.productId, geom, shiftKey.current)
               }
             },
-            onMouseEnter: (menuInfo: CanvasMenuInfo) => {
+            onMouseEnter: () => {
               const info = getInteractionInfo(drawingId, i)
               if (info) {
                 hoverObject(drawingId, info)
               }
             },
-            onMouseLeave: (menuInfo: CanvasMenuInfo) => {
+            onMouseLeave: () => {
               hoverObject(drawingId, null)
             },
           }
@@ -658,8 +719,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (isPartMode) {
           hideFeatureOrSolid(drawingId, menuInfo)
-        }
-        else if (menuInfo.interactionInfo.prodRefId) {
+        } else if (menuInfo.interactionInfo.prodRefId) {
           showOrHideInstance(drawingId, menuInfo.interactionInfo.prodRefId, false)
         }
       },
@@ -734,11 +794,10 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (isPartMode && opSeqId) {
           showAllFeaturesAndSolids(drawingId, opSeqId)
-        }
-        else {
+        } else {
           showOrHideAllInstances(drawingId, true)
         }
-      }
+      },
     } as MenuElement
 
     const showMatesEl = {
@@ -749,7 +808,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         if (menuInfo.interactionInfo.prodRefId) {
           showOrHideMates(drawingId, menuInfo.interactionInfo.prodRefId, true)
         }
-      }
+      },
     }
 
     const hideMatesEl = {
@@ -760,7 +819,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         if (menuInfo.interactionInfo.prodRefId) {
           showOrHideMates(drawingId, menuInfo.interactionInfo.prodRefId, false)
         }
-      }
+      },
     }
 
     const graphic = [
@@ -778,16 +837,18 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       isPartMode ? null : showMatesEl,
       isPartMode ? null : hideMatesEl,
       isPartMode ? null : { type: 'divider' },
-      isPartMode ? null : {
-        label: 'Edit',
-        icon: <SelectOutlined />,
-        key: 'editProduct',
-        onClick: (menuInfo: CanvasMenuInfo) => {
-          if (menuInfo.interactionInfo.prodRefId) {
-            getCADState().api.assemblyTree.startProdEditing(drawingId, menuInfo.interactionInfo.prodRefId)
-          }
-        },
-      },
+      isPartMode
+        ? null
+        : {
+            label: 'Edit',
+            icon: <SelectOutlined />,
+            key: 'editProduct',
+            onClick: (menuInfo: CanvasMenuInfo) => {
+              if (menuInfo.interactionInfo.prodRefId) {
+                getCADState().api.assemblyTree.startProdEditing(drawingId, menuInfo.interactionInfo.prodRefId)
+              }
+            },
+          },
       { type: 'divider' },
       zoomToFitEl,
       {
@@ -806,8 +867,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         onClick: (menuInfo: CanvasMenuInfo) => {
           if (isPartMode) {
             deleteSolid(drawingId, menuInfo)
-          }
-          else {
+          } else {
             deleteInstance(drawingId, menuInfo)
           }
         },
@@ -841,11 +901,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     ] as MenuElement[]
 
-    const sketchItem = [
-      selectEl,
-      { type: 'divider' },
-      ...sketch
-    ] as MenuElement[]
+    const sketchItem = [selectEl, { type: 'divider' }, ...sketch] as MenuElement[]
 
     const workGeometry = [
       selectEl,
@@ -869,17 +925,19 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         objType: GraphicType.PLANE,
         ...grDescriptor,
         menuElements: [
-          isPartMode ? {
-            label: 'New Sketch',
-            icon: <MenuItemIcon url={sketchURL} />,
-            key: 'newSketch',
-            onClick: (menuInfo: CanvasMenuInfo) => {
-              newSketch(drawingId, menuInfo)
-            },
-          } : null,
+          isPartMode
+            ? {
+                label: 'New Sketch',
+                icon: <MenuItemIcon url={sketchURL} />,
+                key: 'newSketch',
+                onClick: (menuInfo: CanvasMenuInfo) => {
+                  newSketch(drawingId, menuInfo)
+                },
+              }
+            : null,
           isPartMode ? { type: 'divider' } : null,
           ...graphic,
-        ]
+        ],
       } as MenuDescriptor,
       { objType: GraphicType.CYLINDER, ...grDescriptor },
       { objType: GraphicType.CONE, ...grDescriptor },
