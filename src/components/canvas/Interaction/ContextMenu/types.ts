@@ -4,7 +4,7 @@ import { GraphicType } from '@buerli.io/core'
 
 export type MenuObjType = GraphicType | CCClasses
 
-export type CanvasMenuInfo = MenuInfo<{ clickPos: THREE.Vector3; clickNormal?: THREE.Vector3 }>
+export type CanvasMenuInfo = MenuInfo<{ clickPos: THREE.Vector3; clickNormal?: THREE.Vector3; intersections: THREE.Intersection[] }>
 
 export type MenuDescriptor = {
   objType: MenuObjType

@@ -1,7 +1,7 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, GeometryOverridesManager, HoveredConstraintDisplay, PluginGeometryBounds } from '@buerli.io/react-cad'
+import { Drawing, GeometryOverridesManager, HoveredConstraintDisplay, PluginGeometryBounds, useIsSketchActive } from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
@@ -31,7 +31,7 @@ const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps
 const EVENTS = (store: any) => ({ ...events(store), filter: raycastFilter })
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(
-  ({ children, drawingId }) => {
+  function CanvasImpl({ children, drawingId }) {
     const handleMiss = React.useCallback(() => {
       const setSelected = getDrawing(drawingId).api.interaction.setSelected
       setSelected([])
@@ -63,9 +63,7 @@ const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }>
 const useInteractionReset = (drawingId: DrawingID) => {
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance)
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
-  const activeId = useDrawing(drawingId, d => d.plugin.refs[d.plugin.active.feature || -1]?.objectId)
-  const objClass = useDrawing(drawingId, d => d.structure.tree[activeId || -1]?.class) || ''
-  const isSketchActive = ccUtils.base.isA(objClass, CCClasses.CCSketch)
+  const isSketchActive = useIsSketchActive(drawingId)
 
   const resetInteraction = React.useCallback(() => {
     const interaction = getDrawing(drawingId)?.api.interaction
