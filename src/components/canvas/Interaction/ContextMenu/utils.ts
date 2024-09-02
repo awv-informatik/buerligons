@@ -23,16 +23,6 @@ import { getAdjacentMeshNormal } from '../../Gizmo/utils'
 import { getBuerliGeometry, isBLine, isBPoint, isSketchActive } from '../utils'
 
 
-const getSketchId = (drawingId: DrawingID, objId: ObjectID | undefined) => {
-  const tree = getDrawing(drawingId).structure.tree
-  const obj = tree[objId || -1]
-  if (ccUtils.base.isA(obj?.class, CCClasses.CCSketch)) {
-    return objId as ObjectID
-  }
-
-  return objId && sketchUtils.isSketchObj(obj) && getAncestorIdByClass(drawingId, objId, CCClasses.CCSketch) || -1
-}
-
 export const getSuitableIntersections = (intersections: THREE.Intersection[], drawingId: DrawingID) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
@@ -82,7 +72,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
         return true
       }
   
-      return isSketchActive_ ? getSketchId(drawingId, objId) === sketchId : false
+      return isSketchActive_ ? sketchUtils.getSketchId(drawingId, objId) === sketchId : false
     })
   }
 
@@ -91,7 +81,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   suitableIntersections.forEach(i => {
     const objId = i.object.userData?.objId as ObjectID | undefined
     if (objId && sketchUtils.isSketchObj(tree[objId])) {
-      const sketchId = getSketchId(drawingId, objId)
+      const sketchId = sketchUtils.getSketchId(drawingId, objId)
       if (sketchId && !sketchDistMap[sketchId]) {
         sketchDistMap[sketchId] = i.distance
       }
@@ -101,8 +91,8 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   return suitableIntersections.sort((i1, i2) => {
     const obj1Id = i1.object.userData?.objId as ObjectID | undefined
     const obj2Id = i2.object.userData?.objId as ObjectID | undefined
-    const sketch1Id = getSketchId(drawingId, obj1Id)
-    const sketch2Id = getSketchId(drawingId, obj2Id)
+    const sketch1Id = sketchUtils.getSketchId(drawingId, obj1Id)
+    const sketch2Id = sketchUtils.getSketchId(drawingId, obj2Id)
     const dist1 = sketchDistMap[sketch1Id] || i1.distance
     const dist2 = sketchDistMap[sketch2Id] || i2.distance
     if (obj1Id && obj2Id && sketch1Id && sketch2Id && sketch1Id === sketch2Id) {
