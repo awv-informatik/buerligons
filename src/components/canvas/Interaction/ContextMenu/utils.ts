@@ -11,7 +11,6 @@ import {
   ObjectID,
   GeometryElement,
   createInfo,
-  IStructureObject,
   BuerliScope,
   GraphicType,
   MeshTypes,
@@ -293,40 +292,6 @@ export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInf
   
   const obj = drawing.structure.tree[interactionInfo.objectId]
   return obj.class as CCClasses
-}
-
-// TODO: Copypasted from buerli-react-cad helpers. Resolve the duplication somehow...
-export function getAncestorIdByClass(drawingId: DrawingID, objectId: ObjectID, parentClass: CCClasses) {
-  const tree = getDrawing(drawingId).structure.tree
-  let object = tree[objectId] as IStructureObject
-  while (object.parent !== null && tree[object.parent].class !== parentClass) {
-    object = tree[object.parent] as IStructureObject
-  }
-
-  return object.parent
-}
-
-export const getAncestors = (drawingId: DrawingID, objectId: ObjectID) => {
-  const tree = getDrawing(drawingId).structure.tree
-
-  let curId: ObjectID = objectId
-  const ancestors: ObjectID[] = []
-  while (Boolean(curId) && tree[curId]) {
-    ancestors.push(tree[curId].parent as ObjectID)
-    curId = tree[curId].parent as ObjectID
-  }
-
-  return ancestors
-}
-
-export function getDescendants(drawingId: DrawingID, objectId: ObjectID) {
-  const object = getDrawing(drawingId).structure.tree[objectId]
-  const descendants: ObjectID[] = []
-  object?.children &&
-    object.children.forEach(child => {
-      descendants.push(child, ...getDescendants(drawingId, child))
-    })
-  return descendants
 }
 
 export function getSelectedInstances(drawingId: DrawingID, instanceId: ObjectID) {

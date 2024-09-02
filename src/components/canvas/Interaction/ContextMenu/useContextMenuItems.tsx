@@ -54,15 +54,7 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import {
-  getAncestors,
-  getDescendants,
-  getInteractionInfo,
-  getSelectedInstances,
-  getSelectedSolids,
-  getUniqueSelIntersections,
-  getWCSystems,
-} from './utils'
+import { getInteractionInfo, getSelectedInstances, getSelectedSolids, getUniqueSelIntersections, getWCSystems } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
@@ -340,10 +332,10 @@ const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
   const curInstance = drawing.structure.currentInstance
   const tree = drawing.structure.tree
 
-  const descendants = getDescendants(drawingId, curInstance || -1)
+  const descendants = ccUtils.base.getDescendants(drawingId, curInstance || -1)
   const instances = descendants.filter(id => ccUtils.base.isA(tree[id].class, CCClasses.IProductReference))
-  const instDescendants = getDescendants(drawingId, instanceId)
-  const ancestors = getAncestors(drawingId, instanceId)
+  const instDescendants = ccUtils.base.getDescendants(drawingId, instanceId)
+  const ancestors = ccUtils.base.getAncestors(drawingId, instanceId)
 
   const instancesToHide = instances.filter(
     id => instDescendants.indexOf(id) === -1 && ancestors.indexOf(id) === -1 && id !== instanceId,
