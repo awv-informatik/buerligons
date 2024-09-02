@@ -21,6 +21,7 @@ import {
   TreeObjScope,
   createTreeObjSelItem,
   getCADState,
+  sketchUtils,
   useOperationSequence,
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
@@ -61,8 +62,6 @@ import {
   getSelectedSolids,
   getUniqueSelIntersections,
   getWCSystems,
-  is2DConstraint,
-  isSketchGeometry,
 } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
@@ -674,7 +673,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         } else if (isSketchActive(drawingId)) {
           intersections = intersections.filter(i => {
             const treeObj = tree[i.object.userData?.objId || -1]
-            return treeObj && (isSketchGeometry(treeObj) || is2DConstraint(treeObj))
+            return treeObj && (sketchUtils.isSketchGeometry(treeObj) || sketchUtils.is2DConstraint(treeObj))
           })
         }
 

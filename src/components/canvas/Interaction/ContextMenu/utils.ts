@@ -16,69 +16,12 @@ import {
   GraphicType,
   MeshTypes,
 } from '@buerli.io/core'
+import { TreeObjScope, sketchUtils } from '@buerli.io/react-cad'
 
 import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
 import { getBuerliGeometry, isBLine, isBPoint, isSketchActive } from '../utils'
-import { TreeObjScope } from '@buerli.io/react-cad'
 
-
-export const isSketchGeometry = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  // Not sure if CC_Curve might be found outside sketch. So classes are compared directly here.
-  return (
-    ccUtils.base.isA(objClass, CCClasses.CCPoint) ||
-    ccUtils.base.isA(objClass, CCClasses.CCLine) ||
-    ccUtils.base.isA(objClass, CCClasses.CCArc) ||
-    ccUtils.base.isA(objClass, CCClasses.CCCircle)
-  )
-}
-
-export const is2DConstraint = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  return Boolean(objClass.match(/CC_2D.+Constraint/)) || ccUtils.base.isA(objClass, CCClasses.CCRigidSet)
-}
-
-export const isSketchRegion = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  return ccUtils.base.isA(objClass, CCClasses.CCSketchRegion)
-}
-
-export const isSketchObj = (obj: IStructureObject) => {
-  return ccUtils.base.isA(obj?.class, CCClasses.CCSketch) || isSketchGeometry(obj) || is2DConstraint(obj)
-}
-
-const getSketchPriority = (object: IStructureObject) => {
-  if (ccUtils.base.isA(object.class, CCClasses.CCLine)) {
-    return 1
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCArc)) {
-    return 2
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCCircle)) {
-    return 3
-  }
-  if (is2DConstraint(object) || isSketchRegion(object)) {
-    return 4
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCPoint)) {
-    return 5
-  }
-
-  return -1
-}
 
 const getSketchId = (drawingId: DrawingID, objId: ObjectID | undefined) => {
   const tree = getDrawing(drawingId).structure.tree
@@ -87,7 +30,7 @@ const getSketchId = (drawingId: DrawingID, objId: ObjectID | undefined) => {
     return objId as ObjectID
   }
 
-  return objId && isSketchObj(obj) && getAncestorIdByClass(drawingId, objId, CCClasses.CCSketch) || -1
+  return objId && sketchUtils.isSketchObj(obj) && getAncestorIdByClass(drawingId, objId, CCClasses.CCSketch) || -1
 }
 
 export const getSuitableIntersections = (intersections: THREE.Intersection[], drawingId: DrawingID) => {
@@ -135,7 +78,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
     const sketchId = isSketchActive_ ? drawing.plugin.refs[drawing.plugin.active.feature || -1].objectId as ObjectID : undefined
     suitableIntersections = suitableIntersections.filter(i => {
       const objId = i.object.userData?.objId as ObjectID | undefined
-      if (!objId || !isSketchObj(tree[objId])) {
+      if (!objId || !sketchUtils.isSketchObj(tree[objId])) {
         return true
       }
   
@@ -147,7 +90,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   const sketchDistMap: { [key: ObjectID]: number} = {}
   suitableIntersections.forEach(i => {
     const objId = i.object.userData?.objId as ObjectID | undefined
-    if (objId && isSketchObj(tree[objId])) {
+    if (objId && sketchUtils.isSketchObj(tree[objId])) {
       const sketchId = getSketchId(drawingId, objId)
       if (sketchId && !sketchDistMap[sketchId]) {
         sketchDistMap[sketchId] = i.distance
@@ -164,7 +107,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
     const dist2 = sketchDistMap[sketch2Id] || i2.distance
     if (obj1Id && obj2Id && sketch1Id && sketch2Id && sketch1Id === sketch2Id) {
       // If both objects belong to the same sketch, sort them sketch-wise
-      return getSketchPriority(tree[obj2Id]) - getSketchPriority(tree[obj1Id]) || obj1Id - obj2Id
+      return sketchUtils.getSketchPriority(tree[obj2Id]) - sketchUtils.getSketchPriority(tree[obj1Id]) || obj1Id - obj2Id
     }
     // Otherwise, sort regularly
     return dist1 - dist2
