@@ -6,10 +6,8 @@ import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/
 import {
   DrawingID,
   getDrawing,
-  MathUtils,
   ObjectID,
   PointMem,
-  ArrayMem,
   GraphicType,
   createInfo,
   InteractionInfo,
@@ -451,20 +449,6 @@ const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   ccAPI.baseModeler.deleteObjects(drawingId, idsSorted).catch(console.warn)
 }
 
-const convertToVector = (p: PointMem | undefined) => {
-  return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
-}
-
-const getSketchBounds = (boundsMember: ArrayMem) => {
-  const [min, max] = boundsMember.members.map(memb => convertToVector(memb as PointMem))
-
-  const box = new THREE.Box3(min, max)
-  const sphere = new THREE.Sphere()
-  box.getBoundingSphere(sphere)
-
-  return { center: sphere.center, radius: sphere.radius, box }
-}
-
 const viewNormalToSketch = (
   drawingId: DrawingID,
   menuInfo: CanvasMenuInfo,
@@ -472,71 +456,28 @@ const viewNormalToSketch = (
   controls: ControlsProto,
   boundsControls: BoundsApi,
 ) => {
-  const drawing = getDrawing(drawingId)
-  const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
-  if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
+  const sketchFitInfo = sketchUtils.getSketchNormalViewInfo(
+    drawingId,
+    menuInfo.interactionInfo.objectId,
+    menuInfo.clickInfo.clickPos,
+    camera.position.distanceTo(controls?.target)
+  )
+  if (!sketchFitInfo) {
     return
   }
 
-  const boundsMember = sketch.members?.boundingBox as ArrayMem
-  const bounds = getSketchBounds(boundsMember)
-
-  const planeRef = sketch.members?.planeReference?.value as ObjectID
-  const plane = drawing.structure.tree[planeRef]
-  const origin = convertToVector(plane?.members?.curPosition as PointMem)
-  const normal = convertToVector(plane?.members?.Normal as PointMem)
-
-  const csys = sketch.coordinateSystem as number[][]
-  const transformMatrix = MathUtils.convertToMatrix3(csys)
-  const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
-
-  // If box.min === box.max add (100, 100, 100) to box.max to make box not empty
-  const box = bounds.box
-  if (box.min.distanceTo(box.max) < 1e-6) {
-    box.set(box.min, box.min.clone().add(new THREE.Vector3(100, 100, 100)))
-  }
-
-  const matrix4 = MathUtils.convertToMatrix4(csys)
-  const globBox = box.clone().applyMatrix4(matrix4)
-  const target = new THREE.Plane()
-    .setFromNormalAndCoplanarPoint(normal, origin)
-    .projectPoint(menuInfo.clickInfo.clickPos, new THREE.Vector3())
-  const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
-
+  const { globBox, position, target, up } = sketchFitInfo
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up })
 }
 
 const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControls: BoundsApi) => {
-  const drawing = getDrawing(drawingId)
-  const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
-  if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
+  const margin = 1.2
+  const sketchFitInfo = sketchUtils.getSketchFitInfo(drawingId, menuInfo.interactionInfo.objectId, margin * 4)
+  if (!sketchFitInfo) {
     return
   }
 
-  const boundsMember = sketch.members?.boundingBox as ArrayMem
-  const bounds = getSketchBounds(boundsMember)
-
-  const planeRef = sketch.members?.planeReference?.value as ObjectID
-  const plane = drawing.structure.tree[planeRef]
-  const normal = convertToVector(plane?.members?.Normal as PointMem).normalize()
-
-  const csys = sketch.coordinateSystem as number[][]
-  const transformMatrix = MathUtils.convertToMatrix3(csys)
-  const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
-
-  // If box.min === box.max add (100, 100, 100) to box.max to make box not empty
-  const box = bounds.box
-  if (box.min.distanceTo(box.max) < 1e-6) {
-    box.set(box.min, box.min.clone().add(new THREE.Vector3(100, 100, 100)))
-  }
-
-  // Convert local box coordinates to global
-  const matrix4 = MathUtils.convertToMatrix4(csys)
-  const globBox = box.clone().applyMatrix4(matrix4)
-  const target = bounds.center.clone().applyMatrix4(matrix4)
-  const margin = 1.2
-  const position = target.clone().addScaledVector(normal, bounds.radius * margin * 4)
-
+  const { globBox, position, target, up } = sketchFitInfo
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
 }
 
@@ -557,6 +498,10 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
   const pluginApi = drawing.api.plugin
   pluginApi.setActiveFeature(sketchId)
+}
+
+const convertToVector = (p: PointMem | undefined) => {
+  return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
 }
 
 const viewNormalToPlane = (

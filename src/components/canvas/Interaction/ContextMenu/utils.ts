@@ -103,7 +103,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   })
 }
 
-export const getFirstIntersection = (intersections: THREE.Intersection[], drawingId: DrawingID, lineThreshold: number, pointThreshold: number) => {
+export const getFirstIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
   if (intersections.length === 0) {
     return undefined
   }
