@@ -19,7 +19,7 @@ import { TreeObjScope, sketchUtils } from '@buerli.io/react-cad'
 
 import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
-import { getBuerliGeometry, isBLine, isBPoint, isSketchActive } from '../utils'
+import { getBuerliGeometry, isBLine, isBPoint } from '../utils'
 
 
 export const getSuitableIntersections = (intersections: THREE.Intersection[], drawingId: DrawingID) => {
@@ -63,7 +63,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
     })
   }
   else {
-    const isSketchActive_ = isSketchActive(drawingId)
+    const isSketchActive_ = sketchUtils.isSketchActive(drawingId)
     const sketchId = isSketchActive_ ? drawing.plugin.refs[drawing.plugin.active.feature || -1].objectId as ObjectID : undefined
     suitableIntersections = suitableIntersections.filter(i => {
       const objId = i.object.userData?.objId as ObjectID | undefined

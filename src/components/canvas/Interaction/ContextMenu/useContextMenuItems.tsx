@@ -55,7 +55,7 @@ import { CanvasMenuInfo, MenuDescriptor } from './types'
 import { getInteractionInfo, getSelectedInstances, getSelectedSolids, getUniqueSelIntersections, getWCSystems } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
-import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
+import { attemptSSelection, getBuerliGeometry } from '../utils'
 
 type ControlsProto = {
   update(): void
@@ -607,7 +607,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         const isSelActive = selection !== undefined
         if (isSelActive) {
           intersections = getUniqueSelIntersections(intersections, drawingId)
-        } else if (isSketchActive(drawingId)) {
+        } else if (sketchUtils.isSketchActive(drawingId)) {
           intersections = intersections.filter(i => {
             const treeObj = tree[i.object.userData?.objId || -1]
             return treeObj && (sketchUtils.isSketchGeometry(treeObj) || sketchUtils.is2DConstraint(treeObj))
