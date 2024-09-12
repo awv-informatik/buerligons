@@ -1,4 +1,4 @@
-import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
+import { CCClasses, init, WASMClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -47,13 +47,11 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
-const CCSERVERURL = 'ws://localhost:9091'
-
 export const initBuerli = () => {
   console.info('initBuerli')
 
   init(id => {
-    const socket = new SocketIOClient(CCSERVERURL, id)
+    const wasmClient = new WASMClient(id);
 
     // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
     // This mechanism allows the application (client) to individually override settings on the internal classcad database,
@@ -70,8 +68,8 @@ export const initBuerli = () => {
         doCurveTessellation: false        // default server: false
       })
     }
-    socket.on('connected', initSettings)
-    return socket
+    wasmClient.on('connected', initSettings)
+    return wasmClient
   }, {
     theme: {
       primary: '#e36b7c',
