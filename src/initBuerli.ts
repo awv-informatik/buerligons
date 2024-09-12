@@ -1,4 +1,4 @@
-import { CCClasses, init, SocketIOClient, ccAPI } from '@buerli.io/classcad'
+import { CCClasses, init, WASMClient, ccAPI } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
