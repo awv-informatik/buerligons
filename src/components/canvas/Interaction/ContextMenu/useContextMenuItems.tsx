@@ -601,16 +601,16 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
   const opSeqId = useOperationSequence(drawingId, drawing.structure.currentProduct || -1)
 
-  const shiftKey = React.useRef<boolean>(false)
+  const multi = React.useRef<boolean>(false)
   React.useEffect(() => {
-    const handleShift = (e: KeyboardEvent) => (shiftKey.current = e.shiftKey)
+    const handleMulti = (e: KeyboardEvent) => (multi.current = e.ctrlKey || e.shiftKey)
 
-    document.addEventListener('keydown', handleShift, true)
-    document.addEventListener('keyup', handleShift, true)
+    document.addEventListener('keydown', handleMulti, true)
+    document.addEventListener('keyup', handleMulti, true)
 
     return () => {
-      document.removeEventListener('keydown', handleShift, true)
-      document.removeEventListener('keyup', handleShift, true)
+      document.removeEventListener('keydown', handleMulti, true)
+      document.removeEventListener('keyup', handleMulti, true)
     }
   })
 
@@ -693,9 +693,9 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
             key: 'select' + idx,
             onClick: () => {
               if (isTreeObj) {
-                selectTreeObj(drawingId, objId, shiftKey.current)
+                selectTreeObj(drawingId, objId, multi.current)
               } else if (geom) {
-                selectGrObj(drawingId, i.object.userData.productId, geom, shiftKey.current)
+                selectGrObj(drawingId, i.object.userData.productId, geom, multi.current)
               }
             },
             onMouseEnter: () => {
