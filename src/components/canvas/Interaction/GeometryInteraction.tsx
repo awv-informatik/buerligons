@@ -157,7 +157,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         prodRefId: uData.productId,
       })
       const select = drawing.api.interaction.select
-      const multi = e.nativeEvent.shiftKey
+      const multi = e.nativeEvent.ctrlKey || e.nativeEvent.shiftKey
 
       select(interactionInfo, multi)
     },
