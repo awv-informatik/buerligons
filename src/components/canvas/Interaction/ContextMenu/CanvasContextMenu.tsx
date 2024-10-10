@@ -98,7 +98,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
 
       const intersections = getSuitableIntersections(e.intersections, drawingId)
 
-      const firstIntersection = getFirstIntersection(intersections, drawingId, lineThreshold, pointThreshold)
+      const firstIntersection = getFirstIntersection(intersections, lineThreshold, pointThreshold)
       if (!firstIntersection) {
         // If there are no valid intersections, consider the current product being clicked
         setMenuInfo({

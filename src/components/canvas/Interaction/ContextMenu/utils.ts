@@ -11,84 +11,16 @@ import {
   ObjectID,
   GeometryElement,
   createInfo,
-  IStructureObject,
   BuerliScope,
   GraphicType,
   MeshTypes,
 } from '@buerli.io/core'
+import { TreeObjScope, sketchUtils } from '@buerli.io/react-cad'
 
 import { MenuObjType } from './types'
 import { getAdjacentMeshNormal } from '../../Gizmo/utils'
-import { getBuerliGeometry, isBLine, isBPoint, isSketchActive } from '../utils'
-import { TreeObjScope } from '@buerli.io/react-cad'
+import { getBuerliGeometry, isBLine, isBPoint } from '../utils'
 
-
-export const isSketchGeometry = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  // Not sure if CC_Curve might be found outside sketch. So classes are compared directly here.
-  return (
-    ccUtils.base.isA(objClass, CCClasses.CCPoint) ||
-    ccUtils.base.isA(objClass, CCClasses.CCLine) ||
-    ccUtils.base.isA(objClass, CCClasses.CCArc) ||
-    ccUtils.base.isA(objClass, CCClasses.CCCircle)
-  )
-}
-
-export const is2DConstraint = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  return Boolean(objClass.match(/CC_2D.+Constraint/)) || ccUtils.base.isA(objClass, CCClasses.CCRigidSet)
-}
-
-export const isSketchRegion = (arg: IStructureObject | CCClasses) => {
-  if (arg === undefined) {
-    return false
-  }
-
-  const objClass = typeof arg === 'string' ? arg : arg.class
-  return ccUtils.base.isA(objClass, CCClasses.CCSketchRegion)
-}
-
-export const isSketchObj = (obj: IStructureObject) => {
-  return ccUtils.base.isA(obj?.class, CCClasses.CCSketch) || isSketchGeometry(obj) || is2DConstraint(obj)
-}
-
-const getSketchPriority = (object: IStructureObject) => {
-  if (ccUtils.base.isA(object.class, CCClasses.CCLine)) {
-    return 1
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCArc)) {
-    return 2
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCCircle)) {
-    return 3
-  }
-  if (is2DConstraint(object) || isSketchRegion(object)) {
-    return 4
-  }
-  if (ccUtils.base.isA(object.class, CCClasses.CCPoint)) {
-    return 5
-  }
-
-  return -1
-}
-
-const getSketchId = (drawingId: DrawingID, objId: ObjectID | undefined) => {
-  const tree = getDrawing(drawingId).structure.tree
-  const obj = tree[objId || -1]
-  if (ccUtils.base.isA(obj?.class, CCClasses.CCSketch)) {
-    return objId as ObjectID
-  }
-
-  return objId && isSketchObj(obj) && getAncestorIdByClass(drawingId, objId, CCClasses.CCSketch) || -1
-}
 
 export const getSuitableIntersections = (intersections: THREE.Intersection[], drawingId: DrawingID) => {
   const drawing = getDrawing(drawingId)
@@ -131,15 +63,15 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
     })
   }
   else {
-    const isSketchActive_ = isSketchActive(drawingId)
+    const isSketchActive_ = sketchUtils.isSketchActive(drawingId)
     const sketchId = isSketchActive_ ? drawing.plugin.refs[drawing.plugin.active.feature || -1].objectId as ObjectID : undefined
     suitableIntersections = suitableIntersections.filter(i => {
       const objId = i.object.userData?.objId as ObjectID | undefined
-      if (!objId || !isSketchObj(tree[objId])) {
+      if (!objId || !sketchUtils.isSketchObj(tree[objId])) {
         return true
       }
   
-      return isSketchActive_ ? getSketchId(drawingId, objId) === sketchId : false
+      return isSketchActive_ ? sketchUtils.getSketchId(drawingId, objId) === sketchId : false
     })
   }
 
@@ -147,8 +79,8 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   const sketchDistMap: { [key: ObjectID]: number} = {}
   suitableIntersections.forEach(i => {
     const objId = i.object.userData?.objId as ObjectID | undefined
-    if (objId && isSketchObj(tree[objId])) {
-      const sketchId = getSketchId(drawingId, objId)
+    if (objId && sketchUtils.isSketchObj(tree[objId])) {
+      const sketchId = sketchUtils.getSketchId(drawingId, objId)
       if (sketchId && !sketchDistMap[sketchId]) {
         sketchDistMap[sketchId] = i.distance
       }
@@ -158,20 +90,20 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
   return suitableIntersections.sort((i1, i2) => {
     const obj1Id = i1.object.userData?.objId as ObjectID | undefined
     const obj2Id = i2.object.userData?.objId as ObjectID | undefined
-    const sketch1Id = getSketchId(drawingId, obj1Id)
-    const sketch2Id = getSketchId(drawingId, obj2Id)
+    const sketch1Id = sketchUtils.getSketchId(drawingId, obj1Id)
+    const sketch2Id = sketchUtils.getSketchId(drawingId, obj2Id)
     const dist1 = sketchDistMap[sketch1Id] || i1.distance
     const dist2 = sketchDistMap[sketch2Id] || i2.distance
     if (obj1Id && obj2Id && sketch1Id && sketch2Id && sketch1Id === sketch2Id) {
       // If both objects belong to the same sketch, sort them sketch-wise
-      return getSketchPriority(tree[obj2Id]) - getSketchPriority(tree[obj1Id]) || obj1Id - obj2Id
+      return sketchUtils.getSketchPriority(tree[obj2Id]) - sketchUtils.getSketchPriority(tree[obj1Id]) || obj1Id - obj2Id
     }
     // Otherwise, sort regularly
     return dist1 - dist2
   })
 }
 
-export const getFirstIntersection = (intersections: THREE.Intersection[], drawingId: DrawingID, lineThreshold: number, pointThreshold: number) => {
+export const getFirstIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
   if (intersections.length === 0) {
     return undefined
   }
@@ -360,40 +292,6 @@ export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInf
   
   const obj = drawing.structure.tree[interactionInfo.objectId]
   return obj.class as CCClasses
-}
-
-// TODO: Copypasted from buerli-react-cad helpers. Resolve the duplication somehow...
-export function getAncestorIdByClass(drawingId: DrawingID, objectId: ObjectID, parentClass: CCClasses) {
-  const tree = getDrawing(drawingId).structure.tree
-  let object = tree[objectId] as IStructureObject
-  while (object.parent !== null && tree[object.parent].class !== parentClass) {
-    object = tree[object.parent] as IStructureObject
-  }
-
-  return object.parent
-}
-
-export const getAncestors = (drawingId: DrawingID, objectId: ObjectID) => {
-  const tree = getDrawing(drawingId).structure.tree
-
-  let curId: ObjectID = objectId
-  const ancestors: ObjectID[] = []
-  while (Boolean(curId) && tree[curId]) {
-    ancestors.push(tree[curId].parent as ObjectID)
-    curId = tree[curId].parent as ObjectID
-  }
-
-  return ancestors
-}
-
-export function getDescendants(drawingId: DrawingID, objectId: ObjectID) {
-  const object = getDrawing(drawingId).structure.tree[objectId]
-  const descendants: ObjectID[] = []
-  object?.children &&
-    object.children.forEach(child => {
-      descendants.push(child, ...getDescendants(drawingId, child))
-    })
-  return descendants
 }
 
 export function getSelectedInstances(drawingId: DrawingID, instanceId: ObjectID) {

@@ -1,9 +1,9 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { ObjectID, DrawingID, PointMem, ArrayMem, getDrawing, MathUtils } from '@buerli.io/core'
+import { ObjectID, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { useEditMode, useIsSketchActive, useVisibleSolids, EditMode } from '@buerli.io/react-cad'
+import { useEditMode, useIsSketchActive, useVisibleSolids, EditMode, sketchUtils } from '@buerli.io/react-cad'
 import { Bounds, useBounds } from '@react-three/drei'
 
 /**
@@ -24,20 +24,6 @@ function DefaultBounds({ drawingId }: { drawingId: DrawingID }) {
       <bufferGeometry boundingBox={bb} />
     </mesh>
   ) : null
-}
-
-const convertToVector = (p: PointMem | undefined) => {
-  return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
-}
-
-const getSketchBounds = (boundsMember: ArrayMem) => {
-  const [min, max] = boundsMember.members.map(memb => convertToVector(memb as PointMem))
-
-  const box = new THREE.Box3(min, max)
-  const sphere = new THREE.Sphere()
-  box.getBoundingSphere(sphere)
-
-  return { center: sphere.center, radius: sphere.radius, box }
 }
 
 const defaultCCBounds = { center: new THREE.Vector3(), radius: 200, min: new THREE.Vector3(-100, -100, -100), max: new THREE.Vector3(100, 100, 100) }
@@ -77,29 +63,13 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
     if (!isSketchActive || !activeId || !planeRef) {
       return
     }
-
-    const drawing = getDrawing(drawingId)
-    const boundsMember = drawing.structure.tree[activeId]?.members?.boundingBox as ArrayMem
-    const sketchBounds = getSketchBounds(boundsMember)
-
-    const csys = drawing.structure.tree[activeId].coordinateSystem as number[][]
-    const transformMatrix = MathUtils.convertToMatrix3(csys)
-    const plane = drawing.structure.tree[planeRef]
-    const normal = convertToVector(plane?.members?.Normal as PointMem).normalize()
-    const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
-
-    // If box.min === box.max add (100, 100, 100) to box.max to make box not empty
-    const box = sketchBounds.box
-    if (box.min.distanceTo(box.max) < 1e-6) {
-      box.set(box.min, box.min.clone().add(new THREE.Vector3(100, 100, 100)))
+    
+    const sketchFitInfo = sketchUtils.getSketchFitInfo(drawingId, activeId, margin * 4)
+    if (!sketchFitInfo) {
+      return
     }
-
-    // Convert local box coordinates to global
-    const matrix4 = MathUtils.convertToMatrix4(csys)
-    const globBox = box.clone().applyMatrix4(matrix4)
-    const target = sketchBounds.center.clone().applyMatrix4(matrix4)
-    const position = target.clone().addScaledVector(normal, sketchBounds.radius * margin * 4)
-
+  
+    const { globBox, position, target, up } = sketchFitInfo
     bounds?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSketchActive, planeRef])
