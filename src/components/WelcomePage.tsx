@@ -34,6 +34,22 @@ export function WelcomePage() {
     [createPart, createAssembly],
   )
 
+  React.useEffect(() => {
+    async function run() {
+      const query = new URLSearchParams(window.location.search)
+      const file = query.get('file')
+      if (file) {
+        const newDrawingId = await ccAPI.base.createCCDrawing()
+        if (newDrawingId) {
+          const type = file.substring(file.lastIndexOf('.') + 1, file.length)
+          const content = await (await fetch(file)).arrayBuffer()
+          await ccAPI.baseModeler.load(newDrawingId, content, type as never).catch(console.info)
+        }
+      }
+    }
+    run()
+  }, [])
+
   const socialLinks = [
     { name: 'Discord', url: 'https://discord.gg/MEbR7xyPMS' },
     { name: 'Twitter', url: 'https://twitter.com/buerli_io' },
