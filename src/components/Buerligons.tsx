@@ -1,7 +1,13 @@
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
-import { Drawing, GeometryOverridesManager, HoveredConstraintDisplay, PluginGeometryBounds, useIsSketchActive } from '@buerli.io/react-cad'
+import {
+  Drawing,
+  GeometryOverridesManager,
+  HoveredConstraintDisplay,
+  PluginGeometryBounds,
+  useIsSketchActive,
+} from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
 import { useIPC } from '../ipc'
@@ -30,35 +36,30 @@ const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps
   ReactThreeFiber.OrthographicCameraProps
 const EVENTS = (store: any) => ({ ...events(store), filter: raycastFilter })
 
-const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(
-  function CanvasImpl({ children, drawingId }) {
-    const handleMiss = React.useCallback(() => {
-      const setSelected = getDrawing(drawingId).api.interaction.setSelected
-      setSelected([])
-      getDrawing(drawingId)?.api.selection?.unselectAll()
-    }, [drawingId])
+const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(function CanvasImpl({
+  children,
+  drawingId,
+}) {
+  const handleMiss = React.useCallback(() => {
+    const setSelected = getDrawing(drawingId).api.interaction.setSelected
+    setSelected([])
+    getDrawing(drawingId)?.api.selection?.unselectAll()
+  }, [drawingId])
 
-    // Remove selection on ESC
-    React.useEffect(() => {
-      const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
-      window.addEventListener('keydown', handleKey)
-      return () => window.removeEventListener('keydown', handleKey)
-    }, [handleMiss])
+  // Remove selection on ESC
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && handleMiss()
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [handleMiss])
 
-    return (
-      <Canvas
-        flat
-        orthographic
-        frameloop="demand"
-        events={EVENTS}
-        camera={CAMERA}
-        onPointerMissed={handleMiss}>
-        <HoveredConstraintDisplay drawingId={drawingId} />
-        <React.Suspense fallback={null}>{children}</React.Suspense>
-      </Canvas>
-    )
-  },
-)
+  return (
+    <Canvas flat orthographic frameloop="demand" events={EVENTS} camera={CAMERA} onPointerMissed={handleMiss}>
+      <HoveredConstraintDisplay drawingId={drawingId} />
+      <React.Suspense fallback={null}>{children}</React.Suspense>
+    </Canvas>
+  )
+})
 
 const useInteractionReset = (drawingId: DrawingID) => {
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance)
@@ -106,7 +107,7 @@ export const Buerligons: React.FC = () => {
       {ipc.isEmbeddedApp && !ipc.hasClassFile ? (
         <ChooseCCApp />
       ) : count === 0 || !drawingId ? (
-        <WelcomePage />        
+        <WelcomePage />
       ) : (
         <>
           <PluginManager />
