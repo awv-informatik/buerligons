@@ -117,12 +117,6 @@ const Info: React.FC = () => {
           <Paragraph><Text mark>{`Buerli version: ${buerliVersion}`}</Text></Paragraph>
           <Link href="https://buerli.io/" target="_blank">buerli.io</Link>
         </InfoItem>
-        <InfoItem caption="ClassCAD">
-          <Title level={5}>TBD</Title>
-          <Paragraph>TBD</Paragraph>
-          <Paragraph><Text mark>{`ClassCAD version: TBD`}</Text></Paragraph>
-          <Paragraph><Text mark>{`Runs on: TBD`}</Text></Paragraph>
-        </InfoItem>
       </div>
     </Footer>
   )
