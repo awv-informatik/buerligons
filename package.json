@@ -40,8 +40,12 @@
     ]
   },
   "dependencies": {
+    "@buerli.io/classcad": "0.13.1-beta.2",
+    "@buerli.io/core": "0.13.1-beta.2",
+    "@buerli.io/headless": "0.13.1-beta.2",
     "@buerli.io/icons": "^1.0.14",
-    "@buerli.io/react-cad": "0.13.0",
+    "@buerli.io/react": "0.13.1-beta.2",
+    "@buerli.io/react-cad": "0.13.1-beta.2",
     "@react-three/drei": "9.92.3",
     "@react-three/fiber": "8.15.14",
     "@react-three/postprocessing": "2.15.0",
