@@ -6,10 +6,10 @@
     "buerli": {
       "hosting": {
         "dev": [
-          "dev-buerli-io"
+          "dev-buerligons-io"
         ],
         "production": [
-          "buerli-io"
+          "buerligons-io"
         ]
       }
     }
