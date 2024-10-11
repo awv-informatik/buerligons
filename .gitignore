@@ -1,3 +1,4 @@
+.firebase/
 dist/
 build/
 node_modules/

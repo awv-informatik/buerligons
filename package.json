@@ -11,7 +11,10 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "compile": "tsc",
-    "lint": "eslint \"./src/**/*.ts?(x)\""
+    "lint": "eslint \"./src/**/*.ts?(x)\"",
+    "deploy": "firebase deploy --only hosting:production",
+    "deploy:dev": "firebase deploy --only hosting:dev",
+    "deploy:prev": "firebase hosting:channel:deploy buerligons-01 --expires 1d --only dev"
   },
   "engines": {
     "node": ">=16.14.0"

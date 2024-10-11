@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "buerli"
+  },
+  "targets": {
+    "buerli": {
+      "hosting": {
+        "dev": [
+          "dev-buerligons-io"
+        ],
+        "production": [
+          "buerligons-io"
+        ]
+      }
+    }
+  }
+}

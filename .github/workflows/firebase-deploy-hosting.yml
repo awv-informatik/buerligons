@@ -1,0 +1,47 @@
+name: Firebase deploy hosting
+
+on:
+  push:
+    branches: [master, develop]
+
+jobs:
+  firebase-deploy-hosting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      - name: Install firebase tools
+        run: sudo npm install -g firebase-tools@8.12.1
+
+      - name: Checkout buerligons
+        uses: actions/checkout@v3
+        with:
+          path: buerligons
+          fetch-depth: 1
+          submodules: 'recursive'
+          token: ${{ secrets.AWV_GITHUB_TOKEN }}
+
+      - name: Build buerligons
+        working-directory: ./buerligons
+        run: |
+          yarn
+          yarn build
+        env:
+          CI: ''
+
+      - name: Deploy to dev site
+        working-directory: ./buerligons
+        if: github.ref == 'refs/heads/develop'
+        run: yarn deploy:dev
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy to production site
+        working-directory: ./buerligons
+        if: github.ref == 'refs/heads/master'
+        run: yarn deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
