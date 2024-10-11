@@ -71,9 +71,9 @@ export function WelcomePage() {
     <AppWrapper>
       <HeaderWrapper>
         <CompanyName>
-          <img style={{ position: "relative", top: -10 }} height="26" src="favicon.svg" alt="AWV Informatik GmbH" />
+          <img style={{ position: "relative", top: -10 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
           <SocialLink href="https://awv-informatik.ch/">
-            AWV —<br /> Informatik GmbH
+            AWV —<br /> Informatik AG
           </SocialLink>
         </CompanyName>
         <Spacer />
