@@ -206,7 +206,7 @@ const ProductDescription = styled.p`
     400 14px/20px Inter,
     sans-serif;
   width: 350px;
-  margin-top: 20px;
+  margin-top: 10px;
   text-align: justify;
 `
 
@@ -226,7 +226,7 @@ const ButtonGroup = styled.div`
   display: flex;
   height: 40px;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 10px;
   @media (max-width: 600px) {
     flex-direction: column;
   }
