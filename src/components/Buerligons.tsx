@@ -106,7 +106,7 @@ export const Buerligons: React.FC = () => {
       {ipc.isEmbeddedApp && !ipc.hasClassFile ? (
         <ChooseCCApp />
       ) : count === 0 || !drawingId ? (
-        <WelcomePage />
+        <WelcomePage />        
       ) : (
         <>
           <PluginManager />

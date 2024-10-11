@@ -1,12 +1,12 @@
-import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
+import React from 'react'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import { Button, Dropdown, Space, MenuProps } from 'antd'
-import 'antd/dist/antd.css'
-import React from 'react'
 import styled from 'styled-components'
+import { Dropdown, MenuProps } from 'antd'
+import 'antd/dist/antd.css'
+import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
 
-export const WelcomePage: React.FC = () => {
+export function WelcomePage() {
   const rfRef = React.useRef<HTMLInputElement>()
 
   const createPart = React.useCallback(async () => {
@@ -34,6 +34,16 @@ export const WelcomePage: React.FC = () => {
     [createPart, createAssembly],
   )
 
+  const socialLinks = [
+    { name: 'Discord', url: 'https://discord.gg/MEbR7xyPMS' },
+    { name: 'Twitter', url: 'https://twitter.com/buerli_io' },
+    { name: 'Github', url: 'https://github.com/awv-informatik' },
+  ]
+  const productLinks = [
+    { name: 'Buerli', url: 'https://buerli.io/' },
+    { name: 'ClassCAD', url: 'https://classcad.ch/' },
+  ]
+
   const menuItems: MenuProps['items'] = [
     { label: 'Part', key: 'Part', icon: <FileOutlined /> },
     { label: 'Assembly', key: 'Assembly', icon: <AppstoreOutlined /> },
@@ -42,54 +52,256 @@ export const WelcomePage: React.FC = () => {
   const menuProps = { items: menuItems, onClick }
 
   return (
-    <>
-      <Logo>buerligons</Logo>
-      <Main>
-        <Dropdown menu={menuProps}>
-          <WideButton type="primary">
-            <Space>Create New ...</Space>
-          </WideButton>
-        </Dropdown>
-        <WideButton onClick={openFile}>
-          <Space>Open File</Space>
-        </WideButton>
-        <Readfile ref={rfRef} singleDrawingApp />
-      </Main>
-    </>
+    <AppWrapper>
+      <HeaderWrapper>
+        <CompanyName>
+          <img height="26" src="favicon.svg" alt="AWV Informatik GmbH" />
+          <SocialLink href="https://awv-informatik.ch/">
+            AWV —<br /> Informatik GmbH
+          </SocialLink>
+        </CompanyName>
+      </HeaderWrapper>
+      <MainWrapper>
+        <Sidebar />
+        <ContentArea>
+          <ProductTitle>
+            BUERLI <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GONS <br /> CLOUD+CAD
+          </ProductTitle>
+          <ProductImage autoPlay muted loop>
+            <source src="1728647677004558.mp4" type="video/mp4" />
+          </ProductImage>
+          <ProductWrapper>
+            <ProductDescription>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
+              interactive <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids, and
+              manage parts and assemblies.
+            </ProductDescription>
+            <ButtonGroup>
+              <Dropdown menu={menuProps}>
+                <ActionButton>Create New ...</ActionButton>
+              </Dropdown>
+              <ActionButton onClick={openFile}>Open Part</ActionButton>
+              <Readfile ref={rfRef} singleDrawingApp />
+            </ButtonGroup>
+          </ProductWrapper>
+        </ContentArea>
+        <Sidebar />
+      </MainWrapper>
+      <Footer>
+        <FooterLeft>
+          {productLinks.map(({ name, url }) => (
+            <SocialLink key={name} href={url}>
+              {name}
+            </SocialLink>
+          ))}
+        </FooterLeft>
+        <FooterRight>
+          {socialLinks.map(({ name, url }) => (
+            <SocialLink key={name} href={url}>
+              {name}
+            </SocialLink>
+          ))}
+        </FooterRight>
+      </Footer>
+    </AppWrapper>
   )
 }
 
-const WideButton = styled(Button)`
-  width: 12em;
-  height: 3em !important;
-`
-
-const Logo = styled.div`
-  position: absolute;
-  top: 2rem;
-  left: 3rem;
-  font-weight: 800;
-  font-size: 32px;
-  color: #565656;
-`
-
-const Main = styled.div`
-  display: grid;
+const HeaderWrapper = styled.header`
+  display: flex;
+  min-height: 100px;
   width: 100%;
-  height: 100%;
-  justify-items: center;
-  align-content: center;
-  gap: 16px;
+  overflow: hidden;
+  padding: 0 100px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+`
 
-  background: -webkit-radial-gradient(
-      center,
-      circle,
-      rgba(255, 255, 255, 0.35),
-      rgba(255, 255, 255, 0) 20%,
-      rgba(255, 255, 255, 0) 21%
-    ),
-    -webkit-radial-gradient(center, circle, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
-    -webkit-radial-gradient(center, circle farthest-corner, #f5f5f5, #eaeaea);
-  background-size: 10px 10px, 10px 10px, 100% 100%;
-  background-position: 1px 1px, 0px 0px, center center;
+const SocialLink = styled.a`
+  color: #000;
+  text-decoration: none;
+  font:
+    400 14px/1 Inter,
+    sans-serif;
+  margin: auto 0;
+`
+
+const Footer = styled.footer`
+  display: flex;
+  flex-direction: row;
+  min-height: 100px;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+`
+
+const FooterRight = styled.div`
+  flex: 1;
+  display: flex;
+  min-height: 100px;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+  justify-content: flex-end;
+  padding-right: 100px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+`
+
+const FooterLeft = styled.div`
+  flex: 1;
+  display: flex;
+  min-height: 100px;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+  justify-content: flex-start;
+
+  padding-left: 100px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+`
+
+const ProductTitle = styled.h2`
+  position: absolute;
+  color: #000;
+  letter-spacing: -3.9px;
+  text-shadow: 0 0 1em #ffffffff;
+  font:
+    600 90px/85px Inter,
+    sans-serif;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    font-size: 40px;
+    line-height: 40px;
+  }
+`
+
+const ProductImage = styled.video`
+  width: 800px;
+  max-width: 100%;
+  height: 600px;
+  margin: 100px 0 0 100px;
+  object-fit: contain;
+  @media (max-width: 991px) {
+    margin: 100px 0 0 0;
+    height: 400px;
+  }
+`
+
+const ProductDescription = styled.p`
+  color: #000;
+  font:
+    400 14px/20px Inter,
+    sans-serif;
+  width: 350px;
+  margin-top: 20px;
+  text-align: justify;
+`
+
+const ProductWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  gap: 40px;
+  padding: 0 4px 10px 100px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding-left: 20px;
+  }
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  height: 40px;
+  gap: 10px;
+  margin-top: 20px;
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+`
+
+const ActionButton = styled.button`
+  word-wrap: nowrap;
+  white-space: nowrap;
+  border-radius: 5px;
+  background-color: #1890ff;
+  padding: 11px 25px;
+  color: white;
+  min-width: 140px;
+  font:
+    400 14px Inter,
+    sans-serif;
+  border: none;
+  cursor: pointer;
+  @media (max-width: 991px) {
+    padding: 11px 20px;
+  }
+`
+
+const MainWrapper = styled.main`
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  justify-content: flex-start;
+  flex: 1;
+  flex-wrap: wrap;
+  height: 100%;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`
+
+const Sidebar = styled.aside`
+  display: flex;
+  width: 10px;
+  height: 10px;
+  flex: 1;
+  flex-basis: 64px;
+`
+
+const ContentArea = styled.section`
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  overflow: hidden;
+  width: 1024px;
+  padding: 0 4px 10px 60px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding-left: 20px;
+  }
+`
+
+const AppWrapper = styled.div`
+  height: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  justify-content: flex-start;
+`
+
+const CompanyName = styled.h1`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: #000;
+  font:
+    400 14px/14px Inter,
+    sans-serif;
+  margin: auto 0;
 `
