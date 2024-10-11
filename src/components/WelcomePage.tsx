@@ -73,8 +73,7 @@ export function WelcomePage() {
           <ProductWrapper>
             <ProductDescription>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
-              interactive <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids, and
-              manage parts and assemblies.
+              interactive <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
             </ProductDescription>
             <ButtonGroup>
               <Dropdown menu={menuProps}>
