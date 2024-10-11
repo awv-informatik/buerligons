@@ -54,6 +54,7 @@ export function WelcomePage() {
     { name: 'Discord', url: 'https://discord.gg/MEbR7xyPMS' },
     { name: 'Twitter', url: 'https://twitter.com/buerli_io' },
     { name: 'Github', url: 'https://github.com/awv-informatik' },
+    { name: 'Workflow Test', url: 'https://github.com/awv-informatik' },
   ]
   const productLinks = [
     { name: 'Buerli', url: 'https://buerli.io/' },
