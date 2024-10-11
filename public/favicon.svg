@@ -63,7 +63,7 @@
         <path
            inkscape:connector-curvature="0"
            id="path5117"
-           style="fill:#8b0204;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="fill:black;fill-opacity:1;fill-rule:nonzero;stroke:none"
            d="M 0,0 H 107.795 L 44.22,110.114 H -63.581" />
       </g>
       <g
@@ -72,7 +72,7 @@
         <path
            inkscape:connector-curvature="0"
            id="path5121"
-           style="fill:#ed1c24;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="fill:black;fill-opacity:1;fill-rule:nonzero;stroke:none"
            d="M 0,0 63.574,110.121 H -44.221 L -107.803,0" />
       </g>
       <g
@@ -81,7 +81,7 @@
         <path
            inkscape:connector-curvature="0"
            id="path5125"
-           style="fill:#8b0204;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="fill:black;fill-opacity:1;fill-rule:nonzero;stroke:none"
            d="m 0,0 53.897,93.353 -5.319,9.214 H -59.219" />
       </g>
       <g
@@ -90,7 +90,7 @@
         <path
            inkscape:connector-curvature="0"
            id="path5129"
-           style="fill:#ed1c24;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="fill:black;fill-opacity:1;fill-rule:nonzero;stroke:none"
            d="m 0,0 h 107.798 l 5.32,9.212 -53.902,93.354" />
       </g>
     </g>

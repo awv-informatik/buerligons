@@ -71,11 +71,12 @@ export function WelcomePage() {
     <AppWrapper>
       <HeaderWrapper>
         <CompanyName>
-          <img height="24" src="favicon.svg" alt="AWV Informatik GmbH" />
+          <img style={{ position: "relative", top: -10 }} height="26" src="favicon.svg" alt="AWV Informatik GmbH" />
           <SocialLink href="https://awv-informatik.ch/">
             AWV —<br /> Informatik GmbH
           </SocialLink>
         </CompanyName>
+        <Spacer />
         <Spacer />
         {socialLinks.map(({ name, url }) => (
           <SocialLink key={name} href={url}>
@@ -87,7 +88,10 @@ export function WelcomePage() {
         <Sidebar />
         <ContentArea>
           <ProductTitle>
-            BUERLI <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GONS <br /> CLOUD+CAD
+            BUERLI <br /> <span style={{ paddingLeft: 118 }}>GONS</span> <br />{' '}
+            <span style={{ fontWeight: 400 }}>CLOUD</span>
+            <span style={{ position: 'relative', display: 'inline-block', top: 24, fontWeight: 200 }}>+</span>
+            <span style={{ fontWeight: 400 }}>CAD</span>
           </ProductTitle>
           <ProductImage autoPlay muted loop>
             <source src="1728647677004558.mp4" type="video/mp4" />
@@ -95,7 +99,7 @@ export function WelcomePage() {
           <ProductWrapper>
             <ProductDescription>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
-              interactive <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D
+              interactive, nurbs-based <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D
               sketches; manage parts and assemblies.
             </ProductDescription>
             <ButtonGroup>
@@ -150,7 +154,7 @@ const SocialLink = styled.a`
   color: #000;
   text-decoration: none;
   font:
-    400 14px/1 Inter,
+    400 14px/1.5em Inter,
     sans-serif;
   margin: auto 0;
 `
@@ -204,7 +208,7 @@ const FooterLeft = styled.div`
 const ProductTitle = styled.h2`
   position: absolute;
   color: #000;
-  letter-spacing: -3.9px;
+  letter-spacing: -0.03em;
   text-shadow: 0 0 1em #ffffffff;
   font:
     600 90px/85px Inter,
@@ -219,22 +223,22 @@ const ProductTitle = styled.h2`
 const ProductImage = styled.video`
   width: 800px;
   max-width: 100%;
-  height: 600px;
+  height: 55vh;
   margin: 100px 0 0 100px;
   object-fit: contain;
   @media (max-width: 991px) {
     margin: 100px 0 0 0;
-    height: 400px;
+    height: calc(50vh - 150px);
   }
 `
 
 const ProductDescription = styled.p`
   color: #000;
   font:
-    400 14px/20px Inter,
+    400 14px/1.5em Inter,
     sans-serif;
   width: 350px;
-  margin-top: 10px;
+  margin-top: 15px;
   text-align: justify;
 `
 
@@ -254,7 +258,7 @@ const ButtonGroup = styled.div`
   display: flex;
   height: 40px;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
   @media (max-width: 600px) {
     flex-direction: column;
   }
@@ -264,7 +268,7 @@ const ActionButton = styled.button`
   word-wrap: nowrap;
   white-space: nowrap;
   border-radius: 5px;
-  background-color: #1890ff;
+  background-color: black;
   padding: 11px 25px;
   color: white;
   min-width: 140px;
@@ -328,7 +332,7 @@ const CompanyName = styled.h1`
   gap: 15px;
   color: #000;
   font:
-    400 14px/14px Inter,
+    400 14px/1.5em Inter,
     sans-serif;
   margin: auto 0;
 `
