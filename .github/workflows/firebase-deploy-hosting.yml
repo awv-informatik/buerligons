@@ -2,7 +2,7 @@ name: Firebase deploy hosting
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master, develop, dev/online]
 
 jobs:
   firebase-deploy-hosting:
@@ -22,7 +22,6 @@ jobs:
           path: buerligons
           fetch-depth: 1
           submodules: 'recursive'
-          token: ${{ secrets.AWV_GITHUB_TOKEN }}
 
       - name: Build buerligons
         working-directory: ./buerligons
@@ -35,6 +34,13 @@ jobs:
       - name: Deploy to dev site
         working-directory: ./buerligons
         if: github.ref == 'refs/heads/develop'
+        run: yarn deploy:dev
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy to dev site
+        working-directory: ./buerligons
+        if: github.ref == 'refs/heads/dev/online'
         run: yarn deploy:dev
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
