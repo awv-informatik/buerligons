@@ -41,7 +41,7 @@ export function WelcomePage() {
   ]
   const productLinks = [
     { name: 'Buerli', url: 'https://buerli.io/' },
-    { name: 'ClassCAD', url: 'https://classcad.ch/' },
+    { name: 'ClassCAD', url: 'http://classcad.ch/' },
   ]
 
   const menuItems: MenuProps['items'] = [
