@@ -8,7 +8,6 @@ import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
 import { TreeObjScope, getMateRefIds } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './OutlinesStore'
-import { getDescendants } from './ContextMenu/utils'
 
 const OutlinedObject: React.FC<{ group: string; id: number; children?: React.ReactNode }> = ({
   children,
@@ -102,7 +101,7 @@ export function OutlinedObjects({
   const availableInstanceId = curInstanceChildren?.find(id => (
     id === instanceId ||
     tree[id].members?.productRef?.value === instanceId ||
-    getDescendants(drawingId, id).some(descId => descId === instanceId)
+    ccUtils.base.getDescendants(drawingId, id).some(descId => descId === instanceId)
   )) || -1
   const instance = useDrawing(drawingId, d => d.structure.tree[availableInstanceId])
 
