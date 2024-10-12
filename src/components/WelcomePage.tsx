@@ -88,7 +88,7 @@ export function WelcomePage() {
         <Sidebar />
         <ContentArea>
           <ProductTitle>
-            BUERLI <br /> <span style={{ paddingLeft: 118 }}>GONS</span> <br />{' '}
+            BUERLI <br /> <span style={{ paddingLeft: "1.3em" }}>GONS</span> <br />{' '}
             <span style={{ fontWeight: 400 }}>CLOUD</span>
             <span style={{ position: 'relative', display: 'inline-block', top: "0.3em", fontWeight: 200 }}>+</span>
             <span style={{ fontWeight: 400 }}>CAD</span>
@@ -98,7 +98,7 @@ export function WelcomePage() {
           </ProductVideo>
           <ProductWrapper>
             <ProductDescription>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
               interactive, nurbs-based <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D
               solids and 2D sketches; manage parts and assemblies.
             </ProductDescription>
@@ -149,6 +149,7 @@ const HeaderWrapper = styled.header`
   @media (max-width: 991px) {
     max-width: 100%;
     padding: 0 20px;
+    gap: 10px;
   }
 `
 
@@ -156,7 +157,7 @@ const SocialLink = styled.a`
   color: #000;
   text-decoration: none;
   font:
-    400 14px/1.5em Inter,
+    400 14px/1.3em Inter,
     sans-serif;
   margin: auto 0;
 `
@@ -187,7 +188,7 @@ const FooterRight = styled.div`
   padding-right: 100px;
   @media (max-width: 991px) {
     max-width: 100%;
-    padding: 0 20px;
+    padding: 0;
   }
 `
 
@@ -203,7 +204,7 @@ const FooterLeft = styled.div`
   padding-left: 100px;
   @media (max-width: 991px) {
     max-width: 100%;
-    padding: 0 20px;
+    padding: 0;
   }
 `
 
@@ -239,7 +240,7 @@ const ProductVideo = styled.video`
 const ProductDescription = styled.p`
   color: #000;
   font:
-    400 14px/1.5em Inter,
+    400 14px/1.3em Inter,
     sans-serif;
   width: 350px;
   margin-top: 15px;
@@ -247,7 +248,7 @@ const ProductDescription = styled.p`
 `
 
 const ProductWrapper = styled.div`
-  height: 130px;
+  height: auto;
   display: flex;
   flex-direction: row;
   overflow: hidden;
@@ -340,7 +341,7 @@ const CompanyName = styled.span`
   gap: 15px;
   color: #000;
   font:
-    400 14px/1.5em Inter,
+    400 14px/1.3em Inter,
     sans-serif;
   margin: auto 0;
 `
