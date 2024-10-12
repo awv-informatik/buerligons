@@ -71,7 +71,7 @@ export function WelcomePage() {
     <AppWrapper>
       <HeaderWrapper>
         <CompanyName>
-          <img style={{ position: "relative", top: -10 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
+          <img style={{ position: 'relative', top: -2.5 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
           <SocialLink href="https://awv-informatik.ch/">
             AWV —<br /> Informatik AG
           </SocialLink>
@@ -80,7 +80,7 @@ export function WelcomePage() {
         <Spacer />
         {socialLinks.map(({ name, url }) => (
           <SocialLink key={name} href={url}>
-            {name}
+            {name}<br />&nbsp;
           </SocialLink>
         ))}
       </HeaderWrapper>
@@ -90,17 +90,17 @@ export function WelcomePage() {
           <ProductTitle>
             BUERLI <br /> <span style={{ paddingLeft: 118 }}>GONS</span> <br />{' '}
             <span style={{ fontWeight: 400 }}>CLOUD</span>
-            <span style={{ position: 'relative', display: 'inline-block', top: 24, fontWeight: 200 }}>+</span>
+            <span style={{ position: 'relative', display: 'inline-block', top: "0.3em", fontWeight: 200 }}>+</span>
             <span style={{ fontWeight: 400 }}>CAD</span>
           </ProductTitle>
-          <ProductImage autoPlay muted loop>
+          <ProductVideo autoPlay muted loop>
             <source src="1728647677004558.mp4" type="video/mp4" />
-          </ProductImage>
+          </ProductVideo>
           <ProductWrapper>
             <ProductDescription>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
-              interactive, nurbs-based <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D
-              sketches; manage parts and assemblies.
+              interactive, nurbs-based <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D
+              solids and 2D sketches; manage parts and assemblies.
             </ProductDescription>
             <ButtonGroup>
               <Dropdown menu={menuProps}>
@@ -117,6 +117,8 @@ export function WelcomePage() {
         <FooterLeft>
           {productLinks.map(({ name, url }) => (
             <SocialLink key={name} href={url}>
+              &nbsp;
+              <br />
               {name}
             </SocialLink>
           ))}
@@ -139,7 +141,7 @@ const Spacer = styled.div`
 
 const HeaderWrapper = styled.header`
   display: flex;
-  min-height: 100px;
+  min-height: 120px;
   width: 100%;
   overflow: hidden;
   padding: 0 100px;
@@ -162,7 +164,7 @@ const SocialLink = styled.a`
 const Footer = styled.footer`
   display: flex;
   flex-direction: row;
-  min-height: 100px;
+  min-height: 120px;
   width: 100%;
   align-items: center;
   overflow: hidden;
@@ -209,7 +211,9 @@ const ProductTitle = styled.h2`
   position: absolute;
   color: #000;
   letter-spacing: -0.03em;
-  text-shadow: 0 0 1em white, 0 0 1em white;
+  text-shadow:
+    0 0 1em white,
+    0 0 1em white;
   font:
     600 90px/85px Inter,
     sans-serif;
@@ -220,15 +224,15 @@ const ProductTitle = styled.h2`
   }
 `
 
-const ProductImage = styled.video`
-  width: 800px;
-  max-width: 100%;
-  height: 55vh;
+const ProductVideo = styled.video`
+  flex: 1;
+  min-height: 200px;  
   margin: 100px 0 0 100px;
   object-fit: contain;
   @media (max-width: 991px) {
     margin: 100px 0 0 0;
     height: calc(50vh - 150px);
+    object-fit: cover;
   }
 `
 
@@ -243,14 +247,19 @@ const ProductDescription = styled.p`
 `
 
 const ProductWrapper = styled.div`
+  height: 130px;
   display: flex;
   flex-direction: row;
   overflow: hidden;
   gap: 40px;
-  padding: 0 4px 10px 100px;
+  padding: 0 0 0 100px;
   @media (max-width: 991px) {
+    padding-left: 0px;
+  }
+  @media (max-width: 500px) {
     max-width: 100%;
     padding-left: 20px;
+    display: none;
   }
 `
 
@@ -304,12 +313,13 @@ const Sidebar = styled.aside`
 `
 
 const ContentArea = styled.section`
+  height: 100%;
   display: flex;
   min-width: 240px;
   flex-direction: column;
   overflow: hidden;
   width: 1024px;
-  padding: 0 4px 10px 60px;
+  padding: 0 20px 0 60px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding-left: 20px;
@@ -325,10 +335,8 @@ const AppWrapper = styled.div`
   justify-content: flex-start;
 `
 
-const CompanyName = styled.h1`
+const CompanyName = styled.span`
   display: flex;
-  flex-direction: row;
-  align-items: center;
   gap: 15px;
   color: #000;
   font:
