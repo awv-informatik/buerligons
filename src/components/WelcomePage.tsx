@@ -80,7 +80,9 @@ export function WelcomePage() {
         <Spacer />
         {socialLinks.map(({ name, url }) => (
           <SocialLink key={name} href={url}>
-            {name}<br />&nbsp;
+            {name}
+            <br />
+            &nbsp;
           </SocialLink>
         ))}
       </HeaderWrapper>
@@ -88,9 +90,9 @@ export function WelcomePage() {
         <Sidebar />
         <ContentArea>
           <ProductTitle>
-            BUERLI <br /> <span style={{ paddingLeft: "1.3em" }}>GONS</span> <br />{' '}
+            BUERLI <br /> <span style={{ paddingLeft: '1.3em' }}>GONS</span> <br />{' '}
             <span style={{ fontWeight: 400 }}>CLOUD</span>
-            <span style={{ position: 'relative', display: 'inline-block', top: "0.3em", fontWeight: 200 }}>+</span>
+            <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
             <span style={{ fontWeight: 400 }}>CAD</span>
           </ProductTitle>
           <ProductVideo autoPlay muted loop>
@@ -98,9 +100,9 @@ export function WelcomePage() {
           </ProductVideo>
           <ProductWrapper>
             <ProductDescription>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly
-              interactive, nurbs-based <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D
-              solids and 2D sketches; manage parts and assemblies.
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based{' '}
+              <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches;
+              manage parts and assemblies.
             </ProductDescription>
             <ButtonGroup>
               <Dropdown menu={menuProps}>
@@ -227,7 +229,7 @@ const ProductTitle = styled.h2`
 
 const ProductVideo = styled.video`
   flex: 1;
-  min-height: 200px;  
+  min-height: 200px;
   margin: 100px 0 0 100px;
   object-fit: contain;
   @media (max-width: 991px) {
@@ -285,6 +287,10 @@ const ActionButton = styled.button`
   font:
     400 14px Inter,
     sans-serif;
+  box-shadow:
+    0 3px 6px -4px #0000001f,
+    0 6px 16px #00000014,
+    0 9px 28px 8px #0000000d;
   border: none;
   cursor: pointer;
   @media (max-width: 991px) {
