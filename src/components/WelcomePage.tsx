@@ -2,12 +2,13 @@ import React from 'react'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
 import styled from 'styled-components'
-import { Dropdown, MenuProps } from 'antd'
+import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
-import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
+import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
+import DemoPart from '../resources/as1_ac_214.stp?url'
 
 export function WelcomePage() {
-  const rfRef = React.useRef<HTMLInputElement>()
+  const rfRef = React.useRef<HTMLInputElement>(null!)
 
   const createPart = React.useCallback(async () => {
     const newDrawingId = await ccAPI.base.createCCDrawing()
@@ -18,21 +19,6 @@ export function WelcomePage() {
     const newDrawingId = await ccAPI.base.createCCDrawing()
     newDrawingId && (await ccAPI.assemblyBuilder.createRootAssembly(newDrawingId, 'New Assembly').catch(console.info))
   }, [])
-
-  const openFile = React.useCallback(() => {
-    rfRef.current && rfRef.current.click()
-  }, [])
-
-  const onClick = React.useCallback(
-    (e: { key: string }) => {
-      if (e.key === 'Part') {
-        createPart()
-      } else {
-        createAssembly()
-      }
-    },
-    [createPart, createAssembly],
-  )
 
   React.useEffect(() => {
     async function run() {
@@ -60,12 +46,33 @@ export function WelcomePage() {
     { name: 'ClassCAD', url: 'http://classcad.ch/' },
   ]
 
-  const menuItems: MenuProps['items'] = [
-    { label: 'Part', key: 'Part', icon: <FileOutlined /> },
-    { label: 'Assembly', key: 'Assembly', icon: <AppstoreOutlined /> },
-  ]
+  const createNewProps = {
+    items: [
+      { label: 'Part', key: 'Part', icon: <BorderOutlined /> },
+      { label: 'Assembly', key: 'Assembly', icon: <BuildOutlined /> },
+    ],
+    onClick: (e: { key: string }) => {
+      if (e.key === 'Part') createPart()
+      else createAssembly()
+    },
+  }
 
-  const menuProps = { items: menuItems, onClick }
+  const openProps = {
+    items: [
+      { label: 'Demo', key: 'Demo', icon: <GiftOutlined /> },
+      { label: 'File ...', key: 'File', icon: <FileAddOutlined /> },
+    ],
+    onClick: async (e: { key: string }) => {
+      if (e.key === 'Demo') {
+        const newDrawingId = await ccAPI.base.createCCDrawing()
+        if (newDrawingId) {
+          const type = DemoPart.substring(DemoPart.lastIndexOf('.') + 1, DemoPart.length)
+          const content = await (await fetch(DemoPart)).arrayBuffer()
+          await ccAPI.baseModeler.load(newDrawingId, content, type as never).catch(console.info)
+        }
+      } else rfRef.current.click()
+    },
+  }
 
   return (
     <AppWrapper>
@@ -100,15 +107,19 @@ export function WelcomePage() {
           </ProductVideo>
           <ProductWrapper>
             <ProductDescription>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based{' '}
-              <i>CAD system</i> that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches;
-              manage parts and assemblies.
+              <p>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based CAD
+                system that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches; manage parts
+                and assemblies.
+              </p>
             </ProductDescription>
             <ButtonGroup>
-              <Dropdown menu={menuProps}>
+              <Dropdown menu={createNewProps}>
                 <ActionButton>Create New ...</ActionButton>
               </Dropdown>
-              <ActionButton onClick={openFile}>Open Part</ActionButton>
+              <Dropdown menu={openProps}>
+                <ActionButton>Open ...</ActionButton>
+              </Dropdown>
               <Readfile ref={rfRef} singleDrawingApp />
             </ButtonGroup>
           </ProductWrapper>
@@ -239,7 +250,7 @@ const ProductVideo = styled.video`
   }
 `
 
-const ProductDescription = styled.p`
+const ProductDescription = styled.span`
   color: #000;
   font:
     400 14px/1.3em Inter,
@@ -269,10 +280,11 @@ const ProductWrapper = styled.div`
 const ButtonGroup = styled.div`
   display: flex;
   height: 40px;
-  gap: 10px;
+  gap: 20px;
   margin-top: 15px;
   @media (max-width: 600px) {
     flex-direction: column;
+    gap: 10px;
   }
 `
 
