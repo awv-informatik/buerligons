@@ -213,10 +213,10 @@ const ProductTitle = styled.h2`
   color: #000;
   letter-spacing: -0.03em;
   text-shadow:
-    0 0 1em white,
-    0 0 1em white;
+    0 0 1.5em white,
+    0 0 1.5em white;
   font:
-    600 90px/85px Inter,
+    600 90px/0.9em Inter,
     sans-serif;
   @media (max-width: 991px) {
     max-width: 100%;
