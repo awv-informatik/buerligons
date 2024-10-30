@@ -1,7 +1,7 @@
 import React from 'react'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
 import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
@@ -75,57 +75,60 @@ export function WelcomePage() {
   }
 
   return (
-    <AppWrapper>
-      <HeaderWrapper>
-        <CompanyName>
-          <img style={{ position: 'relative', top: -2.5 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
-          <SocialLink href="https://awv-informatik.ch/">
-            AWV —<br /> Informatik AG
-          </SocialLink>
-        </CompanyName>
-        <Spacer />
-        <Spacer />
-        {socialLinks.map(({ name, url }) => (
-          <SocialLink key={name} href={url}>
-            {name}
-            <br />
-            &nbsp;
-          </SocialLink>
-        ))}
-      </HeaderWrapper>
-      <MainWrapper>
-        <Sidebar />
-        <ContentArea>
-          <ProductTitle>
-            BUERLI <br /> <span style={{ paddingLeft: '1.3em' }}>GONS</span> <br />{' '}
-            <span style={{ fontWeight: 400 }}>CLOUD</span>
-            <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
-            <span style={{ fontWeight: 400 }}>CAD</span>
-          </ProductTitle>
-          <ProductVideo autoPlay muted loop>
-            <source src="1728647677004558.mp4" type="video/mp4" />
-          </ProductVideo>
-          <ProductWrapper>
-            <ProductDescription>
-              <p>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based CAD
-                system that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches; manage parts
-                and assemblies.
-              </p>
-            </ProductDescription>
-            <ButtonGroup>
-              <Dropdown menu={createNewProps}>
-                <ActionButton>Create New ...</ActionButton>
-              </Dropdown>
-              <Dropdown menu={openProps}>
-                <ActionButton>Open ...</ActionButton>
-              </Dropdown>
-              <Readfile ref={rfRef} singleDrawingApp />
-            </ButtonGroup>
-          </ProductWrapper>
-        </ContentArea>
-        <Sidebar />
-      </MainWrapper>
+    <>
+      <Hero>
+        <Header>
+          <CompanyName>
+            <img style={{ position: 'relative', top: -2.5 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
+            <SocialLink href="https://awv-informatik.ch/">
+              AWV —<br /> Informatik AG
+            </SocialLink>
+          </CompanyName>
+          <Spacer />
+          <Spacer />
+          {socialLinks.map(({ name, url }) => (
+            <SocialLink key={name} href={url}>
+              {name}
+              <br />
+              &nbsp;
+            </SocialLink>
+          ))}
+        </Header>
+        <Main>
+          <SpacerSides />
+          <ContentArea>
+            <Caption>
+              BUERLI <br /> <span style={{ paddingLeft: '1.3em' }}>GONS</span> <br />{' '}
+              <span style={{ fontWeight: 400 }}>CLOUD</span>
+              <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
+              <span style={{ fontWeight: 400 }}>CAD</span>
+            </Caption>
+            <ProductVideo autoPlay muted loop>
+              <source src="1728647677004558.mp4" type="video/mp4" />
+            </ProductVideo>
+            <ProductWrapper>
+              <ProductDescription>
+                <p>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based CAD
+                  system that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches; manage parts
+                  and assemblies.
+                </p>
+              </ProductDescription>
+              <ButtonGroup>
+                <Dropdown menu={createNewProps}>
+                  <ActionButton>Create New ...</ActionButton>
+                </Dropdown>
+                <Dropdown menu={openProps}>
+                  <ActionButton>Open ...</ActionButton>
+                </Dropdown>
+                <Readfile ref={rfRef} singleDrawingApp />
+              </ButtonGroup>
+            </ProductWrapper>
+          </ContentArea>
+          <SpacerSides />
+        </Main>
+        <HeroSpacer />
+      </Hero>
       <Footer>
         <FooterLeft>
           {productLinks.map(({ name, url }) => (
@@ -144,15 +147,36 @@ export function WelcomePage() {
           </CompanyName>
         </FooterRight>
       </Footer>
-    </AppWrapper>
+      <Main>
+        <SpacerSides />
+        <ContentArea className="margin-top">
+          <Caption light>Nurbs based.</Caption>
+        </ContentArea>
+        <SpacerSides />
+      </Main>
+    </>
   )
 }
+
+const Hero = styled.div`
+  height: 100%;
+  width: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+`
 
 const Spacer = styled.div`
   flex: 1;
 `
 
-const HeaderWrapper = styled.header`
+const Header = styled.header`
+  z-index: 1000;
+  background: white;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.975) 75%);
+  position: sticky;
+  top: 0px;
   display: flex;
   min-height: 120px;
   width: 100%;
@@ -170,12 +194,33 @@ const SocialLink = styled.a`
   color: #000;
   text-decoration: none;
   font:
-    400 14px/1.3em Inter,
+    400 15px/1.3em Inter,
     sans-serif;
   margin: auto 0;
 `
 
+const HeroSpacer = styled.div`
+  display: flex;
+  flex-direction: row;
+  min-height: 120px;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+`
+
 const Footer = styled.footer`
+  z-index: 1000;
+  background: white;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 90%);
+  position: absolute;
+  bottom: 0;
+
   display: flex;
   flex-direction: row;
   min-height: 120px;
@@ -221,7 +266,7 @@ const FooterLeft = styled.div`
   }
 `
 
-const ProductTitle = styled.h2`
+const Caption = styled.h2<{ light?: boolean }>`
   position: absolute;
   color: #000;
   letter-spacing: -0.03em;
@@ -236,12 +281,15 @@ const ProductTitle = styled.h2`
     font-size: 40px;
     line-height: 40px;
   }
+  ${props => props.light && css`
+    font-weight: 400;
+  `}
 `
 
 const ProductVideo = styled.video`
   flex: 1;
   min-height: 200px;
-  margin: 100px 0 0 100px;
+  margin: 100px 0 15px 100px;
   object-fit: contain;
   @media (max-width: 991px) {
     margin: 100px 0 0 0;
@@ -253,7 +301,7 @@ const ProductVideo = styled.video`
 const ProductDescription = styled.span`
   color: #000;
   font:
-    400 14px/1.3em Inter,
+    400 15px/1.3em Inter,
     sans-serif;
   width: 350px;
   margin-top: 15px;
@@ -297,7 +345,7 @@ const ActionButton = styled.button`
   color: white;
   min-width: 140px;
   font:
-    400 14px Inter,
+    400 15px Inter,
     sans-serif;
   box-shadow:
     0 3px 6px -4px #0000001f,
@@ -310,7 +358,7 @@ const ActionButton = styled.button`
   }
 `
 
-const MainWrapper = styled.main`
+const Main = styled.main`
   display: flex;
   width: 100%;
   overflow: hidden;
@@ -323,7 +371,7 @@ const MainWrapper = styled.main`
   }
 `
 
-const Sidebar = styled.aside`
+const SpacerSides = styled.aside`
   display: flex;
   width: 10px;
   height: 10px;
@@ -332,26 +380,21 @@ const Sidebar = styled.aside`
 `
 
 const ContentArea = styled.section`
+  position: relative;
   height: 100%;
   display: flex;
   min-width: 240px;
   flex-direction: column;
   overflow: hidden;
   width: 1024px;
-  padding: 0 20px 0 60px;
+  padding: 0 20px 0 20px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding-left: 20px;
   }
-`
-
-const AppWrapper = styled.div`
-  height: 100%;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  justify-content: flex-start;
+  &.margin-top {
+    padding-top: 40px;
+  }
 `
 
 const CompanyName = styled.span`
@@ -359,7 +402,7 @@ const CompanyName = styled.span`
   gap: 15px;
   color: #000;
   font:
-    400 14px/1.3em Inter,
+    400 15px/1.3em Inter,
     sans-serif;
   margin: auto 0;
 `
