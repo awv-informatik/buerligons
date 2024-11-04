@@ -102,7 +102,7 @@ export const Buerligons: React.FC = () => {
   useInteractionReset(drawingId)
 
   return (
-    <div style={{ backgroundColor: '#fff', height: '100%', width: '100%' }}>
+    <>
       {ipc.isEmbeddedApp && !ipc.hasClassFile ? (
         <ChooseCCApp />
       ) : count === 0 || !drawingId ? (
@@ -140,6 +140,6 @@ export const Buerligons: React.FC = () => {
           <Disconnected drawingId={drawingId} />
         </>
       )}
-    </div>
+    </>
   )
 }

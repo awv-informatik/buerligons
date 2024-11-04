@@ -1,11 +1,31 @@
 import React from 'react'
 import { ccAPI } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
-import styled, { css } from 'styled-components'
 import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
 import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
+import { FiDisc, FiGitMerge, FiLayers, FiZap, FiPackage } from 'react-icons/fi'
 import DemoPart from '../resources/as1_ac_214.stp?url'
+import {
+  Hero,
+  Header,
+  Brand,
+  Link,
+  Spacer,
+  Main,
+  Content,
+  Sidebar,
+  Caption,
+  Video,
+  Description,
+  Button,
+  ButtonGroup,
+  Footer,
+  ProductWrapper,
+  Section,
+  Grid,
+  Feature,
+} from './Layout'
 
 export function WelcomePage() {
   const rfRef = React.useRef<HTMLInputElement>(null!)
@@ -42,8 +62,9 @@ export function WelcomePage() {
     { name: 'Github', url: 'https://github.com/awv-informatik' },
   ]
   const productLinks = [
-    { name: 'Buerli', url: 'https://buerli.io/' },
-    { name: 'ClassCAD', url: 'http://classcad.ch/' },
+    { name: 'Buerli', url: 'https://buerli.io', highlight: false },
+    { name: 'Buerligons', url: '#', highlight: true },
+    { name: 'ClassCAD', url: 'http://classcad.ch', highlight: false },
   ]
 
   const createNewProps = {
@@ -78,331 +99,107 @@ export function WelcomePage() {
     <>
       <Hero>
         <Header>
-          <CompanyName>
+          <Brand>
             <img style={{ position: 'relative', top: -2.5 }} height="26" src="favicon.svg" alt="AWV Informatik AG" />
-            <SocialLink href="https://awv-informatik.ch/">
+            <Link href="https://awv-informatik.ch/">
               AWV —<br /> Informatik AG
-            </SocialLink>
-          </CompanyName>
+            </Link>
+          </Brand>
           <Spacer />
-          <Spacer />
+          {/*<Brand style={{ textAlign: 'right' }}>© 2024</Brand>
+          <Spacer />*/}
           {socialLinks.map(({ name, url }) => (
-            <SocialLink key={name} href={url}>
+            <Link key={name} href={url}>
               {name}
               <br />
               &nbsp;
-            </SocialLink>
+            </Link>
           ))}
         </Header>
         <Main>
-          <SpacerSides />
-          <ContentArea>
-            <Caption>
+          <Sidebar />
+          <Content>
+            <Caption floating>
               BUERLI <br /> <span style={{ paddingLeft: '1.3em' }}>GONS</span> <br />{' '}
               <span style={{ fontWeight: 400 }}>CLOUD</span>
               <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
               <span style={{ fontWeight: 400 }}>CAD</span>
             </Caption>
-            <ProductVideo autoPlay muted loop>
+            <Video autoPlay muted loop>
               <source src="1728647677004558.mp4" type="video/mp4" />
-            </ProductVideo>
+            </Video>
             <ProductWrapper>
-              <ProductDescription>
-                <p>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Introducing Buerligons, our user-friendly interactive, nurbs-based CAD
-                  system that runs anywhere. Easily create, constrain and modify 3D solids and 2D sketches; manage parts
-                  and assemblies.
-                </p>
-              </ProductDescription>
+              <Description>
+                Introducing Buerligons, our user-friendly interactive, nurbs-based CAD system that runs anywhere. Easily
+                create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
+              </Description>
               <ButtonGroup>
                 <Dropdown menu={createNewProps}>
-                  <ActionButton>Create New ...</ActionButton>
+                  <Button>Create New ...</Button>
                 </Dropdown>
                 <Dropdown menu={openProps}>
-                  <ActionButton>Open ...</ActionButton>
+                  <Button>Open ...</Button>
                 </Dropdown>
                 <Readfile ref={rfRef} singleDrawingApp />
               </ButtonGroup>
             </ProductWrapper>
-          </ContentArea>
-          <SpacerSides />
+          </Content>
+          <Sidebar />
         </Main>
-        <HeroSpacer />
       </Hero>
       <Footer>
-        <FooterLeft>
-          {productLinks.map(({ name, url }) => (
-            <SocialLink key={name} href={url}>
-              &nbsp;
-              <br />
-              {name}
-            </SocialLink>
-          ))}
-        </FooterLeft>
-        <FooterRight>
-          <CompanyName style={{ textAlign: 'right' }}>
-            © 2024
-            <br />
-            All rights reserved
-          </CompanyName>
-        </FooterRight>
+        {productLinks.map(({ name, url, highlight }) => (
+          <Link key={name} href={url}>
+            {highlight ? <i>{name}</i> : name}
+          </Link>
+        ))}
+        <Spacer />+
       </Footer>
-      <Main>
-        <SpacerSides />
-        <ContentArea className="margin-top">
-          <Caption light>Nurbs based.</Caption>
-        </ContentArea>
-        <SpacerSides />
-      </Main>
+      <Section>
+        <Sidebar />
+        <Content className="margin-top">
+          <Caption right>
+            PACKED <br />
+            <span style={{ fontWeight: 400 }}>WITH</span>
+            <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
+            <span style={{ fontWeight: 400 }}>FEATURES</span>
+          </Caption>
+          <Grid columns={2} rows={4}>
+            <Feature icon={FiDisc} title="Non-manifold solid kernel">
+              A NURBS solid modeling kernel includes a powerful set of construction, modification, and evaluation tools
+              for curves, surfaces, trimmed surfaces and polygonal solids. It supports topologically based operations
+              such as booleans, fillets, offsets, tessellations, deformable modeling, and much more. Note today we use
+              only a fraction of the kernel functionality within our Buerli.
+            </Feature>
+            <Feature icon={FiGitMerge} title="Parts">
+            Effortlessly design 3D solids by combining parametric sketching with extruding and revolving techniques. Model objects using fundamental shapes—such as boxes, cylinders, cones, and spheres—and refine them through Boolean operations, slicing, and patterning tools for precise positioning and manipulation.
+            </Feature>
+            <Feature icon={FiLayers} title="STEP support">
+              Import of Step models (AP203, AP214, AP242). Assembly structures are supported for standard and enterprise
+              plans, while solid modeling imports Step flattened. Other formats like SAT or IGES are available on
+              request.
+            </Feature>
+            <Feature icon={FiLayers} title="Assemblies">
+            Our software enables the creation and precise positioning of part or assembly template instances within a 3D scene, using either 3D constraints or the movement gizmo. Standard 3D constraints—including slider, revolute, planar, and parallel—can be applied directly to coordinate systems within parts. Users can also seamlessly toggle between assembly mode and part modeling by simply double-clicking on parts in the assembly tree.
+            </Feature>
+            <Feature icon={FiPackage} title="-----Node based instance management">
+              Our node based backend has horizontal scaling inbuilt and manages connecting clients automatically. Even a
+              single instance may serve multiple users while states are swapped quickly and efficiently.
+            </Feature>
+            <Feature icon={FiZap} title="-----Native format">
+              A native format allows binary storage of the created geometry and its parametric history. You can use it
+              to save a state, for instance into a database, and resume work later on, or as a starting point for
+              configurators.
+            </Feature>
+            <Feature icon={FiZap} title="Open source">
+              x undo redo
+              A full self-contained WASM embed is coming soon!.
+              link node server
+            </Feature>
+          </Grid>
+        </Content>
+        <Sidebar />
+      </Section>
     </>
   )
 }
-
-const Hero = styled.div`
-  height: 100%;
-  width: 100%;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-`
-
-const Spacer = styled.div`
-  flex: 1;
-`
-
-const Header = styled.header`
-  z-index: 1000;
-  background: white;
-  background: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.975) 75%);
-  position: sticky;
-  top: 0px;
-  display: flex;
-  min-height: 120px;
-  width: 100%;
-  overflow: hidden;
-  padding: 0 100px;
-  gap: 20px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px;
-    gap: 10px;
-  }
-`
-
-const SocialLink = styled.a`
-  color: #000;
-  text-decoration: none;
-  font:
-    400 15px/1.3em Inter,
-    sans-serif;
-  margin: auto 0;
-`
-
-const HeroSpacer = styled.div`
-  display: flex;
-  flex-direction: row;
-  min-height: 120px;
-  width: 100%;
-  align-items: center;
-  overflow: hidden;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px;
-  }
-`
-
-const Footer = styled.footer`
-  z-index: 1000;
-  background: white;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 90%);
-  position: absolute;
-  bottom: 0;
-
-  display: flex;
-  flex-direction: row;
-  min-height: 120px;
-  width: 100%;
-  align-items: center;
-  overflow: hidden;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px;
-  }
-`
-
-const FooterRight = styled.div`
-  flex: 1;
-  display: flex;
-  min-height: 100px;
-  align-items: center;
-  gap: 20px;
-  overflow: hidden;
-  justify-content: flex-end;
-  padding-right: 100px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0;
-  }
-`
-
-const FooterLeft = styled.div`
-  flex: 1;
-  display: flex;
-  min-height: 100px;
-  align-items: center;
-  gap: 20px;
-  overflow: hidden;
-  justify-content: flex-start;
-
-  padding-left: 100px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0;
-  }
-`
-
-const Caption = styled.h2<{ light?: boolean }>`
-  position: absolute;
-  color: #000;
-  letter-spacing: -0.03em;
-  text-shadow:
-    0 0 1.5em white,
-    0 0 1.5em white;
-  font:
-    600 90px/0.9em Inter,
-    sans-serif;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    font-size: 40px;
-    line-height: 40px;
-  }
-  ${props => props.light && css`
-    font-weight: 400;
-  `}
-`
-
-const ProductVideo = styled.video`
-  flex: 1;
-  min-height: 200px;
-  margin: 100px 0 15px 100px;
-  object-fit: contain;
-  @media (max-width: 991px) {
-    margin: 100px 0 0 0;
-    height: calc(50vh - 150px);
-    object-fit: cover;
-  }
-`
-
-const ProductDescription = styled.span`
-  color: #000;
-  font:
-    400 15px/1.3em Inter,
-    sans-serif;
-  width: 350px;
-  margin-top: 15px;
-  text-align: justify;
-`
-
-const ProductWrapper = styled.div`
-  height: auto;
-  display: flex;
-  flex-direction: row;
-  overflow: hidden;
-  gap: 40px;
-  padding: 0 0 0 100px;
-  @media (max-width: 991px) {
-    padding-left: 0px;
-  }
-  @media (max-width: 500px) {
-    max-width: 100%;
-    padding-left: 20px;
-    display: none;
-  }
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  height: 40px;
-  gap: 20px;
-  margin-top: 15px;
-  @media (max-width: 600px) {
-    flex-direction: column;
-    gap: 10px;
-  }
-`
-
-const ActionButton = styled.button`
-  word-wrap: nowrap;
-  white-space: nowrap;
-  border-radius: 5px;
-  background-color: black;
-  padding: 11px 25px;
-  color: white;
-  min-width: 140px;
-  font:
-    400 15px Inter,
-    sans-serif;
-  box-shadow:
-    0 3px 6px -4px #0000001f,
-    0 6px 16px #00000014,
-    0 9px 28px 8px #0000000d;
-  border: none;
-  cursor: pointer;
-  @media (max-width: 991px) {
-    padding: 11px 20px;
-  }
-`
-
-const Main = styled.main`
-  display: flex;
-  width: 100%;
-  overflow: hidden;
-  justify-content: flex-start;
-  flex: 1;
-  flex-wrap: wrap;
-  height: 100%;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`
-
-const SpacerSides = styled.aside`
-  display: flex;
-  width: 10px;
-  height: 10px;
-  flex: 1;
-  flex-basis: 64px;
-`
-
-const ContentArea = styled.section`
-  position: relative;
-  height: 100%;
-  display: flex;
-  min-width: 240px;
-  flex-direction: column;
-  overflow: hidden;
-  width: 1024px;
-  padding: 0 20px 0 20px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding-left: 20px;
-  }
-  &.margin-top {
-    padding-top: 40px;
-  }
-`
-
-const CompanyName = styled.span`
-  display: flex;
-  gap: 15px;
-  color: #000;
-  font:
-    400 15px/1.3em Inter,
-    sans-serif;
-  margin: auto 0;
-`
