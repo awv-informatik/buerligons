@@ -11,7 +11,9 @@ import { AutoClear } from './AutoClear'
 
 type OutlineColorRepresentation = [THREE.ColorRepresentation, THREE.ColorRepresentation]
 
-const useOutlinesColor = (drawingId: DrawingID): { hColor: OutlineColorRepresentation, sColor: OutlineColorRepresentation } => {
+const useOutlinesColor = (
+  drawingId: DrawingID,
+): { hColor: OutlineColorRepresentation; sColor: OutlineColorRepresentation } => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
   return React.useMemo(() => {
     return isSelActive
@@ -20,21 +22,10 @@ const useOutlinesColor = (drawingId: DrawingID): { hColor: OutlineColorRepresent
   }, [isSelActive])
 }
 
-export function Composer({
-  children,
-  drawingId,
-  width = 5,
-  ao = true,
-  ...props
-}: any) {
+export function Composer({ children, drawingId, width = 5, ao = true, ...props }: any) {
   return (
     <>
-      <Chain
-        drawingId={drawingId}
-        width={width}
-        ao={ao}
-        {...props}
-      />
+      <Chain drawingId={drawingId} width={width} ao={ao} {...props} />
       <AutoClear />
       {children}
     </>
@@ -42,34 +33,30 @@ export function Composer({
 }
 
 // Make the effects chain a stable, memoized component
-const Chain = React.memo(
-  ({ drawingId, width, ao = true, ...props }: any) => {
-    return (
-      <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ao && <N8AO aoRadius={50} halfRes intensity={2} distanceFalloff={1} screenSpaceRadius />}
-        <MultiOutline drawingId={drawingId} width={width} />
-      </EffectComposer>
-    )
-  },
-)
+const Chain = React.memo(({ drawingId, width, ao = true, ...props }: any) => {
+  return (
+    <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
+      {ao && <N8AO aoRadius={50} halfRes intensity={2} distanceFalloff={1} screenSpaceRadius />}
+      <MultiOutline drawingId={drawingId} width={width} />
+    </EffectComposer>
+  )
+})
 
 // The outline component will update itself without disturbing the parental effect composer
-const MultiOutline = React.memo(
-  ({ drawingId, width = 5 }: any) => {
-    const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
-    const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
-    const selections1 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
-    const selections2 = React.useMemo(() => (selectedMeshes ? Object.values(selectedMeshes) : []), [selectedMeshes])
-    const { hColor, sColor } = useOutlinesColor(drawingId)
-    return (
-      <Outline
-        selections1={selections1}
-        selections2={selections2}
-        selectionLayer={10}
-        width={width}
-        edgeColor1={hColor}
-        edgeColor2={sColor}
-      />
-    )
-  },
-)
+const MultiOutline = React.memo(({ drawingId, width = 5 }: any) => {
+  const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
+  const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
+  const selections1 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])
+  const selections2 = React.useMemo(() => (selectedMeshes ? Object.values(selectedMeshes) : []), [selectedMeshes])
+  const { hColor, sColor } = useOutlinesColor(drawingId)
+  return (
+    <Outline
+      selections1={selections1}
+      selections2={selections2}
+      selectionLayer={10}
+      width={width}
+      edgeColor1={hColor}
+      edgeColor2={sColor}
+    />
+  )
+})
