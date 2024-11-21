@@ -15,18 +15,10 @@ import {
   InteractionInfo,
 } from '@buerli.io/core'
 import { TreeObjScope, MateScope, createTreeObjSelItem } from '@buerli.io/react-cad'
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils } from '@buerli.io/classcad'
 
 export const isBPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
 export const isBLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
-
-export const isSketchActive = (drawingId: DrawingID) => {
-  const drawing = getDrawing(drawingId)
-  const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-  const objClass = drawing.structure.tree[active?.id || -1]?.class || ''
-
-  return ccUtils.base.isA(objClass, CCClasses.CCSketch)
-}
 
 export const getBuerliGeometry = (intersection: THREE.Intersection | undefined) => {
   const uData = intersection?.object?.userData

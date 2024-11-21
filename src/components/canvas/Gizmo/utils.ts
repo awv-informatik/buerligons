@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 
 import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { mateUtils } from '@buerli.io/react-cad'
 
 // Intersection object should be a line
 export const getAdjacentMeshNormal = (
@@ -56,14 +57,7 @@ export const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) =>
   const curInst = drawing.structure.tree[curInstId]
   const interactable = curInst?.children || []
 
-  const ancestors: ObjectID[] = []
-  let objId: number | null = refId
-  while (objId) {
-    ancestors.push(objId)
-    objId = drawing.structure.tree[objId].parent
-  }
-
-  return ancestors.find(id => interactable.indexOf(id) !== -1)
+  return mateUtils.getProductRigidSet(drawingId, refId, interactable)
 }
 
 export const getGizmoInfo = (drawingId: DrawingID, intersection: THREE.Intersection, cameraRay: THREE.Ray) => {
