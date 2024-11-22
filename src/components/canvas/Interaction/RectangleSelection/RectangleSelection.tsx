@@ -3,11 +3,10 @@ import React from 'react'
 
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { sketchUtils } from '@buerli.io/react-cad'
 import { extend, Object3DNode, useThree, ThreeEvent } from '@react-three/fiber'
 
 import { RectLines } from './primitives'
-// TODO: Use getDescendants from ccUtils.Base once / if it is merged!
-import { isSketchActive } from '../utils'
 import { containsSketchArc, containsSketchCircle, containsSketchLine, containsSketchPoint, getInstancesInfo, getPointOnPlane, getSketchGeomInfo, getSolidsInfo, InstanceInfo, SketchInfo, SolidInfo, touchesSketchArc, touchesSketchCircle, touchesSketchLine } from './utils'
 
 
@@ -44,7 +43,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
   const solidsInfoRef = React.useRef<SolidInfo[]>([])
   const instancesInfoRef = React.useRef<InstanceInfo[]>([])
   const sketchGeomInfoRef = React.useRef<SketchInfo>({ points: [], lines: [], arcs: [], circles: []})
-  const sketchClickPosRef = React.useRef<THREE.Vector2>(new THREE.Vector2())
+  const sketchClickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
   const sketchMatrixRef = React.useRef<THREE.Matrix4>(new THREE.Matrix4())
   const sketchMatrixInvRef = React.useRef<THREE.Matrix4>(new THREE.Matrix4())
 
@@ -67,7 +66,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     const prodClass = tree[curProduct || -1]?.class || ''
     const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-    if (isSketchActive(drawingId)) {
+    if (sketchUtils.isSketchActive(drawingId)) {
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const sketchId = active?.objectId
       if (!sketchId) {
@@ -124,7 +123,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     if (isSelActive) {
       // TODO: Implement RectangleSelection for selectors
       return
-    } else if (isSketchActive(drawingId)) {
+    } else if (sketchUtils.isSketchActive(drawingId)) {
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const sketchId = active.objectId
       if (!sketchId) {

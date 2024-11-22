@@ -2,27 +2,13 @@ import * as THREE from 'three'
 
 import { DrawingID, getDrawing, ObjectID, PointMem } from '@buerli.io/core'
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
-import { getDescendants } from '../ContextMenu/utils'
+import { sketchIntersectionUtils } from '@buerli.io/react-cad'
 
-export type PointInfo = { id: ObjectID; pos: THREE.Vector2 }
-export type LineInfo = { id: ObjectID; startPos: THREE.Vector2; endPos: THREE.Vector2 }
-export type ArcInfo = {
-  id: ObjectID
-  startPosL: THREE.Vector2
-  endPosL: THREE.Vector2
-  centerPosL: THREE.Vector2
-  startPosH: THREE.Vector2
-  endPosH: THREE.Vector2
-  centerPosH: THREE.Vector2
-  bulge: number
-}
-export type CircleInfo = {
-  id: ObjectID
-  centerPosL: THREE.Vector2
-  centerPosH: THREE.Vector2
-  p1PosH: THREE.Vector2
-  p2PosH: THREE.Vector2
-  radius: number }
+type CommonInfo = { id: ObjectID }
+export type PointInfo = { id: ObjectID; pos: THREE.Vector3 }
+export type LineInfo = sketchIntersectionUtils.CCLineInfo & CommonInfo
+export type ArcInfo = sketchIntersectionUtils.CCArcInfo & { startH: THREE.Vector3; endH: THREE.Vector3} & CommonInfo
+export type CircleInfo = sketchIntersectionUtils.CCCircleInfo & { pos1H: THREE.Vector3; pos2H: THREE.Vector3 } & CommonInfo
 export type SketchInfo = { points: PointInfo[]; lines: LineInfo[]; arcs: ArcInfo[]; circles: CircleInfo[] }
 export type SolidInfo = { id: ObjectID; bb: THREE.Box2 }
 export type InstanceInfo = SolidInfo
@@ -44,179 +30,14 @@ export const getPointOnPlane = (unprojectedPoint: THREE.Vector3, camera: THREE.C
   ray.direction.negate()
   ray.intersectPlane(plane, result)
 
-  return new THREE.Vector2(result.x, result.y)
-}
-
-export const linesIntersection = (point1: THREE.Vector2, dir1: THREE.Vector2, point2: THREE.Vector2, dir2: THREE.Vector2) => {
-  if (Math.abs(dir1.clone().cross(dir2)) < 1e-3) {
-    return null
-  }
-
-  if (dir1.x === 0) {
-    const a2 = dir2.y / dir2.x
-    const b2 = point2.y - a2 * point2.x
-
-    const x = point1.x
-    const y = a2 * x + b2
-
-    return new THREE.Vector2(x, y)
-  } else if (dir2.x === 0) {
-    const a1 = dir1.y / dir1.x
-    const b1 = point1.y - a1 * point1.x
-
-    const x = point2.x
-    const y = a1 * x + b1
-
-    return new THREE.Vector2(x, y)
-  } else {
-    const a1 = dir1.y / dir1.x
-    const b1 = point1.y - a1 * point1.x
-    const a2 = dir2.y / dir2.x
-    const b2 = point2.y - a2 * point2.x
-
-    const x = (b2 - b1) / (a1 - a2)
-    const y = a1 * x + b1
-
-    return new THREE.Vector2(x, y)
-  }
-}
-
-export const lineSegmentsIntersection = (a1: THREE.Vector2, a2: THREE.Vector2, b1: THREE.Vector2, b2: THREE.Vector2) => {
-  const dirA = a2.clone().sub(a1)
-  const dirB = b2.clone().sub(b1)
-
-  const intersection = linesIntersection(a1, dirA, b1, dirB)
-
-  const err = 1e-4
-  const minA = new THREE.Vector2(Math.min(a1.x, a2.x) - err, Math.min(a1.y, a2.y) - err)
-  const maxA = new THREE.Vector2(Math.max(a1.x, a2.x) + err, Math.max(a1.y, a2.y) + err)
-  const minB = new THREE.Vector2(Math.min(b1.x, b2.x) - err, Math.min(b1.y, b2.y) - err)
-  const maxB = new THREE.Vector2(Math.max(b1.x, b2.x) + err, Math.max(b1.y, b2.y) + err)
-
-  if (
-    intersection &&
-    intersection.x >= minA.x &&
-    intersection.x <= maxA.x &&
-    intersection.y >= minA.y &&
-    intersection.y <= maxA.y &&
-    intersection.x >= minB.x &&
-    intersection.x <= maxB.x &&
-    intersection.y >= minB.y &&
-    intersection.y <= maxB.y
-  ) {
-    return intersection
-  }
-
-  return null
-}
-
-export const lineCircleIntersection = (
-  linePoint: THREE.Vector2,
-  lineDir: THREE.Vector2,
-  circleCenter: THREE.Vector2,
-  circleRadius: number,
-) => {
-  if (lineDir.x === 0) {
-    const d = circleRadius * circleRadius - (linePoint.x - circleCenter.x) * (linePoint.x - circleCenter.x)
-    if (d < 0) {
-      return null
-    } else if (d === 0) {
-      return [new THREE.Vector2(linePoint.x, circleCenter.y)]
-    } else {
-      const dsqrt = Math.sqrt(d)
-      return [
-        new THREE.Vector2(linePoint.x, circleCenter.y + dsqrt),
-        new THREE.Vector2(linePoint.x, circleCenter.y - dsqrt),
-      ]
-    }
-  } else {
-    const k = lineDir.y / lineDir.x
-    const m = linePoint.y - k * linePoint.x
-    const a = 1 + k * k
-    const b = 2 * (k * m - k * circleCenter.y - circleCenter.x)
-    const c =
-      m * m -
-      2 * m * circleCenter.y +
-      circleCenter.x * circleCenter.x +
-      circleCenter.y * circleCenter.y -
-      circleRadius * circleRadius
-
-    const d = b * b - 4 * a * c
-    if (d < 0) {
-      return null
-    } else if (d === 0) {
-      const x = -b / (2 * a)
-      const y = k * x + m
-
-      return [new THREE.Vector2(x, y)]
-    } else {
-      const dsqrt = Math.sqrt(d)
-      const x1 = (-b + dsqrt) / (2 * a)
-      const y1 = k * x1 + m
-      const x2 = (-b - dsqrt) / (2 * a)
-      const y2 = k * x2 + m
-
-      return [new THREE.Vector2(x1, y1), new THREE.Vector2(x2, y2)]
-    }
-  }
-}
-
-export function lineSegmentCircleIntersection(
-  linePoint1: THREE.Vector2,
-  linePoint2: THREE.Vector2,
-  circleCenter: THREE.Vector2,
-  circleRadius: number,
-) {
-  const dir = linePoint2.clone().sub(linePoint1)
-
-  const intersections = lineCircleIntersection(linePoint1, dir, circleCenter, circleRadius)
-
-  const err = 1e-4
-  const min = new THREE.Vector2(Math.min(linePoint1.x, linePoint2.x) - err, Math.min(linePoint1.y, linePoint2.y) - err)
-  const max = new THREE.Vector2(Math.max(linePoint1.x, linePoint2.x) + err, Math.max(linePoint1.y, linePoint2.y) + err)
-
-  const intersectionsFiltered =
-    intersections &&
-    (intersections.filter(point => point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y) ||
-      null)
-  return intersectionsFiltered && intersectionsFiltered.length > 0 ? intersectionsFiltered : null
-}
-
-export const lineSegmentArcIntersection = (
-  linePoint1: THREE.Vector2,
-  linePoint2: THREE.Vector2,
-  arcCenter: THREE.Vector2,
-  arcStart: THREE.Vector2,
-  arcEnd: THREE.Vector2,
-  arcBulge: number,
-) => {
-  const radius = arcCenter.distanceTo(arcStart)
-  let startAngle = Math.atan2(arcStart.y - arcCenter.y, arcStart.x - arcCenter.x)
-  let endAngle = Math.atan2(arcEnd.y - arcCenter.y, arcEnd.x - arcCenter.x)
-  if (startAngle < 0.0) startAngle += 2 * Math.PI
-  if (endAngle < 0.0) endAngle += 2 * Math.PI
-  if (arcBulge < 0.0) [startAngle, endAngle] = [endAngle, startAngle]
-  if (endAngle < startAngle) endAngle += 2 * Math.PI
-
-  const intersections = lineSegmentCircleIntersection(linePoint1, linePoint2, arcCenter, radius)
-
-  const intersectionsFiltered =
-    intersections &&
-    intersections.filter(point => {
-      const intersectionAngle = Math.atan2(point.y - arcCenter.y, point.x - arcCenter.x)
-      return (
-        (intersectionAngle >= startAngle && intersectionAngle <= endAngle) ||
-        (intersectionAngle + 2 * Math.PI >= startAngle && intersectionAngle + 2 * Math.PI <= endAngle)
-      )
-    })
-  return intersectionsFiltered && intersectionsFiltered.length > 0 ? intersectionsFiltered : null
+  return result
 }
 
 export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, camera: THREE.Camera) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
 
-  const sketchDescendants = getDescendants(drawingId, sketchId)
+  const sketchDescendants = ccUtils.base.getDescendants(drawingId, sketchId)
   const sketchMatrix = drawing.api.structure.calculateGlobalTransformation(sketchId)
 
   const points: PointInfo[] = []
@@ -233,40 +54,45 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
 
     if (ccUtils.base.isA(objClass, CCClasses.CCPoint)) {
       const pos = convertToVector(sketchObj.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera)
-      points.push({ id, pos: new THREE.Vector2(pos.x, pos.y) })
+      points.push({ id, pos })
 
       return
     }
 
     if (ccUtils.base.isA(objClass, CCClasses.CCLine)) {
       const points_ = sketchObj.children?.map(pointId => tree[pointId]) || []
-      const [sp, ep] = points_
+      const [start, end] = points_
         .map(p => convertToVector(p.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera))
-      lines.push({ id, startPos: new THREE.Vector2(sp.x, sp.y), endPos: new THREE.Vector2(ep.x, ep.y) })
+      const dir = end.clone().sub(start)
+
+      lines.push({ id, start, end, dir })
 
       return
     }
 
     if (ccUtils.base.isA(objClass, CCClasses.CCArc)) {
       const points_ = sketchObj.children?.map(pointId => tree[pointId]) || []
-      const [spL, epL, cpL] = ['startPoint', 'endPoint', 'center'].map(name => {
+      const [start, end, center] = ['startPoint', 'endPoint', 'center'].map(name => {
         const point = points_.find(p => p.name === name)
         return point ? convertToVector(point.members?.pos as PointMem) : new THREE.Vector3()
       })
-      const [spH, epH, cpH] = [spL, epL, cpL].map(pos => {
+      const [startH, endH] = [start, end].map(pos => {
         return pos.clone().applyMatrix4(sketchMatrix).project(camera)
       })
-      const bulge = sketchObj.members?.bulge?.value as number
-      arcs.push({
-        id,
-        startPosL: new THREE.Vector2(spL.x, spL.y),
-        endPosL: new THREE.Vector2(epL.x, epL.y),
-        centerPosL: new THREE.Vector2(cpL.x, cpL.y),
-        startPosH: new THREE.Vector2(spH.x, spH.y),
-        endPosH: new THREE.Vector2(epH.x, epH.y),
-        centerPosH: new THREE.Vector2(cpH.x, cpH.y),
-        bulge,
-      })
+
+      const radius = sketchObj.members?.radius?.value as number
+      const clockwise = (sketchObj.members?.bulge?.value as number) < 0
+
+      const startDir = start.clone().sub(center)
+      const endDir = end.clone().sub(center)
+
+      let startAngle = Math.atan2(startDir.y, startDir.x)
+      let endAngle = Math.atan2(endDir.y, endDir.x)
+      startAngle = clockwise && startAngle < endAngle ? startAngle + 2 * Math.PI : startAngle
+      endAngle = !clockwise && endAngle < startAngle ? endAngle + 2 * Math.PI : endAngle
+      const angularLength = endAngle - startAngle
+
+      arcs.push({ id, start, end, center, radius, clockwise, startAngle, endAngle, angularLength, startH, endH })
 
       return
     }
@@ -274,17 +100,16 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
     if (ccUtils.base.isA(objClass, CCClasses.CCCircle)) {
       const radius = sketchObj.members?.radius?.value as number
       const center = tree[sketchObj.children?.[0] || -1]
-      const cpL = convertToVector(center?.members?.pos as PointMem)
-      const p1L = cpL.clone().setX(cpL.x + radius)
-      const p2L = cpL.clone().setY(cpL.y + radius)
-      const [cpH, p1H, p2H] = [cpL, p1L, p2L].map(pos => pos.clone().applyMatrix4(sketchMatrix).project(camera))
+      const centerL = convertToVector(center?.members?.pos as PointMem)
+      const pos1L = centerL.clone().setX(centerL.x + radius)
+      const pos2L = centerL.clone().setY(centerL.y + radius)
+      const [pos1H, pos2H] = [pos1L, pos2L].map(pos => pos.clone().applyMatrix4(sketchMatrix).project(camera))
       circles.push({
         id,
-        centerPosL: new THREE.Vector2(cpL.x, cpL.y),
-        centerPosH: new THREE.Vector2(cpH.x, cpH.y),
-        p1PosH: new THREE.Vector2(p1H.x, p1H.y),
-        p2PosH: new THREE.Vector2(p2H.x, p2H.y),
+        center: centerL,
         radius,
+        pos1H,
+        pos2H,
       })
 
       return
@@ -337,7 +162,7 @@ export const getInstancesInfo = (drawingId: DrawingID, camera: THREE.Camera) => 
   const tree = drawing.structure.tree
   const curInstance = drawing.structure.currentInstance
 
-  const descendants = getDescendants(drawingId, curInstance || -1)
+  const descendants = ccUtils.base.getDescendants(drawingId, curInstance || -1)
   const instanceIds = descendants.filter(id => {
     const productId = tree[id]?.members?.productId?.value as ObjectID
     return ccUtils.base.isA(tree[id]?.class, CCClasses.IProductReference) && ccUtils.base.isA(tree[productId]?.class, CCClasses.CCPart)
@@ -384,8 +209,39 @@ export const getInstancesInfo = (drawingId: DrawingID, camera: THREE.Camera) => 
   return instancesInfo
 }
 
-const bb01 = new THREE.Vector2()
-const bb10 = new THREE.Vector2()
+const bb00 = new THREE.Vector3()
+const bb01 = new THREE.Vector3()
+const bb10 = new THREE.Vector3()
+const bb11 = new THREE.Vector3()
+const dir_ = new THREE.Vector3()
+
+const bb2ToV3 = (bb: THREE.Box2) => {
+  bb00.set(bb.min.x, bb.min.y, 0.0)
+  bb01.set(bb.max.x, bb.min.y, 0.0)
+  bb10.set(bb.min.x, bb.max.y, 0.0)
+  bb11.set(bb.max.x, bb.max.y, 0.0)
+}
+
+const intersectsLine = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, lineInfo: LineInfo) => {
+  dir_.copy(lineEnd).sub(lineStart)
+  const intersections = sketchIntersectionUtils.intersectLineLine({ start: lineStart, end: lineEnd, dir: dir_ }, lineInfo)
+
+  return intersections[1].length > 0
+}
+
+const intersectsArc = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, arcInfo: ArcInfo) => {
+  dir_.copy(lineEnd).sub(lineStart)
+  const intersections = sketchIntersectionUtils.intersectLineArc({ start: lineStart, end: lineEnd, dir: dir_ }, arcInfo)
+
+  return intersections[1].length > 0
+}
+
+const intersectsCircle = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, circleInfo: CircleInfo) => {
+  dir_.copy(lineEnd).sub(lineStart)
+  const intersections = sketchIntersectionUtils.intersectLineCircle({ start: lineStart, end: lineEnd, dir: dir_ }, circleInfo)
+
+  return intersections[1].length > 0
+}
 
 export const containsSketchPoint = (bb: THREE.Box2, pointInfo: PointInfo) => {
   const { min, max } = bb
@@ -396,7 +252,7 @@ export const containsSketchPoint = (bb: THREE.Box2, pointInfo: PointInfo) => {
 
 export const containsSketchLine = (bb: THREE.Box2, lineInfo: LineInfo) => {
   const { min, max } = bb
-  const { startPos: sp, endPos: ep } = lineInfo
+  const { start: sp, end: ep } = lineInfo
 
   return (sp.x >= min.x && sp.x <= max.x && sp.y >= min.y && sp.y <= max.y) &&
     (ep.x >= min.x && ep.x <= max.x && ep.y >= min.y && ep.y <= max.y)
@@ -404,63 +260,63 @@ export const containsSketchLine = (bb: THREE.Box2, lineInfo: LineInfo) => {
 
 export const touchesSketchLine = (bb: THREE.Box2, lineInfo: LineInfo) => {
   const { min, max } = bb
-  const { startPos: sp, endPos: ep } = lineInfo
-  bb01.set(bb.max.x, bb.min.y)
-  bb10.set(bb.min.x, bb.max.y)
+  const { start: sp, end: ep } = lineInfo
+  bb2ToV3(bb)
 
   return (sp.x >= min.x && sp.x <= max.x && sp.y >= min.y && sp.y <= max.y) ||
     (ep.x >= min.x && ep.x <= max.x && ep.y >= min.y && ep.y <= max.y) ||
-    lineSegmentsIntersection(sp, ep, bb.min, bb01) !== null ||
-    lineSegmentsIntersection(sp, ep, bb.min, bb10) !== null ||
-    lineSegmentsIntersection(sp, ep, bb01, bb.max) !== null ||
-    lineSegmentsIntersection(sp, ep, bb10, bb.max) !== null
+    intersectsLine(bb00, bb01, lineInfo) ||
+    intersectsLine(bb00, bb10, lineInfo) ||
+    intersectsLine(bb01, bb11, lineInfo) ||
+    intersectsLine(bb10, bb11, lineInfo)
 }
 
-export const containsSketchArc = (bb: THREE.Box2, arcInfo: ArcInfo, sketchPos00: THREE.Vector2, sketchPos01: THREE.Vector2, sketchPos10: THREE.Vector2, sketchPos11: THREE.Vector2) => {
+export const containsSketchArc = (bb: THREE.Box2, arcInfo: ArcInfo, sketchPos00: THREE.Vector3, sketchPos01: THREE.Vector3, sketchPos10: THREE.Vector3, sketchPos11: THREE.Vector3) => {
   const { min, max } = bb
-  const { startPosL: spL, endPosL: epL, centerPosL: cpL, startPosH: spH, endPosH: epH, bulge } = arcInfo
+  const { startH: spH, endH: epH } = arcInfo
+  bb2ToV3(bb)
 
   // TODO: Not entirely sure if situations when both points are exactly touched without arc intersections are possible
   // If it ever emerges, also calculate a midpoint here and check if it is within the rectangle
   return (spH.x >= min.x && spH.x <= max.x && spH.y >= min.y && spH.y <= max.y) &&
     (epH.x >= min.x && epH.x <= max.x && epH.y >= min.y && epH.y <= max.y) &&
-    lineSegmentArcIntersection(sketchPos00, sketchPos01, cpL, spL, epL, bulge) === null &&
-    lineSegmentArcIntersection(sketchPos00, sketchPos10, cpL, spL, epL, bulge) === null &&
-    lineSegmentArcIntersection(sketchPos01, sketchPos11, cpL, spL, epL, bulge) === null &&
-    lineSegmentArcIntersection(sketchPos10, sketchPos11, cpL, spL, epL, bulge) === null
+    !intersectsArc(sketchPos00, sketchPos01, arcInfo) &&
+    !intersectsArc(sketchPos00, sketchPos10, arcInfo) &&
+    !intersectsArc(sketchPos01, sketchPos11, arcInfo) &&
+    !intersectsArc(sketchPos10, sketchPos11, arcInfo)
 }
 
-export const touchesSketchArc = (bb: THREE.Box2, arcInfo: ArcInfo, sketchPos00: THREE.Vector2, sketchPos01: THREE.Vector2, sketchPos10: THREE.Vector2, sketchPos11: THREE.Vector2) => {
+export const touchesSketchArc = (bb: THREE.Box2, arcInfo: ArcInfo, sketchPos00: THREE.Vector3, sketchPos01: THREE.Vector3, sketchPos10: THREE.Vector3, sketchPos11: THREE.Vector3) => {
   const { min, max } = bb
-  const { startPosL: spL, endPosL: epL, centerPosL: cpL, startPosH: spH, endPosH: epH, bulge } = arcInfo
+  const { startH: spH, endH: epH } = arcInfo
 
   return (spH.x >= min.x && spH.x <= max.x && spH.y >= min.y && spH.y <= max.y) ||
     (epH.x >= min.x && epH.x <= max.x && epH.y >= min.y && epH.y <= max.y) ||
-    lineSegmentArcIntersection(sketchPos00, sketchPos01, cpL, spL, epL, bulge) !== null ||
-    lineSegmentArcIntersection(sketchPos00, sketchPos10, cpL, spL, epL, bulge) !== null ||
-    lineSegmentArcIntersection(sketchPos01, sketchPos11, cpL, spL, epL, bulge) !== null ||
-    lineSegmentArcIntersection(sketchPos10, sketchPos11, cpL, spL, epL, bulge) !== null
+    intersectsArc(sketchPos00, sketchPos01, arcInfo) ||
+    intersectsArc(sketchPos00, sketchPos10, arcInfo) ||
+    intersectsArc(sketchPos01, sketchPos11, arcInfo) ||
+    intersectsArc(sketchPos10, sketchPos11, arcInfo)
 }
 
-export const containsSketchCircle = (bb: THREE.Box2, circleInfo: CircleInfo, sketchPos00: THREE.Vector2, sketchPos01: THREE.Vector2, sketchPos10: THREE.Vector2, sketchPos11: THREE.Vector2) => {
+export const containsSketchCircle = (bb: THREE.Box2, circleInfo: CircleInfo, sketchPos00: THREE.Vector3, sketchPos01: THREE.Vector3, sketchPos10: THREE.Vector3, sketchPos11: THREE.Vector3) => {
   const { min, max } = bb
-  const { centerPosL: cpL, p1PosH: p1H, p2PosH: p2H, radius } = circleInfo
+  const { pos1H: p1H, pos2H: p2H } = circleInfo
 
   return (p1H.x >= min.x && p1H.x <= max.x && p1H.y >= min.y && p1H.y <= max.y) &&
     (p2H.x >= min.x && p2H.x <= max.x && p2H.y >= min.y && p2H.y <= max.y) &&
-    lineSegmentCircleIntersection(sketchPos00, sketchPos01, cpL, radius) === null &&
-    lineSegmentCircleIntersection(sketchPos00, sketchPos10, cpL, radius) === null &&
-    lineSegmentCircleIntersection(sketchPos01, sketchPos11, cpL, radius) === null &&
-    lineSegmentCircleIntersection(sketchPos10, sketchPos11, cpL, radius) === null
+    !intersectsCircle(sketchPos00, sketchPos01, circleInfo) &&
+    !intersectsCircle(sketchPos00, sketchPos10, circleInfo) &&
+    !intersectsCircle(sketchPos01, sketchPos11, circleInfo) &&
+    !intersectsCircle(sketchPos10, sketchPos11, circleInfo)
 }
 
-export const touchesSketchCircle = (bb: THREE.Box2, circleInfo: CircleInfo, sketchPos00: THREE.Vector2, sketchPos01: THREE.Vector2, sketchPos10: THREE.Vector2, sketchPos11: THREE.Vector2) => {
+export const touchesSketchCircle = (bb: THREE.Box2, circleInfo: CircleInfo, sketchPos00: THREE.Vector3, sketchPos01: THREE.Vector3, sketchPos10: THREE.Vector3, sketchPos11: THREE.Vector3) => {
   const { min, max } = bb
-  const { centerPosL: cpL, p1PosH: p1H, radius } = circleInfo
+  const { pos1H: p1H } = circleInfo
 
   return (p1H.x >= min.x && p1H.x <= max.x && p1H.y >= min.y && p1H.y <= max.y) ||
-    lineSegmentCircleIntersection(sketchPos00, sketchPos01, cpL, radius) !== null ||
-    lineSegmentCircleIntersection(sketchPos00, sketchPos10, cpL, radius) !== null ||
-    lineSegmentCircleIntersection(sketchPos01, sketchPos11, cpL, radius) !== null ||
-    lineSegmentCircleIntersection(sketchPos10, sketchPos11, cpL, radius) !== null
+    intersectsCircle(sketchPos00, sketchPos01, circleInfo) ||
+    intersectsCircle(sketchPos00, sketchPos10, circleInfo) ||
+    intersectsCircle(sketchPos01, sketchPos11, circleInfo) ||
+    intersectsCircle(sketchPos10, sketchPos11, circleInfo)
 }
