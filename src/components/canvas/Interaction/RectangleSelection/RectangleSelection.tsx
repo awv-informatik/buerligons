@@ -7,6 +7,7 @@ import { sketchUtils } from '@buerli.io/react-cad'
 import { extend, Object3DNode, useThree, ThreeEvent } from '@react-three/fiber'
 
 import {
+  containsBB,
   containsSketchArc,
   containsSketchCircle,
   containsSketchLine,
@@ -18,6 +19,7 @@ import {
   InstanceInfo,
   SketchInfo,
   SolidInfo,
+  touchesBB,
   touchesSketchArc,
   touchesSketchCircle,
   touchesSketchLine
@@ -193,8 +195,8 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
         }
       })
     } else if (isPartMode) {
-      solidsInfoRef.current.forEach(({ id, bb }) => {
-        if (onlyEntireBB && bbRect.containsBox(bb) || !onlyEntireBB && bbRect.intersectsBox(bb)) {
+      solidsInfoRef.current.forEach(({ id, bb, aabb }) => {
+        if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
           selection.push(id)
         }
       })
@@ -213,8 +215,8 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
       return
     } else {
-      instancesInfoRef.current.forEach(({ id, bb }) => {
-        if (onlyEntireBB && bbRect.containsBox(bb) || !onlyEntireBB && bbRect.intersectsBox(bb)) {
+      instancesInfoRef.current.forEach(({ id, bb, aabb }) => {
+        if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
           selection.push(id)
         }
       })
