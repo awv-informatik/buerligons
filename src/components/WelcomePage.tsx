@@ -172,7 +172,9 @@ export function WelcomePage() {
               only a fraction of the kernel functionality within our Buerli.
             </Feature>
             <Feature icon={FiGitMerge} title="Parts">
-            Effortlessly design 3D solids by combining parametric sketching with extruding and revolving techniques. Model objects using fundamental shapes—such as boxes, cylinders, cones, and spheres—and refine them through Boolean operations, slicing, and patterning tools for precise positioning and manipulation.
+              Effortlessly design 3D solids by combining parametric sketching with extruding and revolving techniques.
+              Model objects using fundamental shapes—such as boxes, cylinders, cones, and spheres—and refine them
+              through Boolean operations, slicing, and patterning tools for precise positioning and manipulation.
             </Feature>
             <Feature icon={FiLayers} title="STEP support">
               Import of Step models (AP203, AP214, AP242). Assembly structures are supported for standard and enterprise
@@ -180,21 +182,20 @@ export function WelcomePage() {
               request.
             </Feature>
             <Feature icon={FiLayers} title="Assemblies">
-            Our software enables the creation and precise positioning of part or assembly template instances within a 3D scene, using either 3D constraints or the movement gizmo. Standard 3D constraints—including slider, revolute, planar, and parallel—can be applied directly to coordinate systems within parts. Users can also seamlessly toggle between assembly mode and part modeling by simply double-clicking on parts in the assembly tree.
+              Our software enables the creation and precise positioning of part or assembly template instances within a
+              3D scene, using either 3D constraints or the movement gizmo. Standard 3D constraints—including slider,
+              revolute, planar, and parallel—can be applied directly to coordinate systems within parts. Users can also
+              seamlessly toggle between assembly mode and part modeling by simply double-clicking on parts in the
+              assembly tree.
             </Feature>
-            <Feature icon={FiPackage} title="-----Node based instance management">
-              Our node based backend has horizontal scaling inbuilt and manages connecting clients automatically. Even a
-              single instance may serve multiple users while states are swapped quickly and efficiently.
+            <Feature icon={FiZap} title="WASM or WS">
+              Buerligons is WASM compatible and can be run self-contained in any browser or web-based application, on
+              the desktop, native and mobile. It can also connect to its kernel via remote web-sockets, which enables
+              more features, like state storage and undo-redo.
             </Feature>
-            <Feature icon={FiZap} title="-----Native format">
-              A native format allows binary storage of the created geometry and its parametric history. You can use it
-              to save a state, for instance into a database, and resume work later on, or as a starting point for
-              configurators.
-            </Feature>
-            <Feature icon={FiZap} title="Open source">
-              x undo redo
-              A full self-contained WASM embed is coming soon!.
-              link node server
+            <Feature icon={FiPackage} title="Open source">
+              We have open sourced Buerligons so that it can either be used as a standalone application or integrated
+              into other applications, or even be customized. The source code is available on GitHub.
             </Feature>
           </Grid>
         </Content>
