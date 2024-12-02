@@ -52,17 +52,24 @@ declare global {
   }
 }
 
+enum RectSelectionState {
+  RECT_INACTIVE = 0,
+  RECT_START = 1,
+  RECT_ACTIVE = 2,
+}
+
 export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const camControls = useThree(s => s.controls as any)
   const invalidate = useThree(s => s.invalidate)
 
-  const [isActive, setIsActive] = React.useState<boolean>(false)
+  const [drawRect, setDrawRect] = React.useState<boolean>(false)
+  const rectSelectionState = React.useRef<RectSelectionState>(RectSelectionState.RECT_INACTIVE)
 
   const ref = React.useRef<{ clickPos: THREE.Vector2; curPos: THREE.Vector2 }>(null!)
 
   const solidsInfoRef = React.useRef<SolidInfo[]>([])
   const instancesInfoRef = React.useRef<InstanceInfo[]>([])
-  const sketchGeomInfoRef = React.useRef<SketchInfo>({ points: [], lines: [], arcs: [], circles: []})
+  const sketchGeomInfoRef = React.useRef<SketchInfo>({ points: [], lines: [], arcs: [], circles: [] })
   const clickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
   const sketchClickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
   const sketchMatrixRef = React.useRef<THREE.Matrix4>(new THREE.Matrix4())
@@ -73,12 +80,10 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       return
     }
 
-    e.stopPropagation()
-
+    rectSelectionState.current = RectSelectionState.RECT_START
     camControls.enabled = false
 
     clickPosRef.current = e.unprojectedPoint.clone().project(e.camera)
-    setIsActive(true)
 
     ref.current.clickPos.set(e.clientX, e.clientY)
     ref.current.curPos.set(e.clientX, e.clientY)
@@ -117,7 +122,22 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
   }, [drawingId, camControls])
 
   const onPointerMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!isActive) {
+    const drawing = getDrawing(drawingId)
+    
+    if (rectSelectionState.current === RectSelectionState.RECT_START) {
+      const deltaV = new THREE.Vector2(e.clientX, e.clientY).sub(ref.current.clickPos)
+      const deltaSq = deltaV.lengthSq()
+
+      if (deltaSq > 16) {
+        rectSelectionState.current = RectSelectionState.RECT_ACTIVE
+        setDrawRect(true)
+
+        const setHovered = drawing.api.interaction.setHovered
+        setHovered(null)
+      }
+    }
+
+    if (rectSelectionState.current !== RectSelectionState.RECT_ACTIVE) {
       return
     }
 
@@ -135,7 +155,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     const maxRect = new THREE.Vector2(Math.max(clickPos.x, curPos.x), Math.max(clickPos.y, curPos.y))
     const bbRect = new THREE.Box2(minRect, maxRect)
 
-    const drawing = getDrawing(drawingId)
     const curProduct = drawing.structure.currentProduct
     const tree = drawing.structure.tree
     const isSelActive = drawing.selection.active !== null
@@ -229,24 +248,21 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       const selectionInfo = selection.map(id => createInfo({ objectId: id, prodRefId: curProduct }))
       setSelected(selectionInfo)
     }
-  }, [drawingId, isActive, invalidate])
+  }, [drawingId, invalidate])
 
   const onPointerUp = React.useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!isActive) {
-      return
+    if (rectSelectionState.current === RectSelectionState.RECT_ACTIVE) {
+      setDrawRect(false)
     }
 
-    e.stopPropagation()
-
+    rectSelectionState.current = RectSelectionState.RECT_INACTIVE
     camControls.enabled = true
-
-    setIsActive(false)
-  }, [isActive, camControls])
+  }, [camControls])
 
   return (
     <>
-      <rectangleSelectionTrigger onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
-      <Rectangle ref={ref} enabled={isActive} />
+      <rectangleSelectionTrigger onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} userData={{ onHUD: true }} />
+      <Rectangle ref={ref} enabled={drawRect} />
     </>
   )
 }
