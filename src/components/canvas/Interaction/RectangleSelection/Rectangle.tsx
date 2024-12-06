@@ -1,60 +1,58 @@
 import * as THREE from 'three'
 import React from 'react'
 
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 
+export type RectangleRefType = {
+  clickPos: THREE.Vector2
+  curPos: THREE.Vector2
+  update: () => void
+}
 
-export const Rectangle = React.forwardRef<{ clickPos: THREE.Vector2; curPos: THREE.Vector2 }, { enabled: boolean }>(
+export const Rectangle = React.forwardRef<RectangleRefType, { enabled: boolean }>(
   ({ enabled }, ref) => {
     const gl = useThree(s => s.gl)
 
     const divRef = React.useRef<HTMLDivElement>(document.createElement('div'))
-    const bbRef = React.useRef<{ clickPos: THREE.Vector2; curPos: THREE.Vector2 }>({ clickPos: new THREE.Vector2(), curPos: new THREE.Vector2() })
-    React.useImperativeHandle(ref, () => bbRef.current, [])
+
+    const update = React.useCallback(() => {
+      const minX = Math.min(rectangleRef.current.clickPos.x, rectangleRef.current.curPos.x)
+      const maxX = Math.max(rectangleRef.current.clickPos.x, rectangleRef.current.curPos.x)
+      const minY = Math.min(rectangleRef.current.clickPos.y, rectangleRef.current.curPos.y)
+      const maxY = Math.max(rectangleRef.current.clickPos.y, rectangleRef.current.curPos.y)
+      
+      divRef.current.style.left = `${minX}px`
+      divRef.current.style.top = `${minY}px`
+      divRef.current.style.width = `${maxX - minX}px`
+      divRef.current.style.height = `${maxY - minY}px`
+    }, [])
   
     React.useEffect(() => {
       if (!enabled) {
         return
       }
 
-      const element = divRef.current
-
-      const minX = Math.min(bbRef.current.clickPos.x, bbRef.current.curPos.x)
-      const maxX = Math.max(bbRef.current.clickPos.x, bbRef.current.curPos.x)
-      const minY = Math.min(bbRef.current.clickPos.y, bbRef.current.curPos.y)
-      const maxY = Math.max(bbRef.current.clickPos.y, bbRef.current.curPos.y)
-
       divRef.current.style.position = 'fixed'
       divRef.current.style.pointerEvents = 'none'
       divRef.current.style.border = '1px solid rgb(128, 128, 128)'
       divRef.current.style.background = 'rgba(217, 217, 217, 0.3)'
-      divRef.current.style.left = `${minX}px`
-      divRef.current.style.top = `${minY}px`
-      divRef.current.style.width = `${maxX - minX}px`
-      divRef.current.style.height = `${maxY - minY}px`
-      
+
+      update()
+
+      const element = divRef.current
       gl.domElement.parentElement?.appendChild(element)
 
       return () => {
         element.parentElement?.removeChild(element)
       }
-    }, [gl, enabled])
-
-    useFrame(() => {
-      if (!enabled)  {
-        return
-      }
-
-      const minX = Math.min(bbRef.current.clickPos.x, bbRef.current.curPos.x)
-      const maxX = Math.max(bbRef.current.clickPos.x, bbRef.current.curPos.x)
-      const minY = Math.min(bbRef.current.clickPos.y, bbRef.current.curPos.y)
-      const maxY = Math.max(bbRef.current.clickPos.y, bbRef.current.curPos.y)
-      
-      divRef.current.style.left = `${minX}px`
-      divRef.current.style.top = `${minY}px`
-      divRef.current.style.width = `${maxX - minX}px`
-      divRef.current.style.height = `${maxY - minY}px`
+    }, [gl, update, enabled])
+    
+    const rectangleRef = React.useRef<RectangleRefType>({
+      clickPos: new THREE.Vector2(),
+      curPos: new THREE.Vector2(),
+      update,
     })
+    React.useImperativeHandle(ref, () => rectangleRef.current, [])
   
     return null
   }
