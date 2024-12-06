@@ -74,17 +74,11 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
   const sketchesInfoRef = React.useRef<SketchInfo[]>([])
   const selectableGrObjectsRef = React.useRef<GrObjectsInfo>({ bbObjects: [], points: [] })
   const clickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
-  const sketchClickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
 
   const onPointerDown = React.useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!e.nativeEvent.shiftKey) {
       return
     }
-
-    rectSelectionState.current = RectSelectionState.RECT_START
-    camControls.enabled = false
-
-    clickPosRef.current = e.unprojectedPoint.clone().project(e.camera)
 
     ref.current.clickPos.set(e.clientX, e.clientY)
     ref.current.curPos.set(e.clientX, e.clientY)
@@ -110,8 +104,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       } else {
         rigidsetsInfoRef.current = getRigidsetsInfo(drawingId, e.camera)
       }
-
-      return
     } else if (sketchUtils.isSketchActive(drawingId)) {
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const sketchId = active?.objectId
@@ -120,21 +112,16 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       }
 
       sketchesInfoRef.current = [getSketchGeomInfo(drawingId, sketchId, e.camera)]
-
-      const sketchMatrix = drawing.api.structure.calculateGlobalTransformation(sketchId)
-      const sketchMatrixInv = sketchMatrix.clone().invert()
-
-      sketchClickPosRef.current = getPointOnPlane(e.unprojectedPoint, e.camera, sketchMatrixInv)
-
-      return
-    }
-
-    if (isPartMode) {
+    } else if (isPartMode) {
       solidsInfoRef.current = getSolidsInfo(drawingId, e.camera)
-      return
+    } else {
+      instancesInfoRef.current = getInstancesInfo(drawingId, e.camera)
     }
 
-    instancesInfoRef.current = getInstancesInfo(drawingId, e.camera)
+    clickPosRef.current = e.unprojectedPoint.clone().project(e.camera)
+
+    rectSelectionState.current = RectSelectionState.RECT_START
+    camControls.enabled = false
   }, [drawingId, camControls])
 
   const onPointerMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
