@@ -1,28 +1,29 @@
 import * as THREE from 'three'
 import React from 'react'
 
-import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { createGraphicItem, createInfo, DrawingID, getDrawing, InteractionInfo, SelectedItem } from '@buerli.io/core'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
-import { sketchUtils } from '@buerli.io/react-cad'
+import { createTreeObjSelItem, sketchUtils, TreeObjScope } from '@buerli.io/react-cad'
 import { extend, Object3DNode, useThree, ThreeEvent } from '@react-three/fiber'
 
 import {
-  containsBB,
-  containsSketchArc,
-  containsSketchCircle,
-  containsSketchLine,
-  containsSketchPoint,
+  attemptBBObjectsSelection,
+  attemptGrObjectsSelection,
+  attemptGrPointsSelection,
+  attemptRigidsetsSelection,
+  attemptSketchesGeomSelection,
+  getAllSketchesGeomInfo,
   getInstancesInfo,
   getPointOnPlane,
+  getRigidsetsInfo,
+  getSelectableGrObjects,
   getSketchGeomInfo,
   getSolidsInfo,
+  GrObjectsInfo,
   InstanceInfo,
+  RigidsetInfo,
   SketchInfo,
   SolidInfo,
-  touchesBB,
-  touchesSketchArc,
-  touchesSketchCircle,
-  touchesSketchLine
 } from './utils'
 import { Rectangle } from './Rectangle'
 
@@ -69,11 +70,11 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
   const solidsInfoRef = React.useRef<SolidInfo[]>([])
   const instancesInfoRef = React.useRef<InstanceInfo[]>([])
-  const sketchGeomInfoRef = React.useRef<SketchInfo>({ points: [], lines: [], arcs: [], circles: [] })
+  const rigidsetsInfoRef = React.useRef<RigidsetInfo[]>([])
+  const sketchesInfoRef = React.useRef<SketchInfo[]>([])
+  const selectableGrObjectsRef = React.useRef<GrObjectsInfo>({ bbObjects: [], points: [] })
   const clickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
   const sketchClickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
-  const sketchMatrixRef = React.useRef<THREE.Matrix4>(new THREE.Matrix4())
-  const sketchMatrixInvRef = React.useRef<THREE.Matrix4>(new THREE.Matrix4())
 
   const onPointerDown = React.useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!e.nativeEvent.shiftKey) {
@@ -90,25 +91,40 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
     const drawing = getDrawing(drawingId)
     const tree = drawing.structure.tree
+    const isSelActive = drawing.selection.active !== null
     const curProduct = drawing.structure.currentProduct
     const prodClass = tree[curProduct || -1]?.class || ''
     const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-    if (sketchUtils.isSketchActive(drawingId)) {
+    if (isSelActive) {
+      const selector = drawing.selection.refs[drawing.selection.active]
+      if (selector.maxLen > 0) {
+        // If there is a selection limit for the current selector, don't allow rect-selection at all
+        return
+      }
+
+      selectableGrObjectsRef.current = getSelectableGrObjects(drawingId, e.camera)
+      sketchesInfoRef.current = getAllSketchesGeomInfo(drawingId, e.camera)
+      if (isPartMode) {
+        solidsInfoRef.current = getSolidsInfo(drawingId, e.camera)
+      } else {
+        rigidsetsInfoRef.current = getRigidsetsInfo(drawingId, e.camera)
+      }
+
+      return
+    } else if (sketchUtils.isSketchActive(drawingId)) {
       const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
       const sketchId = active?.objectId
       if (!sketchId) {
         return
       }
 
-      sketchGeomInfoRef.current = getSketchGeomInfo(drawingId, sketchId, e.camera)
+      sketchesInfoRef.current = [getSketchGeomInfo(drawingId, sketchId, e.camera)]
 
       const sketchMatrix = drawing.api.structure.calculateGlobalTransformation(sketchId)
       const sketchMatrixInv = sketchMatrix.clone().invert()
 
       sketchClickPosRef.current = getPointOnPlane(e.unprojectedPoint, e.camera, sketchMatrixInv)
-      sketchMatrixRef.current = sketchMatrix
-      sketchMatrixInvRef.current = sketchMatrixInv
 
       return
     }
@@ -160,92 +176,130 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     const isSelActive = drawing.selection.active !== null
     const prodClass = tree[curProduct || -1]?.class || ''
     const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
-    const setSelected = drawing.api.interaction.setSelected
-    
-    const selection: ObjectID[] = []
 
     if (isSelActive) {
-      // TODO: Implement RectangleSelection for selectors
-      return
-    } else if (sketchUtils.isSketchActive(drawingId)) {
-      const active = drawing.plugin.refs[drawing.plugin.active.feature || -1]
-      const sketchId = active.objectId
-      if (!sketchId) {
+      const selector = drawing.selection.refs[drawing.selection.active]
+      if (selector.maxLen > 0) {
+        // If there is a selection limit for the current selector, don't allow rect-selection at all
         return
       }
 
-      const sketchMatrixInv = sketchMatrixInvRef.current
+      const sSelection: SelectedItem[] = []
 
-      const rectPos1 = new THREE.Vector3(curPos.x, clickPos.y, 0.0)
-      const rectPos2 = new THREE.Vector3(clickPos.x, curPos.y, 0.0)
+      if (isPartMode) {
+        attemptGrObjectsSelection(
+          selectableGrObjectsRef.current.bbObjects,
+          bbRect,
+          onlyEntireBB,
+          (graphicId, containerId) => {
+            const grObj = drawing.geometry.cache[containerId].map[graphicId]
+            if (grObj) {
+              sSelection.push(createGraphicItem(curProduct || -1, grObj))
+            }
+          }
+        )
+  
+        attemptGrPointsSelection(
+          selectableGrObjectsRef.current.points,
+          bbRect,
+          (graphicId, containerId) => {
+            const grPoint = drawing.geometry.cache[containerId].points.find(point => point.graphicId === graphicId)
+            if (grPoint) {
+              sSelection.push(createGraphicItem(curProduct || -1, grPoint))
+            }
+          }
+        )
 
-      const sketchPos00 = sketchClickPosRef.current
-      const sketchPos11 = getPointOnPlane(e.unprojectedPoint, e.camera, sketchMatrixInv)
-      const sketchPos01 = getPointOnPlane(new THREE.Vector3(rectPos1.x, rectPos1.y, 0.0).unproject(e.camera), e.camera, sketchMatrixInv)
-      const sketchPos10 = getPointOnPlane(new THREE.Vector3(rectPos2.x, rectPos2.y, 0.0).unproject(e.camera), e.camera, sketchMatrixInv)
+        attemptSketchesGeomSelection(
+          sketchesInfoRef.current,
+          bbRect,
+          onlyEntireBB,
+          e.camera,
+          id => {
+            if (selector.isSelectable(TreeObjScope, { object: tree[id] })) {
+              sSelection.push(createTreeObjSelItem(curProduct || -1, tree[id]))
+            } 
+          }
+        )
 
-      sketchGeomInfoRef.current.points.forEach(pointInfo => {
-        if (containsSketchPoint(bbRect, pointInfo)) {
-          selection.push(pointInfo.id)
+        attemptBBObjectsSelection(
+          solidsInfoRef.current,
+          bbRect,
+          onlyEntireBB,
+          id => {
+            const solid = drawing.geometry.cache[id]
+            if (solid) {
+              const elem = { ...solid.meshes[0], type: solid.type, graphicId: solid.graphicId }
+              sSelection.push(createGraphicItem(curProduct || -1, elem))
+            }
+          }
+        )
+      } else {
+        attemptRigidsetsSelection(
+          rigidsetsInfoRef.current,
+          bbRect,
+          onlyEntireBB,
+          id => {
+            if (selector.isSelectable(TreeObjScope, { object: tree[id] })) {
+              sSelection.push(createTreeObjSelItem(curProduct || -1, tree[id]))
+            }
+          }
+        )
+      }
+
+      const selApi = drawing.api.selection
+      if (sSelection.length !== selector.items.length) {
+        if (!selApi.areItemsSelected(sSelection)) {
+          selApi.select(sSelection)
+        } else {
+          const unselItems = selector.items.filter(
+            item => !sSelection.find(newItem => newItem.id === item.id && newItem.scope === item.scope)
+          )
+          selApi.unselect(unselItems)
         }
-      })
-
-      sketchGeomInfoRef.current.lines.forEach(lineInfo => {
-        if (onlyEntireBB && containsSketchLine(bbRect, lineInfo) || !onlyEntireBB && touchesSketchLine(bbRect, lineInfo)) {
-          selection.push(lineInfo.id)
-        }
-      })
-
-      sketchGeomInfoRef.current.arcs.forEach(arcInfo => {
-        if (
-          onlyEntireBB && containsSketchArc(bbRect, arcInfo, sketchPos00, sketchPos01, sketchPos10, sketchPos11) ||
-          !onlyEntireBB && touchesSketchArc(bbRect, arcInfo, sketchPos00, sketchPos01, sketchPos10, sketchPos11)
-        ) {
-          selection.push(arcInfo.id)
-        }
-      })
-
-      sketchGeomInfoRef.current.circles.forEach(circleInfo => {
-        if (
-          onlyEntireBB && containsSketchCircle(bbRect, circleInfo, sketchPos00, sketchPos01, sketchPos10, sketchPos11) ||
-          !onlyEntireBB && touchesSketchCircle(bbRect, circleInfo, sketchPos00, sketchPos01, sketchPos10, sketchPos11)
-        ) {
-          selection.push(circleInfo.id)
-        }
-      })
-    } else if (isPartMode) {
-      solidsInfoRef.current.forEach(({ id, bb, aabb }) => {
-        if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
-          selection.push(id)
-        }
-      })
-
-      selection.sort()
-      const curSelectedSolids = drawing.interaction.selected?.map(info => info.containerId || -1).sort()
-      if (selection.length !== curSelectedSolids?.length || selection.some((id, i) => id !== curSelectedSolids[i])) {
-        const selectionInfo = selection.map(id => createInfo({
-          objectId: drawing.geometry.cache[id]?.container.ownerId || -1,
-          graphicId: id,
-          containerId: id,
-          prodRefId: curProduct,
-        }))
-        setSelected(selectionInfo)
       }
 
       return
-    } else {
-      instancesInfoRef.current.forEach(({ id, bb, aabb }) => {
-        if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
-          selection.push(id)
-        }
-      })
     }
 
-    selection.sort()
-    const curSelected = drawing.interaction.selected?.map(info => info.objectId).sort()
-    if (selection.length !== curSelected?.length || selection.some((id, i) => id !== curSelected[i])) {
+    const selectionInfo: InteractionInfo[] = []
+    const setSelected = drawing.api.interaction.setSelected
+
+    if (sketchUtils.isSketchActive(drawingId)) {
+      attemptSketchesGeomSelection(
+        sketchesInfoRef.current,
+        bbRect,
+        onlyEntireBB,
+        e.camera,
+        id => selectionInfo.push(createInfo({ objectId: id, prodRefId: curProduct }))
+      )
+    } else if (isPartMode) {
+      attemptBBObjectsSelection(
+        solidsInfoRef.current,
+        bbRect,
+        onlyEntireBB,
+        id => selectionInfo.push(
+          createInfo({
+            objectId: drawing.geometry.cache[id]?.container.ownerId || -1,
+            graphicId: id,
+            containerId: id,
+            prodRefId: curProduct,
+          })
+        )
+      )
+    } else {
+      attemptBBObjectsSelection(
+        instancesInfoRef.current,
+        bbRect,
+        onlyEntireBB,
+        id => selectionInfo.push(createInfo({ objectId: id, prodRefId: curProduct }))
+      )
+    }
+
+    selectionInfo.sort((a, b) => a.uniqueIdent >= b.uniqueIdent ? 1 : -1)
+    const curSelected = drawing.interaction.selected // Assume it is already sorted
+    if (selectionInfo.length !== curSelected?.length || selectionInfo.some((info, i) => info.uniqueIdent !== curSelected[i].uniqueIdent)) {
       // Only make a new selection if it doesn't match the old one
-      const selectionInfo = selection.map(id => createInfo({ objectId: id, prodRefId: curProduct }))
       setSelected(selectionInfo)
     }
   }, [drawingId, invalidate])
