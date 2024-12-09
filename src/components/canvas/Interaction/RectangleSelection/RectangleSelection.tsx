@@ -20,6 +20,7 @@ import {
   getSolidsInfo,
   GrObjectsInfo,
   InstanceInfo,
+  isSelectorValid,
   RigidsetInfo,
   SketchInfo,
   SolidInfo,
@@ -72,6 +73,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
   const sketchesInfoRef = React.useRef<SketchInfo[]>([])
   const selectableGrObjectsRef = React.useRef<GrObjectsInfo>({ bbObjects: [], points: [] })
   const clickPosRef = React.useRef<THREE.Vector3>(new THREE.Vector3())
+  const isSelectorValidRef = React.useRef<boolean>(true)
 
   const onPointerDown = React.useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!e.nativeEvent.shiftKey) {
@@ -80,14 +82,16 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
     const drawing = getDrawing(drawingId)
     const tree = drawing.structure.tree
-    const isSelActive = drawing.selection.active !== null
+    const selId = drawing.selection.active
+    const isSelActive = selId !== null
     const curProduct = drawing.structure.currentProduct
     const prodClass = tree[curProduct || -1]?.class || ''
     const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
     if (isSelActive) {
-      const selector = drawing.selection.refs[drawing.selection.active]
-      if (selector.maxLen > 0) {
+      const selector = drawing.selection.refs[selId]
+      isSelectorValidRef.current = isSelectorValid(selId)
+      if (selector.maxLen > 0 || !isSelectorValidRef.current) {
         // If there is a selection limit for the current selector, don't allow rect-selection at all
         return
       }
@@ -158,13 +162,14 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
     const curProduct = drawing.structure.currentProduct
     const tree = drawing.structure.tree
-    const isSelActive = drawing.selection.active !== null
+    const selId = drawing.selection.active
+    const isSelActive = selId !== null
     const prodClass = tree[curProduct || -1]?.class || ''
     const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
     if (isSelActive) {
-      const selector = drawing.selection.refs[drawing.selection.active]
-      if (selector.maxLen > 0) {
+      const selector = drawing.selection.refs[selId]
+      if (selector.maxLen > 0 || !isSelectorValidRef.current) {
         // If there is a selection limit for the current selector, don't allow rect-selection at all
         return
       }
@@ -235,12 +240,12 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       const selApi = drawing.api.selection
       if (sSelection.length !== selector.items.length) {
         if (!selApi.areItemsSelected(sSelection)) {
-          selApi.select(sSelection)
+          selApi.select(sSelection, selId, { forceDefault: true })
         } else {
           const unselItems = selector.items.filter(
             item => !sSelection.find(newItem => newItem.id === item.id && newItem.scope === item.scope)
           )
-          selApi.unselect(unselItems)
+          selApi.unselect(unselItems, selId, { forceDefault: true })
         }
       }
 

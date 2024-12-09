@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import * as THREE from 'three'
 
-import { BuerliScope, DrawingID, getDrawing, GraphicID, GraphicType, ObjectID, PointMem } from '@buerli.io/core'
+import { BuerliScope, DrawingID, getDrawing, GraphicID, GraphicType, ObjectID, PointMem, SelectorID } from '@buerli.io/core'
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
 import { sketchIntersectionUtils, TreeObjScope } from '@buerli.io/react-cad'
 
@@ -661,4 +661,10 @@ export const attemptRigidsetsSelection = (
       onSelectCB(rigidsetInfo.id)
     }
   })
+}
+
+const selectorIgnoreList = [/useGeometry/, /useReference/, /RefChange\d+/]
+
+export const isSelectorValid = (selId: SelectorID) => {
+  return !selectorIgnoreList.some(ignoreExpr => ignoreExpr.test(selId.toString()))
 }
