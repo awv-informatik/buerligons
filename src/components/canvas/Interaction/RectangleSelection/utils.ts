@@ -3,7 +3,7 @@ import * as THREE from 'three'
 
 import { BuerliScope, DrawingID, getDrawing, GraphicID, GraphicType, ObjectID, PointMem, SelectorID } from '@buerli.io/core'
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
-import { sketchIntersectionUtils, TreeObjScope } from '@buerli.io/react-cad'
+import { sketchIntersectionUtils } from '@buerli.io/react-cad'
 
 type CommonInfo = { id: ObjectID }
 type CommonBBObjInfo = { bb: THREE.Box2; aabb: AABBInfo }
@@ -44,9 +44,8 @@ export const getPointOnPlane = (unprojectedPoint: THREE.Vector3, camera: THREE.C
 export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, camera: THREE.Camera) => {
   const drawing = getDrawing(drawingId)
   const tree = drawing.structure.tree
-  const selection = drawing.selection.refs[drawing.selection.active || -1]
 
-  const sketchDescendants = ccUtils.base.getDescendants(drawingId, sketchId)
+  const sketchDescendants = tree[sketchId]?.children || []
   const sketchMatrix = drawing.api.structure.calculateGlobalTransformation(sketchId)
   const sketchMatrixInv = sketchMatrix.clone().invert()
 
@@ -56,7 +55,7 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
   const circles: CircleInfo[] = []
   sketchDescendants.forEach(id => {
     const sketchObj = tree[id]
-    if (!sketchObj || selection && !selection.isSelectable(TreeObjScope, { object: sketchObj })) {
+    if (!sketchObj) {
       return
     }
 
