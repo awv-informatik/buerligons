@@ -136,9 +136,11 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       if (deltaSq > 16) {
         rectSelectionState.current = RectSelectionState.RECT_ACTIVE
         setDrawRect(true)
-
-        const setHovered = drawing.api.interaction.setHovered
-        setHovered(null)
+        
+        if (drawing.interaction.hovered) {
+          const setHovered = drawing.api.interaction.setHovered
+          setHovered(null)
+        }
       }
     }
 
