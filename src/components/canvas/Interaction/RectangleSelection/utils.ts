@@ -5,19 +5,28 @@ import { BuerliScope, DrawingID, getDrawing, GraphicID, GraphicType, ObjectID, P
 import { ccUtils, CCClasses } from '@buerli.io/classcad'
 import { sketchIntersectionUtils } from '@buerli.io/react-cad'
 
+import { createQuadTree, QuadTree } from './QuadTree'
+
 type CommonInfo = { id: ObjectID }
-type CommonBBObjInfo = { bb: THREE.Box2; aabb: AABBInfo }
-type CommonGrObjInfo = { graphicId: GraphicID; containerId: ObjectID }
 type AABBInfo = { min: THREE.Vector2; max: THREE.Vector2; points: THREE.Vector3[]; vec1: THREE.Vector3; vec2: THREE.Vector3 }
-export type PointInfo = { pos: THREE.Vector3 } & CommonInfo
-export type LineInfo = sketchIntersectionUtils.CCLineInfo & CommonInfo
-export type ArcInfo = sketchIntersectionUtils.CCArcInfo & { startH: THREE.Vector3; endH: THREE.Vector3} & CommonInfo
-export type CircleInfo = sketchIntersectionUtils.CCCircleInfo & { pos1H: THREE.Vector3; pos2H: THREE.Vector3 } & CommonInfo
-export type SketchInfo = { points: PointInfo[]; lines: LineInfo[]; arcs: ArcInfo[]; circles: CircleInfo[]; sketchMatrixInv: THREE.Matrix4 }
-export type GrObjInfo =  CommonBBObjInfo & CommonGrObjInfo
-export type GrPointInfo = { pos: THREE.Vector3 } & CommonGrObjInfo
-export type GrObjectsInfo = { bbObjects: GrObjInfo[]; points: GrPointInfo[] }
-export type SolidInfo = CommonBBObjInfo & CommonInfo
+type BBObjInfo = { bb: THREE.Box2 }
+type AABBObjInfo = { aabb: AABBInfo }
+type CommonGrObjInfo = { graphicId: GraphicID; containerId: ObjectID }
+export type PointInfo = { pos: THREE.Vector3 } & BBObjInfo & CommonInfo
+export type LineInfo = sketchIntersectionUtils.CCLineInfo & BBObjInfo & CommonInfo
+export type ArcInfo = sketchIntersectionUtils.CCArcInfo & BBObjInfo & { startH: THREE.Vector3; endH: THREE.Vector3} & CommonInfo
+export type CircleInfo = sketchIntersectionUtils.CCCircleInfo & BBObjInfo & { pos1H: THREE.Vector3; pos2H: THREE.Vector3 } & CommonInfo
+export type SketchInfo = {
+  points: QuadTree<PointInfo>
+  lines: QuadTree<LineInfo>
+  arcs: QuadTree<ArcInfo>
+  circles: QuadTree<CircleInfo>
+  sketchMatrixInv: THREE.Matrix4
+}
+export type GrObjInfo = BBObjInfo & AABBObjInfo & CommonGrObjInfo
+export type GrPointInfo = { pos: THREE.Vector3 } & BBObjInfo & CommonGrObjInfo
+export type GrObjectsInfo = { bbObjects: QuadTree<GrObjInfo>; points: QuadTree<GrPointInfo> }
+export type SolidInfo = BBObjInfo & AABBObjInfo & CommonInfo
 export type InstanceInfo = SolidInfo
 export type RigidsetInfo = { instancesInfo: InstanceInfo[] } & CommonInfo
 
@@ -49,10 +58,10 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
   const sketchMatrix = drawing.api.structure.calculateGlobalTransformation(sketchId)
   const sketchMatrixInv = sketchMatrix.clone().invert()
 
-  const points: PointInfo[] = []
-  const lines: LineInfo[] = []
-  const arcs: ArcInfo[] = []
-  const circles: CircleInfo[] = []
+  const points = createQuadTree<PointInfo>()
+  const lines = createQuadTree<LineInfo>()
+  const arcs = createQuadTree<ArcInfo>()
+  const circles = createQuadTree<CircleInfo>()
   sketchDescendants.forEach(id => {
     const sketchObj = tree[id]
     if (!sketchObj) {
@@ -63,7 +72,8 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
 
     if (ccUtils.base.isA(objClass, CCClasses.CCPoint)) {
       const pos = convertToVector(sketchObj.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0)
-      points.push({ id, pos })
+      const bb = new THREE.Box2(new THREE.Vector2(pos.x, pos.y), new THREE.Vector2(pos.x, pos.y))
+      points.addObject({ id, bb, pos })
 
       return
     }
@@ -73,8 +83,12 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       const [start, end] = points_
         .map(p => convertToVector(p.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
       const dir = end.clone().sub(start)
+      const bb = new THREE.Box2(
+        new THREE.Vector2(Math.min(start.x, end.x), Math.min(start.y, end.y)),
+        new THREE.Vector2(Math.max(start.x, end.x), Math.max(start.y, end.y)),
+      )
 
-      lines.push({ id, start, end, dir })
+      lines.addObject({ id, bb, start, end, dir })
 
       return
     }
@@ -98,7 +112,16 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       endAngle = !clockwise && endAngle < startAngle ? endAngle + 2 * Math.PI : endAngle
       const angularLength = endAngle - startAngle
 
-      arcs.push({ id, start, end, center, radius, clockwise, startAngle, endAngle, angularLength, startH, endH })
+      const bbPoints = [
+        new THREE.Vector3(center.x + radius, center.y + radius, 0.0),
+        new THREE.Vector3(center.x - radius, center.y + radius, 0.0),
+        new THREE.Vector3(center.x + radius, center.y - radius, 0.0),
+        new THREE.Vector3(center.x - radius, center.y - radius, 0.0),
+      ]
+      bbPoints.forEach(p => p.applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
+      const bb = getBB(bbPoints)
+
+      arcs.addObject({ id, bb, start, end, center, radius, clockwise, startAngle, endAngle, angularLength, startH, endH })
 
       return
     }
@@ -110,8 +133,19 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       const pos1H = centerL.clone().setX(centerL.x + radius)
       const pos2H = centerL.clone().setY(centerL.y + radius)
       ;[pos1H, pos2H].forEach(pos => pos.applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
-      circles.push({
+
+      const bbPoints = [
+        new THREE.Vector3(centerL.x + radius, centerL.y + radius, 0.0),
+        new THREE.Vector3(centerL.x - radius, centerL.y + radius, 0.0),
+        new THREE.Vector3(centerL.x + radius, centerL.y - radius, 0.0),
+        new THREE.Vector3(centerL.x - radius, centerL.y - radius, 0.0),
+      ]
+      bbPoints.forEach(p => p.applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
+      const bb = getBB(bbPoints)
+
+      circles.addObject({
         id,
+        bb,
         center: centerL,
         radius,
         pos1H,
@@ -250,12 +284,13 @@ const __bb3 = new THREE.Box3()
 export const getSolidsInfo = (drawingId: DrawingID, camera: THREE.Camera) => {
   const drawing = getDrawing(drawingId)
   const selector = drawing.selection.refs[drawing.selection.active || -1]
+  const solidsInfo = createQuadTree<SolidInfo>()
   if (selector && !selector.isSelectable(BuerliScope, GraphicType.BREP)) {
-    return []
+    return solidsInfo
   }
 
   const solidIds = getVisibleSolids(drawingId)
-  const solidsInfo = solidIds.map(id => {
+  solidIds.forEach(id => {
     // getVisibleSolids should only return ids with existing cache records, so no checks are needed here
     const solid = drawing.geometry.cache[id]
     __bb3.set(solid.box.min, solid.box.max)
@@ -263,7 +298,7 @@ export const getSolidsInfo = (drawingId: DrawingID, camera: THREE.Camera) => {
     const bb = getBB(bbPointsH)
     const aabb = getAABB(bbPointsH)
 
-    return { id, bb, aabb } as SolidInfo
+    solidsInfo.addObject({ id, bb, aabb })
   })
 
   return solidsInfo
@@ -292,7 +327,8 @@ export const getInstancesInfo = (drawingId: DrawingID, camera: THREE.Camera) => 
   const tree = drawing.structure.tree
 
   const instanceIds = getVisibleInstances(drawingId)
-  const instancesInfo = instanceIds.map(id => {
+  const instancesInfo = createQuadTree<InstanceInfo>()
+  instanceIds.forEach(id => {
     // I don't use drawing.api.structure.calculateProductBounds here because the resulting bounding boxes are bigger (which would lead to less accurate selections)
     // That's because the instance transforms in it are applied before the union operation
     const transform = drawing.api.structure.calculateGlobalTransformation(id)
@@ -311,7 +347,7 @@ export const getInstancesInfo = (drawingId: DrawingID, camera: THREE.Camera) => 
     const bb = getBB(bbPointsH)
     const aabb = getAABB(bbPointsH)
 
-    return { id, bb, aabb } as InstanceInfo
+    instancesInfo.addObject({ id, bb, aabb })
   })
 
   return instancesInfo
@@ -352,21 +388,21 @@ const bb2ToV3 = (bb: THREE.Box2) => {
   __bb11.set(bb.max.x, bb.max.y, 0.0)
 }
 
-const intersectsLine = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, lineInfo: LineInfo) => {
+const intersectsLine = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, lineInfo: sketchIntersectionUtils.CCLineInfo) => {
   __dir.copy(lineEnd).sub(lineStart)
   const intersections = sketchIntersectionUtils.intersectLineLine({ start: lineStart, end: lineEnd, dir: __dir }, lineInfo)
 
   return intersections[1].length > 0
 }
 
-const intersectsArc = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, arcInfo: ArcInfo) => {
+const intersectsArc = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, arcInfo: sketchIntersectionUtils.CCArcInfo) => {
   __dir.copy(lineEnd).sub(lineStart)
   const intersections = sketchIntersectionUtils.intersectLineArc({ start: lineStart, end: lineEnd, dir: __dir }, arcInfo)
 
   return intersections[1].length > 0
 }
 
-const intersectsCircle = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, circleInfo: CircleInfo) => {
+const intersectsCircle = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, circleInfo: sketchIntersectionUtils.CCCircleInfo) => {
   __dir.copy(lineEnd).sub(lineStart)
   const intersections = sketchIntersectionUtils.intersectLineCircle({ start: lineStart, end: lineEnd, dir: __dir }, circleInfo)
 
@@ -515,14 +551,14 @@ export const getSelectableGrObjects = (drawingId: DrawingID, camera: THREE.Camer
   const drawing = getDrawing(drawingId)
   const curProduct = drawing.structure.currentProduct
   const selector = drawing.selection.refs[drawing.selection.active || -1]
+  const bbObjects = createQuadTree<GrObjInfo>()
+  const points = createQuadTree<GrPointInfo>()
   if (selector.maxLen > 0) {
     // If there is a selection limit for the current selector, don't allow rect-selection at all
-    return { bbObjects: [], points: [] }
+    return { bbObjects, points }
   }
 
   const solidIds = getVisibleSolids(drawingId, curProduct)
-  const bbObjects: GrObjInfo[] = []
-  const points: GrPointInfo[] = []
   solidIds.forEach(solidId => {
     const solid = drawing.geometry.cache[solidId]
 
@@ -540,7 +576,7 @@ export const getSelectableGrObjects = (drawingId: DrawingID, camera: THREE.Camer
       const bb = getBB(bbPointsH)
       const aabb = getAABB(bbPointsH)
 
-      bbObjects.push({ graphicId: geom.graphicId, containerId: geom.container.id, bb, aabb })
+      bbObjects.addObject({ graphicId: geom.graphicId, containerId: geom.container.id, bb, aabb })
     })
 
     if (!selector.isSelectable(BuerliScope, 'point')) {
@@ -549,7 +585,8 @@ export const getSelectableGrObjects = (drawingId: DrawingID, camera: THREE.Camer
 
     solid.points.forEach(point => {
       const pos = point.geometry.clone().project(camera).setZ(0.0)
-      points.push({ graphicId: point.graphicId, containerId: point.container.id, pos })
+      const bb = new THREE.Box2(new THREE.Vector2(pos.x, pos.y), new THREE.Vector2(pos.x, pos.y))
+      points.addObject({ graphicId: point.graphicId, containerId: point.container.id, pos, bb })
     })
   })
 
@@ -571,19 +608,19 @@ export const attemptSketchesGeomSelection = (
       getPointOnPlane(new THREE.Vector3(bbRect.max.x, bbRect.max.y, 0.0).unproject(camera), camera, sketchInfo.sketchMatrixInv),
     ]
   
-    sketchInfo.points.forEach(pointInfo => {
+    sketchInfo.points.traverse(bbRect, pointInfo => {
       if (containsPoint(bbRect, pointInfo.pos)) {
         onSelectCB(pointInfo.id)
       }
     })
   
-    sketchInfo.lines.forEach(lineInfo => {
+    sketchInfo.lines.traverse(bbRect, lineInfo => {
       if (onlyEntireBB && containsSketchLine(bbRect, lineInfo) || !onlyEntireBB && touchesSketchLine(bbRect, lineInfo)) {
         onSelectCB(lineInfo.id)
       }
     })
   
-    sketchInfo.arcs.forEach(arcInfo => {
+    sketchInfo.arcs.traverse(bbRect, arcInfo => {
       if (
         onlyEntireBB && containsSketchArc(bbRect, arcInfo, bbPointsL) ||
         !onlyEntireBB && touchesSketchArc(bbRect, arcInfo, bbPointsL)
@@ -592,7 +629,7 @@ export const attemptSketchesGeomSelection = (
       }
     })
   
-    sketchInfo.circles.forEach(circleInfo => {
+    sketchInfo.circles.traverse(bbRect, circleInfo => {
       if (
         onlyEntireBB && containsSketchCircle(bbRect, circleInfo, bbPointsL) ||
         !onlyEntireBB && touchesSketchCircle(bbRect, circleInfo, bbPointsL)
@@ -604,12 +641,12 @@ export const attemptSketchesGeomSelection = (
 }
 
 export const attemptGrObjectsSelection = (
-  grObjectsInfo: GrObjInfo[],
+  grObjectsInfo: QuadTree<GrObjInfo>,
   bbRect: THREE.Box2,
   onlyEntireBB: boolean,
   onSelectCB: (graphicId: GraphicID, containerId: ObjectID) => void
 ) => {
-  grObjectsInfo.forEach(({ graphicId, containerId, bb, aabb }) => {
+  grObjectsInfo.traverse(bbRect, ({ graphicId, containerId, bb, aabb }) => {
     if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
       onSelectCB(graphicId, containerId)
     }
@@ -617,11 +654,11 @@ export const attemptGrObjectsSelection = (
 }
 
 export const attemptGrPointsSelection = (
-  grPointsInfo: GrPointInfo[],
+  grPointsInfo: QuadTree<GrPointInfo>,
   bbRect: THREE.Box2,
   onSelectCB: (graphicId: GraphicID, containerId: ObjectID) => void
 ) => {
-  grPointsInfo.forEach(({ graphicId, containerId, pos }) => {
+  grPointsInfo.traverse(bbRect, ({ graphicId, containerId, pos }) => {
     if (containsPoint(bbRect, pos)) {
       onSelectCB(graphicId, containerId)
     }
@@ -629,12 +666,12 @@ export const attemptGrPointsSelection = (
 }
 
 export const attemptBBObjectsSelection = (
-  bbObjectsInfo: SolidInfo[] | InstanceInfo[],
+  bbObjectsInfo: QuadTree<SolidInfo> | QuadTree<InstanceInfo>,
   bbRect: THREE.Box2,
   onlyEntireBB: boolean,
   onSelectCB: (id: ObjectID) => void
 ) => {
-  bbObjectsInfo.forEach(({ id, bb, aabb }) => {
+  bbObjectsInfo.traverse(bbRect, ({ id, bb, aabb }) => {
     if (onlyEntireBB && containsBB(bbRect, bb) || !onlyEntireBB && touchesBB(bbRect, bb, aabb)) {
       onSelectCB(id)
     }
