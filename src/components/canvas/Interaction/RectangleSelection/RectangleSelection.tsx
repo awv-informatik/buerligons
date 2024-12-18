@@ -81,7 +81,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
   const isSelectorValidRef = React.useRef<boolean>(true)
 
   const onPointerDown = React.useCallback((e: ThreeEvent<PointerEvent>) => {
-    const t1 = performance.now()
     if (!e.nativeEvent.shiftKey) {
       return
     }
@@ -130,9 +129,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
 
     rectSelectionState.current = RectSelectionState.RECT_START
     camControls.enabled = false
-    
-    const t2 = performance.now()
-    window.console.log(`onPointerDown took ${t2-t1}ms`)
   }, [drawingId, camControls])
 
   const onPointerMove = React.useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -157,7 +153,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
       return
     }
 
-    const t1 = performance.now()
     e.stopPropagation()
 
     rectangleRef.current.curPos.set(e.clientX, e.clientY)
@@ -260,9 +255,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
           selApi.unselect(unselItems, selId, { forceDefault: true })
         }
       }
-    
-      const t2 = performance.now()
-      window.console.log(`onPointerDown took ${t2-t1}ms`)
 
       return
     }
@@ -300,9 +292,6 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
         id => selectionInfo.push(createInfo({ objectId: id, prodRefId: curProduct }))
       )
     }
-    
-    const t3 = performance.now()
-    window.console.log(`onPointerMove took ${t3-t1}ms`)
 
     selectionInfo.sort((a, b) => a.uniqueIdent >= b.uniqueIdent ? 1 : -1)
     const curSelected = drawing.interaction.selected // Assume it is already sorted
