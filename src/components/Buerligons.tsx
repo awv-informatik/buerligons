@@ -15,6 +15,7 @@ import {
   HighlightedObjects,
   Lights,
   raycastFilter,
+  RectangleSelection,
   Threshold,
   useContextMenuItems,
 } from './canvas'
@@ -134,6 +135,7 @@ export const Buerligons: React.FC = () => {
               <BuerliPluginsGeometry drawingId={drawingId} />
               <GlobalCSysDisplay drawingId={drawingId} />
               <HighlightedObjects drawingId={drawingId} />
+              <RectangleSelection drawingId={drawingId} />
             </CanvasImpl>
             <UndoRedoKeyHandler />
           </Drawing>

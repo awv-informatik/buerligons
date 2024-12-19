@@ -20,6 +20,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 }) => {
   const dragInfo = React.useRef<{ mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4 } | null>(null)
   const mdL = React.useRef<THREE.Matrix4 | null>(null)
+  const isBlocked = React.useRef<boolean>(false)
 
   const { position, rotation } = React.useMemo(() => {
     return {
@@ -30,6 +31,10 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
 
   const onDragStart = React.useCallback(
     ({ component }: { component: 'Arrow' | 'Slider' | 'Rotator' }) => {
+      if (isBlocked.current) {
+        return
+      }
+
       const drawing = getDrawing(drawingId)
       const curProdId = drawing.structure.currentProduct
       const curInstanceId = drawing.structure.currentInstance
@@ -108,11 +113,27 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   )
 
   const onDragEnd = React.useCallback(() => {
+    if (!dragInfo.current) {
+      return
+    }
+    
     dragInfo.current = null
     mdL.current = null
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
     ccAPI.assemblyBuilder.finishMovingUnderConstraints(drawingId, curProdId)
   }, [drawingId])
+
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => (isBlocked.current = e.shiftKey)
+
+    window.addEventListener('keydown', handleKey)
+    window.addEventListener('keyup', handleKey)
+
+    return () => {
+      window.removeEventListener('keydown', handleKey)
+      window.removeEventListener('keyup', handleKey)
+    }
+  }, [])
 
   return (
     <HUD>

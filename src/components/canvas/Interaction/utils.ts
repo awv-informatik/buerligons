@@ -29,8 +29,8 @@ export const getBuerliGeometry = (intersection: THREE.Intersection | undefined) 
 }
 
 export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
-  if (intersections.some(i => i.object.userData?.onHUD)) {
-    // If there is an object on HUD within intersections, consider there are no geometry intersections
+  if (intersections.some(i => i.object.userData?.onHUD && i.object.userData?.objId)) {
+    // If there is a tree object on HUD within intersections, consider there are no geometry intersections
     return undefined
   }
 
