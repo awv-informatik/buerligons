@@ -556,6 +556,8 @@ export const getSelectableGrObjects = (drawingId: DrawingID, camera: THREE.Camer
   return { bbObjects, points }
 }
 
+// TODO: Use somethin like a quadtree to optimize the rectangle-selection! It's naive implementation didn't improve the performance much, so it has to be made suited better for rectangle-selection... 
+
 export const attemptSketchesGeomSelection = (
   sketchesInfo: SketchInfo[],
   bbRect: THREE.Box2,
