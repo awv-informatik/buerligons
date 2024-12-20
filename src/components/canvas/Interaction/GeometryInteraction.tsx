@@ -71,7 +71,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         return
       }
 
-      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
+      const intersection = findGeometryIntersection(e.intersections, drawingId, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
       const object = getBuerliGeometry(intersection)
       if (!object || !uData) {
@@ -105,7 +105,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       const hovered = drawing.interaction.hovered
 
-      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
+      const intersection = findGeometryIntersection(e.intersections, drawingId, lineThreshold, pointThreshold)
       const object = getBuerliGeometry(intersection)
 
       // Only unhover if BuerliGometry item was hovered
@@ -133,7 +133,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
       const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
 
-      const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
+      const intersection = findGeometryIntersection(e.intersections, drawingId, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData
       const object = getBuerliGeometry(intersection)
       if (!object || !uData) {
