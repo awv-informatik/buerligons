@@ -1,5 +1,5 @@
 import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
-import { ccAPI } from '@buerli.io/classcad'
+import { api as ccApi, Connection } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
 import { Button, Dropdown, Space, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
@@ -10,13 +10,14 @@ export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
 
   const createPart = React.useCallback(async () => {
-    const newDrawingId = await ccAPI.base.createCCDrawing()
-    newDrawingId && (await ccAPI.feature.newPart(newDrawingId, 'Part').catch(console.info))
+    const newDrawingId = await Connection.create()
+    newDrawingId && (await ccApi(newDrawingId).v0.feature.newPart('Part').catch(console.info))
   }, [])
 
   const createAssembly = React.useCallback(async () => {
-    const newDrawingId = await ccAPI.base.createCCDrawing()
-    newDrawingId && (await ccAPI.assemblyBuilder.createRootAssembly(newDrawingId, 'New Assembly').catch(console.info))
+    const newDrawingId = await Connection.create()
+    newDrawingId &&
+      (await ccApi(newDrawingId).v0.assemblyBuilder.createRootAssembly('New Assembly').catch(console.info))
   }, [])
 
   const openFile = React.useCallback(() => {
@@ -81,15 +82,22 @@ const Main = styled.div`
   align-content: center;
   gap: 16px;
 
-  background: -webkit-radial-gradient(
+  background:
+    -webkit-radial-gradient(
       center,
       circle,
       rgba(255, 255, 255, 0.35),
       rgba(255, 255, 255, 0) 20%,
       rgba(255, 255, 255, 0) 21%
     ),
-    -webkit-radial-gradient(center, circle, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
-    -webkit-radial-gradient(center, circle farthest-corner, #f5f5f5, #eaeaea);
-  background-size: 10px 10px, 10px 10px, 100% 100%;
-  background-position: 1px 1px, 0px 0px, center center;
+    - webkit-radial-gradient(center, circle, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
+    - webkit-radial-gradient(center, circle farthest-corner, #f5f5f5, #eaeaea);
+  background-size:
+    10px 10px,
+    10px 10px,
+    100% 100%;
+  background-position:
+    1px 1px,
+    0px 0px,
+    center center;
 `
