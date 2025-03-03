@@ -456,9 +456,10 @@ const viewNormalToSketch = (
   controls: ControlsProto,
   boundsControls: BoundsApi,
 ) => {
+  const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
   const sketchFitInfo = sketchUtils.getSketchNormalViewInfo(
     drawingId,
-    menuInfo.interactionInfo.objectId,
+    sketchId,
     menuInfo.clickInfo.clickPos,
     camera.position.distanceTo(controls?.target)
   )
@@ -472,7 +473,8 @@ const viewNormalToSketch = (
 
 const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControls: BoundsApi) => {
   const margin = 1.2
-  const sketchFitInfo = sketchUtils.getSketchFitInfo(drawingId, menuInfo.interactionInfo.objectId, margin * 4)
+  const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
+  const sketchFitInfo = sketchUtils.getSketchFitInfo(drawingId, sketchId, margin * 4)
   if (!sketchFitInfo) {
     return
   }
