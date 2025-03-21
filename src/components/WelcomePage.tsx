@@ -131,9 +131,9 @@ export function WelcomePage() {
             </Video>
             <ProductWrapper>
               <Description>
-                Introducing Buerligons, our user-friendly interactive, CAD Frontend developped with Buerli and ClassCAD. Easily
+                Introducing Buerligons, our user-friendly interactive CAD frontend developed with Buerli and ClassCAD. Easily
                 create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
-                NEW Buerligons WASM the first one click CAD that runs entirely in the browser.
+                Buerligons WASM the first one click CAD that runs entirely in the browser.
               </Description>
               <ButtonGroup>
                 <Dropdown menu={createNewProps}>
