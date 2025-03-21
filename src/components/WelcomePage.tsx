@@ -5,7 +5,8 @@ import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
 import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
 import { FiDisc, FiGitMerge, FiLayers, FiZap, FiPackage } from 'react-icons/fi'
-import DemoPart from '../resources/as1_ac_214.stp?url'
+import DemoPart from '../resources/as1_ac_214.stp?url'  
+//  Shaft Part,  Engine ASM,  Schmidt Coupling ASM
 import {
   Hero,
   Header,
@@ -130,8 +131,9 @@ export function WelcomePage() {
             </Video>
             <ProductWrapper>
               <Description>
-                Introducing Buerligons, our user-friendly interactive, nurbs-based CAD system that runs anywhere. Easily
+                Introducing Buerligons, our user-friendly interactive, CAD Frontend developped with Buerli and ClassCAD. Easily
                 create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
+                NEW Buerligons WASM the first one click CAD that runs entirely in the browser.
               </Description>
               <ButtonGroup>
                 <Dropdown menu={createNewProps}>
@@ -165,21 +167,10 @@ export function WelcomePage() {
             <span style={{ fontWeight: 400 }}>FEATURES</span>
           </Caption>
           <Grid columns={2} rows={4}>
-            <Feature icon={FiDisc} title="Non-manifold solid kernel">
-              A NURBS solid modeling kernel includes a powerful set of construction, modification, and evaluation tools
-              for curves, surfaces, trimmed surfaces and polygonal solids. It supports topologically based operations
-              such as booleans, fillets, offsets, tessellations, deformable modeling, and much more. Note today we use
-              only a fraction of the kernel functionality within our Buerli.
-            </Feature>
-            <Feature icon={FiGitMerge} title="Parts">
+             <Feature icon={FiGitMerge} title="Parts">
               Effortlessly design 3D solids by combining parametric sketching with extruding and revolving techniques.
               Model objects using fundamental shapes—such as boxes, cylinders, cones, and spheres—and refine them
               through Boolean operations, slicing, and patterning tools for precise positioning and manipulation.
-            </Feature>
-            <Feature icon={FiLayers} title="STEP support">
-              Import of Step models (AP203, AP214, AP242). Assembly structures are supported for standard and enterprise
-              plans, while solid modeling imports Step flattened. Other formats like SAT or IGES are available on
-              request.
             </Feature>
             <Feature icon={FiLayers} title="Assemblies">
               Our software enables the creation and precise positioning of part or assembly template instances within a
@@ -188,10 +179,19 @@ export function WelcomePage() {
               seamlessly toggle between assembly mode and part modeling by simply double-clicking on parts in the
               assembly tree.
             </Feature>
+            <Feature icon={FiLayers} title="STEP support">
+              Import of Step models (AP203, AP214, AP242). Assembly structures are supported for standard and enterprise
+              plans, while solid modeling imports Step flattened. Other formats like SAT or IGES are available on
+              request.
+            </Feature>
             <Feature icon={FiZap} title="WASM or WS">
               Buerligons is WASM compatible and can be run self-contained in any browser or web-based application, on
-              the desktop, native and mobile. It can also connect to its kernel via remote web-sockets, which enables
+              the desktop, native and mobile. It can also connect to its engine via remote web-sockets, which enables
               more features, like state storage and undo-redo.
+            </Feature>
+            <Feature icon={FiDisc} title="Developed with Buerli and ClassCAD engine">                       
+              Buerligons is our Enduser CAD System, that we created with the Buerli Client Framework and our ClassCAD backend engine.
+              More details on Buerli.io  and ClassCAD.ch 
             </Feature>
             <Feature icon={FiPackage} title="Open source">
               We have open sourced Buerligons so that it can either be used as a standalone application or integrated
