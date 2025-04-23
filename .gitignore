@@ -1,4 +1,5 @@
 .firebase/
+.docusaurus/
 dist/
 build/
 node_modules/
