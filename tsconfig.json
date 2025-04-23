@@ -1,9 +1,11 @@
 {
+  "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": false,
-    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -15,8 +17,7 @@
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "vite-plugin-svgr/client"],
-    "skipDefaultLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/"],
+  "exclude": ["**/node_modules/**"]
 }

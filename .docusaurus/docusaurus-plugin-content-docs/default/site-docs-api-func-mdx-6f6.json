@@ -1,0 +1,16 @@
+{
+  "id": "API/func",
+  "title": "Func",
+  "description": "",
+  "source": "@site/docs/API/func.mdx",
+  "sourceDirName": "API",
+  "slug": "/API/func",
+  "permalink": "/docs/API/func",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Func"
+  }
+}

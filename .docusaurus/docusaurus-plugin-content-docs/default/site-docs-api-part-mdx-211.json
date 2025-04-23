@@ -1,0 +1,16 @@
+{
+  "id": "API/part",
+  "title": "Part",
+  "description": "",
+  "source": "@site/docs/API/part.mdx",
+  "sourceDirName": "API",
+  "slug": "/API/part",
+  "permalink": "/docs/API/part",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Part"
+  }
+}

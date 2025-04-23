@@ -1,0 +1,14 @@
+BEGIN:VCARD
+VERSION:3.0
+N:;;;;
+FN:AWV Informatik AG
+ORG:AWV Informatik AG;
+EMAIL;type=INTERNET;type=WORK;type=pref:info@awv-informatik.ch
+TEL;type=WORK;type=pref:+41 71 222 39 11
+item1.ADR;type=WORK;type=pref:;;Wassergasse 18;St. Gallen;;9000;Switzerland
+item1.X-ABADR:at
+item2.URL;type=pref:www.awv-informatik.ch
+item2.X-ABLabel:_$!<HomePage>!$_
+X-ABShowAs:COMPANY
+X-ABUID:7566635B-930D-47D9-855D-7C7A85023B57\:ABPerson
+END:VCARD

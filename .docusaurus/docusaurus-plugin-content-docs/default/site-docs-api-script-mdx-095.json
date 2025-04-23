@@ -1,0 +1,16 @@
+{
+  "id": "API/script",
+  "title": "Script",
+  "description": "",
+  "source": "@site/docs/API/script.mdx",
+  "sourceDirName": "API",
+  "slug": "/API/script",
+  "permalink": "/docs/API/script",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Script"
+  }
+}

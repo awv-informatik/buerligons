@@ -1,0 +1,16 @@
+{
+  "id": "API/drawing2d",
+  "title": "Drawing2d",
+  "description": "",
+  "source": "@site/docs/API/drawing2d.mdx",
+  "sourceDirName": "API",
+  "slug": "/API/drawing2d",
+  "permalink": "/docs/API/drawing2d",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Drawing2d"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "API/common",
+  "title": "Common",
+  "description": "",
+  "source": "@site/docs/API/common.mdx",
+  "sourceDirName": "API",
+  "slug": "/API/common",
+  "permalink": "/docs/API/common",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Common"
+  }
+}
