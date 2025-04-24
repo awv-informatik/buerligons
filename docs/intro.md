@@ -1,94 +1,101 @@
 ---
 sidebar_position: 1
 ---
+# Introduction to Buerligons CAD
 
-# Introduction
+Welcome to **Buerligons**, our end-user, history-based, parametric CAD system. Developed using the Buerli Client Framework and powered by our **ClasssCAD** engine, Buerligons provides a robust environment for designing precise, parametric CAD models—directly in the browser.
 
-Let's discover the ClassCAD API and how to use ClassCAD in more depth.
+Buerligons **runs entirely in the browser**, thanks to our CAD engine compiled into WebAssembly (WASM). This allows users to launch the system with a single click—no installation required. Once downloaded, the application is cached by the browser, enabling fast performance and offline availability.
 
+For more advanced scenarios, Buerligons can also connect to a server-based instance using WebSockets. This setup supports collaborative workflows or extended backend processing, though it requires slightly more configuration and infrastructure.
 
-**ClassCAD** is our powerful CAD engine, written in C++, designed to execute API calls in multiple ways. To get started, you need to [register here] and download your AppKey [here]. This key enables you to run the engine across various platforms.
+---
 
-It's important to note that you have complete freedom to host and deploy ClassCAD as you see fit. AWV Informatik AG does not offer a SaaS solution.
+## 🛠️ Part Modeling
 
-## How to Use   
-The easiest way to get started is by **cloning our Buerli starter repository** and following the setup instructions.Currently, you can interact with **ClassCAD** using:  
--*TypeScript APIs*, accessible from the browser via a Node-based instance manager.  
--*WebAssembly (WASM)*, allowing direct execution in the browser.  
+Buerligons empowers users to model **parts and assemblies** with an intuitive and feature-rich toolset:
 
-See the Upcoming section for further usages.
+- **2D parametric sketches**: Easily create and fully constrain 2D profiles.
+- **Solid generation**: Generate solids using **extrude**, **revolve**, and **twist** operations. Upcoming features will include swept solids (pipe and path sweeps).
+- **Sheet modeling**: Create thin-walled features by extruding open profiles or omitting end caps.
+- **Primitives**: Quickly insert basic shapes such as **boxes**, **cylinders**, and **cones**. All primitives are placed using **parametric coordinate systems**.
+- **Work geometry**: Define supporting geometry like planes, axes, points, and coordinate systems to guide modeling.
+- **Boolean operations**: Modify geometry through **union**, **subtraction**, and **intersection** operations.
+- **Edge treatments**: Refine geometry using **fillets** and **chamfers** on BRep edges.
 
-## Use Cases for ClassCAD & Its API  
+> 📷 *Insert Screenshot: Sketching and Extrusion Example*
 
-Our **ClassCAD engine** and its **APIs** empower developers across various domains, including:  
+### Feature History & Rollback
 
- **1. Custom CAD Applications**  
- Build tailored solutions for specific design needs.  
- **2. Automating Repetitive Design Tasks**  
- Increase efficiency by scripting repetitive processes.  
- **3. Configurators & Mass Customization**  
- Enable parametric design for on-demand product variations.\
- **4. AI-Driven & Generative Design**  
- Leverage automation for innovative design solutions.  
- **5. Smart Documentation & Compliance**  
- Ensure accurate, rule-based documentation and compliance tracking.  
+Buerligons includes a **rollback bar**, allowing users to move through the model’s creation history. Editing a feature moves the rollback to the appropriate point, enabling contextual and historical model edits.
 
+- Supports non-linear, parametric editing
+- Encourages exploration, learning, and rapid iteration
 
-### What you'll need to know about our APIs
+> 📷 *Insert Screenshot: Feature History with Rollback*
 
-Our **CAD APIs** support both part creation and assembly construction. We leveraged these APIs to develop Buerligons dev.buerligons.io , a parametric CAD system for end users. This showcases how you can use the APIs to build your own custom CAD applications.
+### Referencing
 
-Starting from version v1, all APIs are versioned and follow clear, standardized design principles:
+Referencing in Buerligons is robust and flexible, allowing users to base new features on both **work geometry** and **BRep elements**, ensuring parametric stability throughout the modeling process.
 
-- JSON Parameters – All APIs accept a single JSON key-value parameter, making them more resilient to breaking changes.
-- Result & Error Handling – Every API call returns a JSON object containing both a result and an error section.
-The JSDoc documentation provides all the necessary details for using the APIs. We use this documentation to automatically generate a TypeScript API, with Python support coming soon.
+---
 
+## 🧩 Assembly Modeling
 
--**Part API**\
-This API enables you to create parts using a sequence of operations or features, similar to how parts are built interactively in Buerligons. Solid geometry is generated when the sequence is executed. The models created through code can also be opened and further modified within Buerligons.
+The **Product Management Plugin** streamlines the creation and management of assemblies within the canvas:
 
--**Assembly API**\
-The Assembly API enables constraint-based assembly construction. Models consist of parts and assemblies, which are stored in containers. These containers act as templates, allowing instances to be positioned in 3d space when creating new assemblies.
-Positioning is handled using 3D constraints, such as fastened, revolute, and slider constraints, which are defined on mates. Our 3D constraint solver ensures correct positioning of all components.
+- Interactively instantiate parts and sub-assemblies
+- Relate components using **3D assembly constraints**, including:
+  - `Fastened Origin`
+  - `Fastened`
+  - `Revolute`
+  - `Cylindrical`
+  - `Slide`
 
--**Solid API**\
-For applications where only the final geometry matters, the Part API may not be the best approach. That’s why we offer a destructive Solid API, allowing you to programmatically generate solid geometry using extrusions, revolutions, and Boolean operations—without unnecessary steps. Here, you first create a part and then generate geometry within a solid container object.
+> 📷 *Insert Screenshot: Assembly with Constraints*
 
--**Sketcher API**\
-This API enables the creation of parametric sketches with 2D constraints. Programming sketches can be complex because you’re not just defining geometry (lines and arcs) but also constraints. Once a constraint is added, the embedded solver applies it, potentially modifying the geometry accordingly. Sketches can be created on workplanes, including those defined on planar faces of BRep geometry. The interactive sketcher embedded in Buerligons follows the same principles.
+### Pattern Constraints
 
--**Curve API**\
-Beyond simple geometric elements like lines and arcs, the Curve API supports Bezier curves and polynomial-based interpolation. Additionally, it offers compatibility with AutoCAD’s polyline approach, using points and bulges. Curves can be grouped into shapes, which can then be used for extrusions or other operations.
+Accelerate design work with automated instancing:
 
+- **Linear Patterns**
+- **Circular Patterns**
 
--**Drawing API**\
-The Drawing API allows the creation of 2D drawings from 3D models. It internally applies hidden-line removal and projects 3D curves onto a plane. Users can define different views (e.g., TOP, ISO) and position them accordingly.
-For exporting, we use the Open Design Library to generate DXF and SVG formats.
+These features reduce repetitive modeling tasks and enhance productivity.
 
-## Key Differentiators Compared to Other CAD API Providers
+---
 
--**Self-Hosted Engine**: You have full control over hosting the engine, making it accessible to your end users via web technologies. 
+## 🔄 Import & Export
 
--**WASM-Based Engine**: Our WebAssembly (WASM) engine is a compact ~40MB package containing your entire CAD system. Your end users can run the application directly in their browser with just a single download—eliminating hosting costs on your side while supporting unlimited users. No install, just a single click.
+Buerligons supports **import and export of STEP models**. Assemblies within STEP files are preserved during import. When importing into **part mode**, the assembly is flattened into a single part context.
 
--Customizable with **Buerli Client Framework**: Easily tailor your CAD applications with the Buerli Client framework, ensuring flexibility and adaptability to your needs.
+---
 
-Regardless of your company’s size, we provide an affordable flat-rate pricing model for businesses large and small. Since you host everything yourself, we offer a flat-rate pricing model—no per-API-call charges![Link to AWV Pricing Page]
+## 🚧 Upcoming Features
 
+Buerligons is in continuous development. Every release brings new capabilities and refinements—stay tuned for updates and feature announcements!
 
-## ClassCAD and the solid kernel
-Think of ClassCAD as an object system that manages the results of calls to the CAD kernel. ClassCAD is built on SMLib, a NURBS-based kernel developed by Solid Modeling Solutions, a company that was acquired by Nvidia several years ago. We have been working with this kernel for over 20 years. The kernel supports non-manifold BREP modeling and provides tesselation functionality for visualisation in a client.
-We currently use only a fraction of the overall functionality and will provide other APIs
-for surface modelling or polygonal modelling in the future. 
+---
 
+## ⚠️ Scope and Focus
 
-A bit of history: ClassCAD was initially implemented using ObjectARX as an extension for AutoCAD. Later, we transitioned to the ACIS kernel to develop a standalone CAD. However, due to business model challenges with Spatial, we eventually switched to SMLib. Before making this decision, we explored alternative solutions, including a prototype implementation with Open Cascade in 2003.
+Buerligons is **not** intended to compete with high-end CAD systems. Its focus is on:
 
-## ClassCAD and constraint solving
+- Simple, browser-based parametric design
+- Efficient recalculation of parts and assemblies with new parameters
+- Lightweight deployment and use
 
-As a parametric CAD system we support 2d and 3d constraint solving.  Our SketchAPI and our interactive sketcher in Buerligons supports the normally used constraints and dimensions. Additional functionality for filleting and triming/splitting of sketchgeometrie is available.
+> ⚠️ Freeform modeling and direct editing are currently **not supported**.
 
-In 3d we use constraints, like revolute, slider or fastened to position parts in 3d. Constraints are expressed on mates, which are coordinates systems on the parts. Move under constraints is supported in 2d and 3d.
+---
 
-Our solvers are licences from Bricsys, a part of Hexagon AB, a global provider of the BricsCAD brand and  design software components.
+## 🎮 Interacting with the 3D Canvas
+
+- **Context menus**: Access object-specific tools with a right-click.
+- **Selection tools**:
+  - Drag left-to-right to select fully enclosed elements
+  - Drag right-to-left to select intersecting elements
+
+> 📷 *Insert Screenshot: Canvas Interaction with Selection Box*
+
+---
