@@ -8,12 +8,67 @@ import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
 import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
 import { FiDisc, FiGitMerge, FiLayers, FiZap, FiPackage } from 'react-icons/fi'
-//import DemoPart from '@site/src/components/buerligons/resources/as1_ac_214.stp?url'
-//console.log('DemoPart', DemoPart)
 
-import { initBuerli } from '@site/src/components/buerligons/initBuerli'
+import {
+  Square3Stack3DIcon,
+  DocumentPlusIcon,
+  HeartIcon,
+  CursorArrowRaysIcon,
+  SignalIcon,
+  PuzzlePieceIcon,
+  RectangleGroupIcon,
+  InboxIcon,
+  TrashIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline'
 
-initBuerli()
+import { PlusIcon, CheckIcon } from '@heroicons/react/20/solid'
+
+const includedFeatures = [
+  'Private forum access',
+  'Member resources',
+  'Entry to annual conference',
+  'Official member t-shirt',
+]
+
+const features = [
+  {
+    name: 'Parts',
+    description: `Easily design 3D solids using parametric sketching, extrusion, and revolving. Build with basic shapes and refine them using Boolean operations, slicing, and patterning for precise control.`,
+    href: '#',
+    icon: PuzzlePieceIcon,
+  },
+  {
+    name: 'Assemblies',
+    description: `Our software lets you place part or assembly templates in a 3D scene using 3D constraints or a movement gizmo. Apply standard constraints—like slider, revolute, planar, and parallel—directly to part coordinate systems, and switch between assembly and part modeling with a double-click.`,
+    href: '#',
+    icon: Square3Stack3DIcon,
+  },
+  {
+    name: 'STEP support',
+    description: `Import STEP models (AP203, AP214, AP242) with assembly support on standard and enterprise plans; solids import as flattened. SAT and IGES formats are available on request.`,
+    href: '#',
+    icon: DocumentPlusIcon,
+  },
+  {
+    name: 'WASM/WebSockets',
+    description: `Buerligons runs self-contained in any browser or web app with WASM compatibility—on desktop, native, or mobile. It can also connect remotely via web-sockets for features like state storage and undo-redo.`,
+    href: '#',
+    icon: SignalIcon,
+  },
+  {
+    name: 'Developed with Buerli and ClassCAD engine',
+    description: `Buerligons is our end-user CAD system, built with the Buerli Client Framework and powered by the ClassCAD backend engine. Learn more at Buerli.io and ClassCAD.ch. `,
+    href: '#',
+    icon: CursorArrowRaysIcon,
+  },
+  {
+    name: 'Open source',
+    description: `Buerligons is open source—use it as a standalone app, integrate it into other tools, or customize it as needed. Source code is available on GitHub.`,
+    href: '#',
+    icon: HeartIcon,
+  },
+]
 
 export default function App() {
   return (
@@ -26,7 +81,7 @@ export default function App() {
               className="absolute mb-2 font-extrabold text-4xl md:text-6xl lg:text-8xl"
               style={{ textShadow: '0 0 1.5em white, 0 0 1.5em white' }}>
               BUERLI <br /> <span style={{ paddingLeft: '1.3em' }}>GONS</span>
-              <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>              
+              <span style={{ position: 'relative', display: 'inline-block', top: '0.3em', fontWeight: 200 }}>+</span>
             </h2>
             <video className="flex-1 min-h-64 mt-26 ml-0 lg:ml-26 mb-0 lg:mb-6 object-contain" autoPlay muted loop>
               <source src="1728647677004558.mp4" type="video/mp4" />
@@ -40,6 +95,159 @@ export default function App() {
           <div className="flex w-10 h-2 flex-1 basis-10" />
         </div>
       </div>
+
+      <Section id="about">
+        <div className="overflow-hidden pt-24 sm:pt-32">
+          <div className="mx-auto">
+            <div className="max-w-3xl">
+              <p className="text-base/7 font-semibold text-red-600">About Buerligons</p>
+              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
+                One click CAD that runs entirely in the browser.
+              </h1>
+              <p className="mt-6 text-xl/8 text-balance text-gray-700">
+                Introducing Buerligons, our user-friendly interactive CAD frontend developed with Buerli and ClassCAD.
+                Easily create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
+              </p>
+            </div>
+            <section className="mt-20 grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-16">
+              <div className="lg:pr-8">
+                <h2 className="text-2xl font-semibold tracking-tight text-pretty text-gray-900">
+                  CAD editing for designers
+                </h2>
+                <p className="mt-6 text-base/7 text-gray-600">
+                  Buerligons allows you to create and edit 3D models directly in your browser, without the need for any
+                  installation. It is a powerful tool for engineers, designers, and anyone who needs to create 3D models
+                  quickly and easily. With Buerligons, you can create complex models in minutes, and share them with
+                  colleagues and clients with just a few clicks.
+                </p>
+                <p className="mt-8 text-base/7 text-gray-600">
+                  NURBS based CAD makes it easy to create smooth and accurate curves and surfaces. It also supports a
+                  wide range of parametric features, which allow you to create models that can be easily modified. This
+                  makes Buerligons an ideal tool for creating 3D models for a wide range of applications, including
+                  product design, architecture, and engineering.
+                </p>
+              </div>
+              <div className="pt-16 lg:row-span-2 lg:-mr-16 xl:mr-auto">
+                <div className="-mx-8 grid grid-cols-2 gap-4 sm:-mx-16 sm:grid-cols-4 lg:mx-0 lg:grid-cols-2 lg:gap-4 xl:gap-8">
+                  <div className="aspect-square overflow-hidden rounded-xl shadow-xl outline-1 -outline-offset-1 outline-black/10">
+                    <img alt="" src="10.jpg" className="block size-full object-cover" />
+                  </div>
+                  <div className="-mt-8 aspect-square overflow-hidden rounded-xl shadow-xl outline-1 -outline-offset-1 outline-black/10 lg:-mt-40">
+                    <img alt="" src="4.jpg" className="block size-full object-cover" />
+                  </div>
+                  <div className="aspect-square overflow-hidden rounded-xl shadow-xl outline-1 -outline-offset-1 outline-black/10">
+                    <img alt="" src="8.jpg" className="block size-full object-cover" />
+                  </div>
+                  <div className="-mt-8 aspect-square overflow-hidden rounded-xl shadow-xl outline-1 -outline-offset-1 outline-black/10 lg:-mt-40">
+                    <img alt="" src="6.jpg" className="block size-full object-cover" />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </Section>
+
+      <Section id="features">
+        <div className="bg-white pt-24 sm:pt-32">
+          <div className="mx-auto">
+            <p className="text-base/7 font-semibold text-red-600">Features</p>
+            <div className="mx-auto max-w-2xl lg:mx-0">
+              <h2 className="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
+                Packed with features
+              </h2>
+              <p className="mt-6 text-lg/8 text-gray-600">
+                Buerligons has been designed to be easy to use, with a simple and intuitive interface. It is also packed
+                with features that make it a powerful tool for creating 3D models.
+              </p>
+            </div>
+            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+                {features.map(feature => (
+                  <div key={feature.name} className="flex flex-col">
+                    <dt className="text-base/7 font-semibold text-gray-900">
+                      <div className="mb-6 flex size-10 items-center justify-center rounded-lg bg-red-600">
+                        <feature.icon aria-hidden="true" className="size-6 text-white" />
+                      </div>
+                      {feature.name}
+                    </dt>
+                    <dd className="mt-1 flex flex-auto flex-col text-base/7 text-gray-600">
+                      <p className="flex-auto">{feature.description}</p>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section id="pricing">
+        <div className="overflow-hidden pt-24 sm:pt-32">
+          <div className="mx-auto">
+            <div className="w-full">
+              <p className="text-base/7 font-semibold text-red-600">Pricing</p>
+              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
+                A fair, Value-Oriented Approach
+              </h1>
+              <p className="mt-6 text-xl/8 text-balance text-gray-700">
+                We believe pricing should be fair, transparent, and aligned with the value our technology delivers.
+                Solutions like ClassCAD, Buerli, and applications such as Buerligons serve a wide spectrum of users —
+                from individual designers to enterprise teams integrating advanced CAD capabilities into large-scale
+                platforms.
+              </p>
+              <p className="mt-6 text-xl/8 text-balance text-gray-700">
+                A one-size-fits-all pricing model simply doesn’t do justice to this diversity.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          className="mx-auto mt-8 max-w-2xl rounded-3xl ring-1 ring-gray-200 lg:mx-0 lg:flex lg:max-w-none"
+          style={{ width: '110%', position: 'relative', left: '-5%' }}>
+          <div className="p-8 sm:p-10 lg:flex-auto">
+            <h3 className="text-3xl font-semibold tracking-tight text-gray-900">Flexible for Real-World Use Cases</h3>
+            <p className="mt-6 text-base/7 text-gray-600">
+              Vastly different scenarios highlight the need for flexibility — and our licensing model is designed to
+              adapt accordingly.
+            </p>
+            <div className="mt-10 flex items-center gap-x-4">
+              <h4 className="flex-none text-sm/6 font-semibold text-red-600">Consider the range of use cases:</h4>
+              <div className="h-px flex-auto bg-gray-100" />
+            </div>
+            <ul role="list" className="mt-8 grid grid-cols-1 gap-4 text-sm/6 text-gray-600 sm:grid-cols-2 sm:gap-6">
+              <li className="flex gap-x-3">
+                <PlusIcon aria-hidden="true" className="h-6 w-5 flex-none text-red-600" />A solo developer could build a
+                custom, industry-specific CAD system and deploy it to thousands via a WebAssembly-based web platform.
+              </li>
+
+              <li className="flex gap-x-3">
+                <PlusIcon aria-hidden="true" className="h-6 w-5 flex-none text-red-600" />
+                Another user may simply want to use Buerligons for personal, or commercial design projects.
+              </li>
+            </ul>
+          </div>
+          <div className="-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:shrink-0">
+            <div className="h-full rounded-2xl bg-gray-50 py-10 text-center ring-1 ring-gray-900/5 ring-inset lg:flex lg:flex-col lg:justify-center lg:py-16">
+              <div className="mx-auto max-w-xs px-8">
+                <p className="text-base font-semibold text-gray-600">Tailored Tiers and Open Dialogue</p>
+                <p className="mt-6 flex items-baseline justify-center gap-x-2">
+                  We offer clear base tiers for developers, users, and distributors, and we’re open to value-based
+                  discussions for unique cases — all to support your success.
+                </p>
+                <p className="mt-6 flex items-baseline justify-center gap-x-2">
+                  Explore our blog to find the pricing tier that fits your needs.
+                </p>
+                <a
+                  href="#"
+                  className="mt-10 block w-full rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+                  Learn more ...
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
     </Layout>
   )
 }
