@@ -2,54 +2,62 @@
 sidebar_position: 2
 ---
 
-#  Sketching Tool
+Our interactive, constraint-based sketcher allows you to create 2D geometry using lines, arcs, and circles. We aim for intuitive usability and will focus this document on features that are unique to our system or that differ from other sketching tools.
 
-Our interactive constraint based sketcher allow us to create 2d geometry using lines, arcs and circles.  We hope that the usage is intuitive and will focus in the dicument only on those aspects, which are special in our system or different to others.
+## Getting Started
 
-When starting, you must select on of the main workplanes to sketch on. In later modelling phases, you could also select a face of a brep, or workplanes, you defined by yourself. For faces, the system autmatically creates a workplane and adds it before you sketch. Thus somehow separating workplane referencing from sketching.
+To begin sketching, you must first select one of the main workplanes. In later modeling stages, you can also select the face of a BREP (Boundary Representation) or use custom workplanes you've defined. When sketching on a face, the system automatically creates and assigns a workplane beforehand—this separates workplane referencing from sketching.
 
-This allows you in later phases also to change the workülae of a sketch in the Position Tab of the sketcherplugin. In this Tab you can change the WP , its direction and it even allows you to overwrite a default origin and default orientation.
+You can change the sketch’s associated workplane later in the **Position** tab of the Sketcher plugin. This tab allows you to modify the workplane direction, override the default origin, and adjust the orientation.
 
-##  Geometry
+A **context menu** is available on each element to assist with selecting overlapping or hidden geometry. It uses ray tracing to find all geometry at a specific point and generates a selection list. A context menu on the canvas also allows you to zoom or reorient the sketch plane to a normal view.
 
-You can create lines/ polylines by selcting line icon and then clicking in the canvas.  Using "ESC" is very important to leave different all editing modes.  The current active mode is visualized as a highlighted icon.
+## Geometry
 
-## Constraints 
-We support geometrical and dimensional constraints.
+You can create lines and polylines by selecting the **line** icon and clicking in the canvas. Pressing **ESC** is important to exit any active editing mode. The currently active mode is indicated by a highlighted icon.
 
-You can switch the constraint display on and off using the eye icon in the constraint Tab. If on the contarints are always shown in the cavas, if off they are dynamically positioned and shown.
-Incidentscontarints on points etc must be explicitly turned on with the incident icon, beside the eye icon.
+## Constraints
 
+We support both **geometric** and **dimensional** constraints.
 
+Use the **eye** icon in the **Constraints** tab to toggle constraint visibility. When enabled, constraints are always shown on the canvas. When disabled, they appear dynamically as needed.
 
-##  Fillets
+To use **incidence constraints** (e.g., point-on-line), you must enable them using the **incident** icon next to the eye icon.
 
-Enter fillet mode and fillet two lines by hovering over a incident point of the two lines and then clicking on it.  Within the fillet mode you can alway undo the fillet by clicking on the newly created  point, which is incident to the filleted lines.
-Leave modus by pressing "ESC".
+Available constraint types depend on your current selection, allowing only valid combinations for application.
 
-Dimensional contraints on the original lines, will get a new refernce to the point and thus keeping original length distances, whewn filleting.
+## Fillets
 
+To create a fillet between two lines, enter **fillet mode**, hover over their intersection point, and click it. You can undo the fillet by clicking on the newly created point (which lies on both lines).
 
-##  Split/Trim
+Exit fillet mode using **ESC**. Dimensional constraints on the original lines will reference this new point to preserve original distances after filleting.
 
-## Use geoemtry / reference
+## Split / Trim
 
+This mode allows you to split sketch geometry, which is particularly useful before creating regions for operations like extrusion.
+
+In **Trim** mode, all potential trimming curves are highlighted. You can then select the segments you wish to remove.
+
+## Use Geometry / Reference Geometry
+
+This mode allows you to project existing BREP geometry onto the sketch plane, with or without reference. Referenced geometry will be parametrically updated if earlier changes in the part’s history affect the geometry. Referenced elements are automatically fixed in the sketch and cannot be moved.
+
+Use this feature to easily project geometry—especially useful when remodeling imported STEP files parametrically.
 
 ## Details Pane
 
+The **Details** pane shows all constraints and geometry in the current sketch. You can rename objects and inspect the sketch structure easily from here.
 
-## Region
+## Regions
 
-We support the concept of named regions, which are simple containers for geoemetry, that could be used for extrusions or revolve operation.  These regions, can either be created beforehand in the region tag, where you give it a name, or when you create a extrusion.  After firat creation, the region can be accessed by the "R" icon in the canvas. Named regions are very usfull in particular in the combination with Buerli programming. 
+We support **named regions**, which are containers for geometry that can be used in operations like **extrude** or **revolve**. You can create regions in advance using the **Region** tab, where you assign a name, or directly when creating an extrusion.
 
-## Pattern 
+Once created, regions can be accessed using the **"R"** icon on the canvas. Named regions are especially useful in combination with **Buerli** programming.
 
+## Pattern
 
+We support **linear** and **circular patterns**, which automatically create corresponding constraints in the sketch. You can also mirror sketch geometry.
 
-
-
-
-
-
+Use sketch patterns carefully—it's often more efficient to apply patterns at the solid modeling stage rather than in the sketch.
 
 
