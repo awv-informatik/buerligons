@@ -88,7 +88,30 @@ export default function App() {
             </video>
             <div className="h-auto flex flex-row overflow-hidden gap-10 pl-0 lg:pl-26 pb-20">
               <div className="mt-6 mb-6 w-3xl text-justify text-base/6 text-gray-600">
-                <Buerligons />
+                {/*<Buerligons />*/}
+                <input
+                onChange={e => {
+                  const file = e.target.files[0]
+                  if (file) {
+                    var reader = new FileReader()
+                    reader.onload = e => {
+                      var contents = e.target.result
+                      // Store array buffer in window object
+                      console.log('contents', contents)
+                      const child_window = window.open('/editor', '_blank', /*'width=800,height=600'*/)
+                      if (child_window) {
+                        child_window.cadFile = contents
+                        child_window.focus()                        
+                      } else {
+                        alert('Please allow popups for this website')
+                      }
+                    }
+                    reader.readAsArrayBuffer(file)
+                  }
+                }}
+                type="file"
+                id="file-input"
+              />
               </div>
             </div>
           </div>
