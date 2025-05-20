@@ -90,28 +90,28 @@ export default function App() {
               <div className="mt-6 mb-6 w-3xl text-justify text-base/6 text-gray-600">
                 {/*<Buerligons />*/}
                 <input
-                onChange={e => {
-                  const file = e.target.files[0]
-                  if (file) {
-                    var reader = new FileReader()
-                    reader.onload = e => {
-                      var contents = e.target.result
-                      // Store array buffer in window object
-                      console.log('contents', contents)
-                      const child_window = window.open('/editor', '_blank', /*'width=800,height=600'*/)
-                      if (child_window) {
-                        child_window.cadFile = contents
-                        child_window.focus()                        
-                      } else {
-                        alert('Please allow popups for this website')
+                  onChange={e => {
+                    const file = e.target.files[0]
+                    if (file) {
+                      var reader = new FileReader()
+                      reader.onload = e => {
+                        var contents = e.target.result
+                        // Store array buffer in window object
+                        console.log('contents', contents)
+                        const child_window = window.open('/editor', '_blank' /*'width=800,height=600'*/)
+                        if (child_window) {
+                          child_window.cadFile = contents
+                          child_window.focus()
+                        } else {
+                          alert('Please allow popups for this website')
+                        }
                       }
+                      reader.readAsArrayBuffer(file)
                     }
-                    reader.readAsArrayBuffer(file)
-                  }
-                }}
-                type="file"
-                id="file-input"
-              />
+                  }}
+                  type="file"
+                  id="file-input"
+                />
               </div>
             </div>
           </div>
@@ -225,9 +225,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div
-          className="mx-auto mt-8 max-w-2xl rounded-3xl ring-1 ring-gray-200 lg:mx-0 lg:flex lg:max-w-none"
-          style={{ width: '110%', position: 'relative', left: '-5%' }}>
+        <div className="w-[100%] left-[0%] md:w-[110%] md:left-[-5%] mx-auto mt-8 max-w-2xl rounded-3xl ring-1 ring-gray-200 lg:mx-0 lg:flex lg:max-w-none">
           <div className="p-8 sm:p-10 lg:flex-auto">
             <h3 className="text-3xl font-semibold tracking-tight text-gray-900">Flexible for Real-World Use Cases</h3>
             <p className="mt-6 text-base/7 text-gray-600">
