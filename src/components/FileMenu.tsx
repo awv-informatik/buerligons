@@ -8,7 +8,7 @@ import {
   DownOutlined,
   SaveOutlined,
 } from '@ant-design/icons'
-import { api as ccApi, Connection } from '@buerli.io/classcad'
+import { api as ccApi, ClassCAD } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
@@ -42,7 +42,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
       const run = async () => {
         try {
           const oldDrawingId = drawingId
-          const newDrawingId = await Connection.create(type)
+          const newDrawingId = await ClassCAD.utils.connect(type)
           if (newDrawingId) {
             switch (type) {
               case 'Assembly':
@@ -162,7 +162,7 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
               // Get the state from stack, which is previous to the selected one
               const index = states.stack.indexOf(state)
               const stateToLoad = states.stack.at(index - 1)
-              stateToLoad && Connection.undo(drawingId, stateToLoad)
+              stateToLoad && ClassCAD.utils.undo(drawingId, stateToLoad)
             },
           }))
       : []
@@ -171,7 +171,7 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
     label: 'Undo',
     sub: [...undoCommands],
     icon: <ArrowLeftOutlined />,
-    command: () => drawingId && Connection.undo(drawingId),
+    command: () => drawingId && ClassCAD.utils.undo(drawingId),
   }
 }
 
@@ -183,7 +183,7 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
           .map(state => ({
             label: getCaption(state, states),
             stateId: state,
-            command: () => Connection.redo(drawingId, state),
+            command: () => ClassCAD.utils.redo(drawingId, state),
           }))
       : []
 
@@ -191,7 +191,7 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
     label: 'Redo',
     sub: [...redoCommands],
     icon: <ArrowRightOutlined />,
-    command: () => drawingId && Connection.redo(drawingId),
+    command: () => drawingId && ClassCAD.utils.redo(drawingId),
   }
 }
 
