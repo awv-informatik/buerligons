@@ -8,7 +8,7 @@ import {
   DownOutlined,
   SaveOutlined,
 } from '@ant-design/icons'
-import { api as ccApi, ClassCAD } from '@buerli.io/classcad'
+import { createApi, ClassCAD } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
@@ -46,11 +46,11 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           if (newDrawingId) {
             switch (type) {
               case 'Assembly':
-                await ccApi(newDrawingId).v0.assemblyBuilder.createRootAssembly(type)
+                await createApi(newDrawingId).v0.assemblyBuilder.createRootAssembly(type)
                 break
               case 'Part':
               default:
-                await ccApi(newDrawingId).v0.feature.newPart(type)
+                await createApi(newDrawingId).v0.feature.newPart(type)
                 break
             }
             buerliApi.getState().api.setActiveDrawing(newDrawingId)
@@ -75,7 +75,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           let name = drawing.name || 'drawing'
           const ptIndex = name.lastIndexOf('.')
           name = name.substring(0, ptIndex >= 0 ? ptIndex : name.length)
-          const data = await ccApi(drawingId).v0.baseModeler.save(type)
+          const data = await createApi(drawingId).v0.baseModeler.save(type)
           if (data) {
             const link = document.createElement('a')
             link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))

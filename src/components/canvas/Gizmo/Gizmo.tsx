@@ -1,7 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { api as ccApi } from '@buerli.io/classcad'
+import { createApi } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { GlobalTransform } from '@buerli.io/react'
 import { HUD } from '@buerli.io/react-cad'
@@ -63,7 +63,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       )
 
       dragInfo.current = { mPInv, mL0CInv }
-      ccApi(drawingId).v0.assemblyBuilder.startMovingUnderConstraints(curProdId, draggedInstances, pivotPos, mucType)
+      createApi(drawingId).v0.assemblyBuilder.startMovingUnderConstraints(curProdId, draggedInstances, pivotPos, mucType)
     },
     [drawingId, productId, position],
   )
@@ -80,7 +80,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
         }
         offset.push(mdL_.elements[i + 12])
       }
-      promise = ccApi(drawingId).v0.assemblyBuilder.moveUnderConstraints(curProdId, rot, offset).catch(console.warn)
+      promise = createApi(drawingId).v0.assemblyBuilder.moveUnderConstraints(curProdId, rot, offset).catch(console.warn)
       await promise
 
       // Artificial slowdown to lessen network/server burden
@@ -120,7 +120,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     dragInfo.current = null
     mdL.current = null
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
-    ccApi(drawingId).v0.assemblyBuilder.finishMovingUnderConstraints(curProdId)
+    createApi(drawingId).v0.assemblyBuilder.finishMovingUnderConstraints(curProdId)
   }, [drawingId])
 
   React.useEffect(() => {
