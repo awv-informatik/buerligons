@@ -18,6 +18,7 @@ import {
   EntityDeletion,
   Fastened,
   FastenedOrigin,
+  FeatureRemoval,
   Fillet,
   Gear,
   Group,
@@ -130,6 +131,7 @@ export const initBuerli = () => {
       [CCClasses.CCGearRelation]: Gear,
       [CCClasses.CCImport]: Import,
       [CCClasses.CCEntityDeletion]: EntityDeletion,
+      [CCClasses.CCFeatureRemoval]: FeatureRemoval,
       [CCClasses.CCMirror]: Mirror,
     },
   })
