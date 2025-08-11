@@ -53,9 +53,9 @@ export const getAdjacentMeshNormal = (
 
 export const findInteractableParent = (drawingId: DrawingID, refId: ObjectID) => {
   const drawing = getDrawing(drawingId)
-  const curInstId = drawing.structure.currentInstance || -1
-  const curInst = drawing.structure.tree[curInstId]
-  const interactable = curInst?.children || []
+  const curProdId = drawing.structure.currentProduct || -1
+  const curProd = drawing.structure.tree[curProdId]
+  const interactable = curProd?.children || []
 
   return mateUtils.getProductRigidSet(drawingId, refId, interactable)
 }
