@@ -1,5 +1,5 @@
 import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
-import { api as ccApi, Connection } from '@buerli.io/classcad'
+import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
 import { Button, Dropdown, Space, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
@@ -10,14 +10,14 @@ export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
 
   const createPart = React.useCallback(async () => {
-    const newDrawingId = await Connection.create()
-    newDrawingId && (await ccApi(newDrawingId).v0.feature.newPart('Part').catch(console.info))
+    const newDrawingId = await BuerliCadFacade.utils.connect()
+    newDrawingId && (await createApi(newDrawingId).v0.feature.newPart('Part').catch(console.info))
   }, [])
 
   const createAssembly = React.useCallback(async () => {
-    const newDrawingId = await Connection.create()
+    const newDrawingId = await BuerliCadFacade.utils.connect()
     newDrawingId &&
-      (await ccApi(newDrawingId).v0.assemblyBuilder.createRootAssembly('New Assembly').catch(console.info))
+      (await createApi(newDrawingId).v0.assemblyBuilder.createRootAssembly('New Assembly').catch(console.info))
   }, [])
 
   const openFile = React.useCallback(() => {

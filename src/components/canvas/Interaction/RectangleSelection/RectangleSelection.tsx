@@ -53,6 +53,7 @@ declare global {
   }
 }
 
+// eslint-disable-next-line no-shadow
 enum RectSelectionState {
   RECT_INACTIVE = 0,
   RECT_START = 1,

@@ -1,4 +1,4 @@
-import { api as ccApi, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { createApi, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -60,7 +60,7 @@ export const initBuerli = () => {
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.
       const initSettings = async () => {
-        await ccApi(id).v0.common.setDatabaseSettings({
+        await createApi(id).v0.common.setDatabaseSettings({
           isGraphicEnabled: true, // default server: true
           isCCGraphicEnabled: false, // default server: false
           isInvisibleGraphicEnabled: true, // default server: false

@@ -486,40 +486,44 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
-"@buerli.io/classcad@0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.13.0.tgz#349181b4bac8c66adca8ed6960338b2a560a3150"
-  integrity sha512-FOKYlUM8s1MLc4rI1nVt1YGZZs69s3hwTHVBqRUDKTXG4X3i5Uhzz+KzeMvXG8Wi+Yr4j2ufDdkC/BmN8fA+dA==
+"@buerli.io/classcad@0.13.1-beta.8.apiversion":
+  version "0.13.1-beta.8.apiversion"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.13.1-beta.8.apiversion.tgz#d5f01f216b5054c7290f2c8047cf02bc6adf5b02"
+  integrity sha512-wa3+QiFlT71i7zmZh+VFsm6iGYm5xArwwwDHxkW+NgoFk4z4yNIAO4OgD7glr6JXUec5Y3S3+90BLH+mYzFqvA==
   dependencies:
-    "@buerli.io/core" "0.13.0"
+    "@buerli.io/core" "0.13.1-beta.8.apiversion"
+    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.95/classcad-api-js-20.0.0-dev.95.tgz"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
     events "^3.3.0"
+    flat-promise "^1.0.3"
     js-untar "^2.0.0"
     pako "^2.0.3"
     path-browserify "^1.0.1"
     socket.io-client "^4.4.1"
     strict-event-emitter-types "^2.0.0"
+    unzipit "^1.4.3"
     uuid "^9.0.0"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.13.0.tgz#86206e0cd54f44be598fd898a9e43effca4bdf41"
-  integrity sha512-LEJpDQdxSFUAUiaECqiJfRfyuvi/344WfjMP/y+17a0yRr44G2rEUO659M7KiESxs/trvmo+Om8Wv23/FXFiQg==
+"@buerli.io/core@0.13.1-beta.8.apiversion":
+  version "0.13.1-beta.8.apiversion"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.13.1-beta.8.apiversion.tgz#65190b2d0919f6e9b060c6f811899b22970a1593"
+  integrity sha512-C821bPNellHUd+MOWmFt3cdDlyUW9MrzyZf6UP9VnHdD8H/kGwzh3INtHUyCTIQbpg3Drc37bvKqXwwx96DweQ==
   dependencies:
+    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.95/classcad-api-js-20.0.0-dev.95.tgz"
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/headless@0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.13.0.tgz#5670acfb5f85bb06ece4664e2d1c229068b6c88d"
-  integrity sha512-c+gWQR+VZLVeI32n+MF8UizuQsTT9rot0Qtc/b284y6D7+fXOqazts2Poan6X8elllz7nThHuwA9dRuw87CjDA==
+"@buerli.io/headless@0.13.1-beta.8.apiversion":
+  version "0.13.1-beta.8.apiversion"
+  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.13.1-beta.8.apiversion.tgz#6035714c9d78f56b4cca4b70107c11766f796941"
+  integrity sha512-Ahw5r1nKqt2jPpIVzHdA7ZnwLtC2WUkmjTIfCPzlPss9qmIv8oPmMvX5oSfY45jO1EuF9Sf6G/KR1yukSv0N7Q==
   dependencies:
-    "@buerli.io/classcad" "0.13.0"
+    "@buerli.io/classcad" "0.13.1-beta.8.apiversion"
     flat-promise "^1.0.3"
 
 "@buerli.io/icons@^1.0.16":
@@ -527,13 +531,13 @@
   resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.16.tgz#57488a4dcef88b9d60263dfc5457e0a3c86391f3"
   integrity sha512-MVJdGtWtt9DePH2hceLkSF0WNBZkZ79Te+Ej4kaF/U5CMN+Aw+sY/w7+T2m9/ddO/IS9mPQ8/y7AaymrmUKvSA==
 
-"@buerli.io/react-cad@0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.13.0.tgz#27da1de03171a23bba54f172b40c2be9719d7d63"
-  integrity sha512-8nn/zWGPF41AtKqGSiN/jXYTo/j19plh2KMhqeKkHvB0e9Ai1+9lCawnc+Nny4uj7KarGmVpBo05raB547OrjQ==
+"@buerli.io/react-cad@0.13.1-beta.8.apiversion":
+  version "0.13.1-beta.8.apiversion"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.13.1-beta.8.apiversion.tgz#693dc03e3daba6458bcacafabcb7ea5d8a060a80"
+  integrity sha512-JGr+WX8TjcXp1eqfcFqGaL2iMwwuZuz2YyIuGTPECR8HOya1N+bFS3Hyy3mBjd1aNyCvjuIooshSPP24EQwJ9Q==
   dependencies:
-    "@buerli.io/classcad" "0.13.0"
-    "@buerli.io/react" "0.13.0"
+    "@buerli.io/classcad" "0.13.1-beta.8.apiversion"
+    "@buerli.io/react" "0.13.1-beta.8.apiversion"
     "@dnd-kit/core" "^6.0.8"
     "@dnd-kit/modifiers" "^6.0.1"
     "@dnd-kit/sortable" "^7.0.2"
@@ -548,14 +552,14 @@
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/react@0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.13.0.tgz#0aedf031f573cd34d12cbf11ef386e6fef3b8a55"
-  integrity sha512-v0bG5HvjRNQlbqnZdk9ev0Eud6p6xbPFoYBdM0NLAlZhF/CMg9jxcX55Lbwdt3MWpKt8i3doZ/dKO/jnTjEaMA==
+"@buerli.io/react@0.13.1-beta.8.apiversion":
+  version "0.13.1-beta.8.apiversion"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.13.1-beta.8.apiversion.tgz#00054d09a676ea0e423fd5c5612f0030d5f66097"
+  integrity sha512-gkvjg49DHflsY/Z678yXtRLxMPijIIsvPkY1fL6MCXREw3zn5/nPQ660g5XOyhPI7YIjq6XOX10OPlAkBpZEJg==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "0.13.0"
-    "@buerli.io/headless" "0.13.0"
+    "@buerli.io/core" "0.13.1-beta.8.apiversion"
+    "@buerli.io/headless" "0.13.1-beta.8.apiversion"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
@@ -591,6 +595,10 @@
   version "10.4.2"
   resolved "https://registry.yarnpkg.com/@chevrotain/utils/-/utils-10.4.2.tgz#87735732184cc5a2f8aad2f3454082294ef3c924"
   integrity sha512-V34dacxWLwKcvcy32dx96ADJVdB7kOJLm7LyBkBQw5u5HC9WdEFw2G17zml+U3ivavGTrGPJHl8o9/UJm0PlUw==
+
+"@classcad/api-js@https://awvstatic.com/classcad/download/dev/20.0.0-dev.95/classcad-api-js-20.0.0-dev.95.tgz":
+  version "20.0.0-dev.95"
+  resolved "https://awvstatic.com/classcad/download/dev/20.0.0-dev.95/classcad-api-js-20.0.0-dev.95.tgz#9a48a7e8e3d0f1d381506a7d1efb73aed7b1f8da"
 
 "@ctrl/tinycolor@^3.4.0":
   version "3.4.1"
@@ -5119,6 +5127,13 @@ untildify@^4.0.0:
   resolved "https://registry.yarnpkg.com/untildify/-/untildify-4.0.0.tgz#2bc947b953652487e4600949fb091e3ae8cd919b"
   integrity sha512-KK8xQ1mkzZeg9inewmFVDNkg3l5LUhoq9kN6iWYB/CC9YMG8HA+c1Q8HwDe6dEX7kErrEVNVBO3fWsVq5iDgtw==
 
+unzipit@^1.4.3:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/unzipit/-/unzipit-1.4.3.tgz#738298a6b235892bf7ce7db82cff813d4ca664ac"
+  integrity sha512-gsq2PdJIWWGhx5kcdWStvNWit9FVdTewm4SEG7gFskWs+XCVaULt9+BwuoBtJiRE8eo3L1IPAOrbByNLtLtIlg==
+  dependencies:
+    uzip-module "^1.0.2"
+
 update-browserslist-db@^1.0.11:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/update-browserslist-db/-/update-browserslist-db-1.0.11.tgz#9a2a641ad2907ae7b3616506f4b977851db5b940"
@@ -5148,6 +5163,11 @@ uuid@^9.0.0, uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
+
+uzip-module@^1.0.2:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/uzip-module/-/uzip-module-1.0.3.tgz#6bbabe2a3efea5d5a4a47479f523a571de3427ce"
+  integrity sha512-AMqwWZaknLM77G+VPYNZLEruMGWGzyigPK3/Whg99B3S6vGHuqsyl5ZrOv1UUF3paGK1U6PM0cnayioaryg/fA==
 
 vite-plugin-checker@^0.6.1:
   version "0.6.1"

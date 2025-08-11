@@ -2,7 +2,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { api as ccApi, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
+import { createApi, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
@@ -180,11 +180,11 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const defaultParam = { value: 0, isExpr: false }
-  ccApi(drawingId)
+  createApi(drawingId)
     .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCFastenedConstraint, 'Fix')
     .then(id => {
       if (id) {
-        ccApi(drawingId).v0.assemblyBuilder.updateFastenedConstraints([
+        createApi(drawingId).v0.assemblyBuilder.updateFastenedConstraints([
           {
             constrId: id,
             mate1,
@@ -210,11 +210,11 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
 
-  ccApi(drawingId)
+  createApi(drawingId)
     .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCGroupConstraint, 'Group')
     .then(id => {
       if (id) {
-        ccApi(drawingId).v0.assemblyBuilder.updateGroupConstraints([{ constrId: id, instanceIds }])
+        createApi(drawingId).v0.assemblyBuilder.updateGroupConstraints([{ constrId: id, instanceIds }])
       }
       return null
     })
@@ -429,11 +429,11 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
   const ids = getSelectedSolids(drawingId, solidId, true)
 
-  ccApi(drawingId)
+  createApi(drawingId)
     .v0.feature.createFeature(curProdId, 'CC_EntityDeletion', 'Entity Deletion')
     .then(res => {
       if (res) {
-        return ccApi(drawingId).v0.feature.updateEntityDeletion(res, ids)
+        return createApi(drawingId).v0.feature.updateEntityDeletion(res, ids)
       }
 
       return null
@@ -452,7 +452,7 @@ const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedInstances(drawingId, instanceId)
   const idsSorted = ids.sort((a, b) => b - a)
 
-  ccApi(drawingId).v0.baseModeler.deleteObjects(idsSorted).catch(console.warn)
+  createApi(drawingId).v0.baseModeler.deleteObjects(idsSorted).catch(console.warn)
 }
 
 const viewNormalToSketch = (
@@ -491,15 +491,15 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct as ObjectID
 
-  const sketchId = await ccApi(drawingId).v0.sketcher.createSketch(curProdId)
+  const sketchId = await createApi(drawingId).v0.sketcher.createSketch(curProdId)
   if (!sketchId) {
     return
   }
 
   if (menuInfo.interactionInfo.graphicId) {
-    await ccApi(drawingId).v0.sketcher.createAndSetWorkPlane(sketchId, menuInfo.interactionInfo.graphicId)
+    await createApi(drawingId).v0.sketcher.createAndSetWorkPlane(sketchId, menuInfo.interactionInfo.graphicId)
   } else {
-    await ccApi(drawingId).v0.sketcher.setWorkPlane(sketchId, menuInfo.interactionInfo.objectId)
+    await createApi(drawingId).v0.sketcher.setWorkPlane(sketchId, menuInfo.interactionInfo.objectId)
   }
 
   const pluginApi = drawing.api.plugin
