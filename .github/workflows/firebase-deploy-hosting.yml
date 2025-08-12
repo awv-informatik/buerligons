@@ -2,7 +2,7 @@ name: Firebase deploy hosting
 
 on:
   push:
-    branches: [master, develop, dev/online]
+    branches: [master, develop]
 
 jobs:
   firebase-deploy-hosting:
