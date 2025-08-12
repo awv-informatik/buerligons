@@ -21,12 +21,12 @@ const tiers = [
     cta: 'Subscribe'
   },
   {
-    name: 'Commercial Enduser / Developer Use',
+    name: 'Commercial Enduser',
     id: 'tier-enduser',
     href: '#',
     price: '100 CHF / year',
     descriptions: [
-      `You develop with Buerli/Buerligons for commercial purposes without distribution, then you must obtain a enduser license.
+      `You  use Buerligons for commercial purposes, then you must obtain a enduser license.
       `
     ],
     featured: true,

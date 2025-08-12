@@ -3,17 +3,18 @@ sidebar_position: 1
 ---
 # Introduction to Buerligons CAD
 
-Welcome to **Buerligons**, our end-user, history-based, parametric CAD system. Developed using the Buerli Client Framework and powered by our **ClasssCAD** engine, Buerligons provides a robust environment for designing precise, parametric CAD models—directly in the browser.
+Welcome to **Buerligons**, our end-user, history-based, parametric CAD system. Developed using the **Buerli Client Framework** and powered by our **ClasssCAD** engine, Buerligons provides a robust environment for designing precise, parametric CAD models—directly in the browser.
 
 Buerligons **runs entirely in the browser**, thanks to our CAD engine compiled into WebAssembly (WASM). This allows users to launch the system with a single click—no installation required. Once downloaded, the application is cached by the browser, enabling fast performance and offline availability.
 
-For more advanced scenarios, Buerligons can also connect to a server-based instance using WebSockets. This setup supports extended workflows or backend processing, though it requires slightly more configuration and infrastructure.
+For more advanced scenarios, Buerligons can also connect to a server-based instance using SocketIO. This setup supports extended workflows or backend processing, though it requires slightly more configuration and infrastructure.
 
 ---
 
-## 🛠️ Part Modeling
+Buerligons empowers users to model **parts and assemblies** with an intuitive and feature-rich toolset:   
 
-Buerligons empowers users to model **parts and assemblies** with an intuitive and feature-rich toolset:
+
+## 🛠️ Part Modeling
 
 - **2D parametric sketches**: Easily create and fully constrain 2D profiles.
 - **Solid generation**: Generate solids using **extrude**, **revolve**, and **twist** operations. Upcoming features will include swept solids (pipe and path sweeps).
@@ -25,12 +26,19 @@ Buerligons empowers users to model **parts and assemblies** with an intuitive an
 
 
 
-### Feature History & Rollback
+### Feature History & Rollback Bar
 
 Buerligons supports history based modeling.  Thus it includes a **rollback bar**, allowing users to move through the model’s creation history. Editing a feature moves the rollback to the appropriate point, enabling contextual and historical model edits.
 
 - Recalculation of the model could take a while especially, when many features must be recalculated. 
 - Please select references with care. Keep always in mind, which references are "stable" and can easiliy be reused for other variants.
+
+### Expressions 
+
+Expressions are variables that are defined on a part and can be used within all features. 
+By defining combinations of several expression, it is straight forward to define variants of different product sizes.
+All features support mathemetical formulas including these expressions. Changin gexpressiond triggers a recalculation of the part history.
+
 
 ### Referencing
 
@@ -42,21 +50,21 @@ Referencing in Buerligons is often helpful, allowing users to base new features 
 
 ## 🧩 Assembly Modeling
 
-The **Product Management Plugin** streamlines the creation and management of assemblies within the canvas:
+The **Product Management Plugin** streamlines the creation and management of assemblies within the canvas: 
 
-- Interactively instantiate parts and sub-assemblies
+- Interactively **create and instantiate** parts and sub-assemblies; 
 - Relate components using **3D assembly constraints**, including:
   - `Fastened Origin`
   - `Fastened`
   - `Revolute`
   - `Cylindrical`
   - `Slider`
-
+ make sure that you create coordinatesystems in the part, which are necessary for assembling the part with others. Currently, we do not provide the possibility to add cooordinatesystems in assembly mode.
  ---
 
 ## 🔄 Import & Export
 
-Buerligons supports **import and export of STEP models**. Assemblies within STEP files are preserved during import. When importing into **part mode**, the assembly is flattened into a single part context.
+Buerligons supports **import and export of STEP models**. Assemblies within STEP files are preserved during import. When importing into **part mode**, the assembly is flattened into a single part context. We also support STL export. 
 
 ---
 
@@ -78,12 +86,15 @@ Buerligons is **not** intended to compete with high-end CAD systems. Its focus i
 
 ---
 
-## 🎮 Interacting with the 3D Canvas
+## 🎮 Interacting with the User
 
-- **Context menus**: Access object-specific tools with a right-click.
+- **Context menus**: Access object-specific tools with a right-click in the canvas.
 - **Selection tools**:
   - Drag left-to-right to select fully enclosed elements
   - Drag right-to-left to select intersecting elements
+
+- **Part history**  and **assembly tree**.
+  
 
 
 
