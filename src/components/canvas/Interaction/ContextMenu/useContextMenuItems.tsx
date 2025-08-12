@@ -2,7 +2,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
+import { createApi, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
@@ -52,7 +52,13 @@ import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
-import { getInteractionInfo, getSelectedInstances, getSelectedSolids, getUniqueSelIntersections, getWCSystems } from './utils'
+import {
+  getInteractionInfo,
+  getSelectedInstances,
+  getSelectedSolids,
+  getUniqueSelIntersections,
+  getWCSystems,
+} from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry } from '../utils'
@@ -174,11 +180,11 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const defaultParam = { value: 0, isExpr: false }
-  ccAPI.assemblyBuilder
-    .create3DConstraint(drawingId, curProdId, CCClasses.CCFastenedConstraint, 'Fix')
+  createApi(drawingId)
+    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCFastenedConstraint, 'Fix')
     .then(id => {
       if (id) {
-        ccAPI.assemblyBuilder.updateFastenedConstraints(drawingId, [
+        createApi(drawingId).v0.assemblyBuilder.updateFastenedConstraints([
           {
             constrId: id,
             mate1,
@@ -204,11 +210,11 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
 
-  ccAPI.assemblyBuilder
-    .create3DConstraint(drawingId, curProdId, CCClasses.CCGroupConstraint, 'Group')
+  createApi(drawingId)
+    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCGroupConstraint, 'Group')
     .then(id => {
       if (id) {
-        ccAPI.assemblyBuilder.updateGroupConstraints(drawingId, [{ constrId: id, instanceIds }])
+        createApi(drawingId).v0.assemblyBuilder.updateGroupConstraints([{ constrId: id, instanceIds }])
       }
       return null
     })
@@ -423,11 +429,11 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
   const ids = getSelectedSolids(drawingId, solidId, true)
 
-  ccAPI.feature
-    .createFeature(drawingId, curProdId, 'CC_EntityDeletion', 'Entity Deletion')
+  createApi(drawingId)
+    .v0.feature.createFeature(curProdId, 'CC_EntityDeletion', 'Entity Deletion')
     .then(res => {
       if (res) {
-        return ccAPI.feature.updateEntityDeletion(drawingId, res, ids)
+        return createApi(drawingId).v0.feature.updateEntityDeletion(res, ids)
       }
 
       return null
@@ -446,7 +452,7 @@ const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedInstances(drawingId, instanceId)
   const idsSorted = ids.sort((a, b) => b - a)
 
-  ccAPI.baseModeler.deleteObjects(drawingId, idsSorted).catch(console.warn)
+  createApi(drawingId).v0.baseModeler.deleteObjects(idsSorted).catch(console.warn)
 }
 
 const viewNormalToSketch = (
@@ -461,7 +467,7 @@ const viewNormalToSketch = (
     drawingId,
     sketchId,
     menuInfo.clickInfo.clickPos,
-    camera.position.distanceTo(controls?.target)
+    camera.position.distanceTo(controls?.target),
   )
   if (!sketchFitInfo) {
     return
@@ -487,15 +493,15 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct as ObjectID
 
-  const sketchId = await ccAPI.sketcher.createSketch(drawingId, curProdId)
+  const sketchId = await createApi(drawingId).v0.sketcher.createSketch(curProdId)
   if (!sketchId) {
     return
   }
 
   if (menuInfo.interactionInfo.graphicId) {
-    await ccAPI.sketcher.createAndSetWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.graphicId)
+    await createApi(drawingId).v0.sketcher.createAndSetWorkPlane(sketchId, menuInfo.interactionInfo.graphicId)
   } else {
-    await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
+    await createApi(drawingId).v0.sketcher.setWorkPlane(sketchId, menuInfo.interactionInfo.objectId)
   }
 
   const pluginApi = drawing.api.plugin
