@@ -2,14 +2,12 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { ccAPI, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
+import { createApi, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
-  MathUtils,
   ObjectID,
   PointMem,
-  ArrayMem,
   GraphicType,
   createInfo,
   InteractionInfo,
@@ -21,6 +19,7 @@ import {
   TreeObjScope,
   createTreeObjSelItem,
   getCADState,
+  sketchUtils,
   useOperationSequence,
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
@@ -54,19 +53,15 @@ import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
-  getAncestors,
-  getDescendants,
   getInteractionInfo,
   getSelectedInstances,
   getSelectedSolids,
   getUniqueSelIntersections,
   getWCSystems,
-  is2DConstraint,
-  isSketchGeometry,
 } from './utils'
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
-import { attemptSSelection, getBuerliGeometry, isSketchActive } from '../utils'
+import { attemptSSelection, getBuerliGeometry } from '../utils'
 
 type ControlsProto = {
   update(): void
@@ -185,11 +180,11 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
   const defaultParam = { value: 0, isExpr: false }
-  ccAPI.assemblyBuilder
-    .create3DConstraint(drawingId, curProdId, CCClasses.CCFastenedConstraint, 'Fix')
+  createApi(drawingId)
+    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCFastenedConstraint, 'Fix')
     .then(id => {
       if (id) {
-        ccAPI.assemblyBuilder.updateFastenedConstraints(drawingId, [
+        createApi(drawingId).v0.assemblyBuilder.updateFastenedConstraints([
           {
             constrId: id,
             mate1,
@@ -215,11 +210,11 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
 
-  ccAPI.assemblyBuilder
-    .create3DConstraint(drawingId, curProdId, CCClasses.CCGroupConstraint, 'Group')
+  createApi(drawingId)
+    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCGroupConstraint, 'Group')
     .then(id => {
       if (id) {
-        ccAPI.assemblyBuilder.updateGroupConstraints(drawingId, [{ constrId: id, instanceIds }])
+        createApi(drawingId).v0.assemblyBuilder.updateGroupConstraints([{ constrId: id, instanceIds }])
       }
       return null
     })
@@ -341,10 +336,10 @@ const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
   const curInstance = drawing.structure.currentInstance
   const tree = drawing.structure.tree
 
-  const descendants = getDescendants(drawingId, curInstance || -1)
+  const descendants = ccUtils.base.getDescendants(drawingId, curInstance || -1)
   const instances = descendants.filter(id => ccUtils.base.isA(tree[id].class, CCClasses.IProductReference))
-  const instDescendants = getDescendants(drawingId, instanceId)
-  const ancestors = getAncestors(drawingId, instanceId)
+  const instDescendants = ccUtils.base.getDescendants(drawingId, instanceId)
+  const ancestors = ccUtils.base.getAncestors(drawingId, instanceId)
 
   const instancesToHide = instances.filter(
     id => instDescendants.indexOf(id) === -1 && ancestors.indexOf(id) === -1 && id !== instanceId,
@@ -434,11 +429,11 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
   const ids = getSelectedSolids(drawingId, solidId, true)
 
-  ccAPI.feature
-    .createFeature(drawingId, curProdId, 'CC_EntityDeletion', 'Entity Deletion')
+  createApi(drawingId)
+    .v0.feature.createFeature(curProdId, 'CC_EntityDeletion', 'Entity Deletion')
     .then(res => {
       if (res) {
-        return ccAPI.feature.updateEntityDeletion(drawingId, res, ids)
+        return createApi(drawingId).v0.feature.updateEntityDeletion(res, ids)
       }
 
       return null
@@ -457,21 +452,7 @@ const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedInstances(drawingId, instanceId)
   const idsSorted = ids.sort((a, b) => b - a)
 
-  ccAPI.baseModeler.deleteObjects(drawingId, idsSorted).catch(console.warn)
-}
-
-const convertToVector = (p: PointMem | undefined) => {
-  return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
-}
-
-const getSketchBounds = (boundsMember: ArrayMem) => {
-  const [min, max] = boundsMember.members.map(memb => convertToVector(memb as PointMem))
-
-  const box = new THREE.Box3(min, max)
-  const sphere = new THREE.Sphere()
-  box.getBoundingSphere(sphere)
-
-  return { center: sphere.center, radius: sphere.radius, box }
+  createApi(drawingId).v0.baseModeler.deleteObjects(idsSorted).catch(console.warn)
 }
 
 const viewNormalToSketch = (
@@ -481,71 +462,30 @@ const viewNormalToSketch = (
   controls: ControlsProto,
   boundsControls: BoundsApi,
 ) => {
-  const drawing = getDrawing(drawingId)
-  const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
-  if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
+  const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
+  const sketchFitInfo = sketchUtils.getSketchNormalViewInfo(
+    drawingId,
+    sketchId,
+    menuInfo.clickInfo.clickPos,
+    camera.position.distanceTo(controls?.target),
+  )
+  if (!sketchFitInfo) {
     return
   }
 
-  const boundsMember = sketch.members?.boundingBox as ArrayMem
-  const bounds = getSketchBounds(boundsMember)
-
-  const planeRef = sketch.members?.planeReference?.value as ObjectID
-  const plane = drawing.structure.tree[planeRef]
-  const origin = convertToVector(plane?.members?.curPosition as PointMem)
-  const normal = convertToVector(plane?.members?.Normal as PointMem)
-
-  const csys = sketch.coordinateSystem as number[][]
-  const transformMatrix = MathUtils.convertToMatrix3(csys)
-  const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
-
-  // If box.min === box.max add (100, 100, 100) to box.max to make box not empty
-  const box = bounds.box
-  if (box.min.distanceTo(box.max) < 1e-6) {
-    box.set(box.min, box.min.clone().add(new THREE.Vector3(100, 100, 100)))
-  }
-
-  const matrix4 = MathUtils.convertToMatrix4(csys)
-  const globBox = box.clone().applyMatrix4(matrix4)
-  const target = new THREE.Plane()
-    .setFromNormalAndCoplanarPoint(normal, origin)
-    .projectPoint(menuInfo.clickInfo.clickPos, new THREE.Vector3())
-  const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
-
+  const { globBox, position, target, up } = sketchFitInfo
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up })
 }
 
 const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControls: BoundsApi) => {
-  const drawing = getDrawing(drawingId)
-  const sketch = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
-  if (!sketch || !ccUtils.base.isA(sketch.class, CCClasses.CCSketch)) {
+  const margin = 1.2
+  const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
+  const sketchFitInfo = sketchUtils.getSketchFitInfo(drawingId, sketchId, margin * 4)
+  if (!sketchFitInfo) {
     return
   }
 
-  const boundsMember = sketch.members?.boundingBox as ArrayMem
-  const bounds = getSketchBounds(boundsMember)
-
-  const planeRef = sketch.members?.planeReference?.value as ObjectID
-  const plane = drawing.structure.tree[planeRef]
-  const normal = convertToVector(plane?.members?.Normal as PointMem).normalize()
-
-  const csys = sketch.coordinateSystem as number[][]
-  const transformMatrix = MathUtils.convertToMatrix3(csys)
-  const up = new THREE.Vector3(0, 1, 0).applyMatrix3(transformMatrix).normalize()
-
-  // If box.min === box.max add (100, 100, 100) to box.max to make box not empty
-  const box = bounds.box
-  if (box.min.distanceTo(box.max) < 1e-6) {
-    box.set(box.min, box.min.clone().add(new THREE.Vector3(100, 100, 100)))
-  }
-
-  // Convert local box coordinates to global
-  const matrix4 = MathUtils.convertToMatrix4(csys)
-  const globBox = box.clone().applyMatrix4(matrix4)
-  const target = bounds.center.clone().applyMatrix4(matrix4)
-  const margin = 1.2
-  const position = target.clone().addScaledVector(normal, bounds.radius * margin * 4)
-
+  const { globBox, position, target, up } = sketchFitInfo
   boundsControls?.refresh(globBox).moveTo(position).lookAt({ target, up }).fit().clip()
 }
 
@@ -553,19 +493,23 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct as ObjectID
 
-  const sketchId = await ccAPI.sketcher.createSketch(drawingId, curProdId)
+  const sketchId = await createApi(drawingId).v0.sketcher.createSketch(curProdId)
   if (!sketchId) {
     return
   }
 
   if (menuInfo.interactionInfo.graphicId) {
-    await ccAPI.sketcher.createAndSetWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.graphicId)
+    await createApi(drawingId).v0.sketcher.createAndSetWorkPlane(sketchId, menuInfo.interactionInfo.graphicId)
   } else {
-    await ccAPI.sketcher.setWorkPlane(drawingId, sketchId, menuInfo.interactionInfo.objectId)
+    await createApi(drawingId).v0.sketcher.setWorkPlane(sketchId, menuInfo.interactionInfo.objectId)
   }
 
   const pluginApi = drawing.api.plugin
   pluginApi.setActiveFeature(sketchId)
+}
+
+const convertToVector = (p: PointMem | undefined) => {
+  return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
 }
 
 const viewNormalToPlane = (
@@ -671,10 +615,10 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         const isSelActive = selection !== undefined
         if (isSelActive) {
           intersections = getUniqueSelIntersections(intersections, drawingId)
-        } else if (isSketchActive(drawingId)) {
+        } else if (sketchUtils.isSketchActive(drawingId)) {
           intersections = intersections.filter(i => {
             const treeObj = tree[i.object.userData?.objId || -1]
-            return treeObj && (isSketchGeometry(treeObj) || is2DConstraint(treeObj))
+            return treeObj && (sketchUtils.isSketchGeometry(treeObj) || sketchUtils.is2DConstraint(treeObj))
           })
         }
 

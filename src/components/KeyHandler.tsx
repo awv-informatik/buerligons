@@ -1,11 +1,11 @@
-import { ccAPI } from '@buerli.io/classcad'
+import { BuerliCadFacade } from '@buerli.io/classcad'
 import { useBuerli } from '@buerli.io/react'
 import React from 'react'
 
 export const UndoRedoKeyHandler: React.FC = () => {
-  const drId = useBuerli(buerli => buerli.drawing.active)
-  const handleUndo = React.useCallback(() => drId && ccAPI.base.undo(drId), [drId])
-  const handleRedo = React.useCallback(() => drId && ccAPI.base.redo(drId), [drId])
+  const drId = useBuerli(buerli => buerli.drawing.active)!  
+  const handleUndo = React.useCallback(() => drId && BuerliCadFacade.utils.undo(drId), [drId])
+  const handleRedo = React.useCallback(() => drId && BuerliCadFacade.utils.redo(drId), [drId])
   useKeyHandler(['z'], true, false, false, undefined, handleUndo)
   useKeyHandler(['y'], true, false, false, undefined, handleRedo)
   return null

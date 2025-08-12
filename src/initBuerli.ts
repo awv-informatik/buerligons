@@ -1,4 +1,4 @@
-import { ccAPI, CCClasses, init, /*SocketIOClient,*/ WASMClient } from '@buerli.io/classcad'
+import { createApi, CCClasses, init, WASMClient } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -47,7 +47,7 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
-// const CCSERVERURL = 'ws://localhost:9091'
+const classcadKey = ''
 
 export const initBuerli = () => {
   console.info('initBuerli')
@@ -55,13 +55,13 @@ export const initBuerli = () => {
   init(
     id => {
       // const socket = new SocketIOClient(CCSERVERURL, id)
-      const socket = new WASMClient('https://awvstatic.com/classcad/dev/wasm/20240925.1', id)
+      const socket = new WASMClient(id, { appKey: classcadKey })
 
       // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.
       const initSettings = async () => {
-        await ccAPI.common.setDatabaseSettings(id, {
+        await createApi(id).v0.common.setDatabaseSettings({
           isGraphicEnabled: true, // default server: true
           isCCGraphicEnabled: false, // default server: false
           isInvisibleGraphicEnabled: true, // default server: false

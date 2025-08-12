@@ -4,10 +4,11 @@ import * as THREE from 'three'
 import { CCClasses, ccUtils } from '@buerli.io/classcad'
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
+import { sketchUtils } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
-import { findGeometryIntersection, attemptSSelection, isSketchActive, getBuerliGeometry } from './utils'
+import { findGeometryIntersection, attemptSSelection, getBuerliGeometry } from './utils'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -54,7 +55,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
 
-      if (isSketchActive(drawingId) && !isSelActive) {
+      if (sketchUtils.isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -96,7 +97,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
 
-      if (isSketchActive(drawingId) && !isSelActive) {
+      if (sketchUtils.isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -123,7 +124,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
 
-      if (isSketchActive(drawingId) && !isSelActive) {
+      if (sketchUtils.isSketchActive(drawingId) && !isSelActive) {
         return
       }
 
@@ -170,7 +171,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       const drawing = getDrawing(drawingId)
       const isSelActive = drawing.selection.active !== null
 
-      if (isSketchActive(drawingId) && !isSelActive) {
+      if (sketchUtils.isSketchActive(drawingId) && !isSelActive) {
         return
       }
 

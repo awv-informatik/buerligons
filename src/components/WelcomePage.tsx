@@ -1,11 +1,11 @@
 import React from 'react'
-import { ccAPI } from '@buerli.io/classcad'
+import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { Readfile } from '@buerli.io/react-cad'
 import { Dropdown } from 'antd'
 import 'antd/dist/antd.css'
 import { BorderOutlined, BuildOutlined, FileAddOutlined, GiftOutlined } from '@ant-design/icons'
 import { FiDisc, FiGitMerge, FiLayers, FiZap, FiPackage } from 'react-icons/fi'
-import DemoPart from '../resources/as1_ac_214.stp?url'  
+import DemoPart from '../resources/as1_ac_214.stp?url'
 //  Shaft Part,  Engine ASM,  Schmidt Coupling ASM
 import {
   Hero,
@@ -32,13 +32,14 @@ export function WelcomePage() {
   const rfRef = React.useRef<HTMLInputElement>(null!)
 
   const createPart = React.useCallback(async () => {
-    const newDrawingId = await ccAPI.base.createCCDrawing()
-    newDrawingId && (await ccAPI.feature.newPart(newDrawingId, 'Part').catch(console.info))
+    const newDrawingId = await BuerliCadFacade.utils.connect()
+    newDrawingId && (await createApi(newDrawingId).v0.feature.newPart('Part').catch(console.info))
   }, [])
 
   const createAssembly = React.useCallback(async () => {
-    const newDrawingId = await ccAPI.base.createCCDrawing()
-    newDrawingId && (await ccAPI.assemblyBuilder.createRootAssembly(newDrawingId, 'New Assembly').catch(console.info))
+    const newDrawingId = await BuerliCadFacade.utils.connect()
+    newDrawingId &&
+      (await createApi(newDrawingId).v0.assemblyBuilder.createRootAssembly('New Assembly').catch(console.info))
   }, [])
 
   React.useEffect(() => {
@@ -46,11 +47,13 @@ export function WelcomePage() {
       const query = new URLSearchParams(window.location.search)
       const file = query.get('file')
       if (file) {
-        const newDrawingId = await ccAPI.base.createCCDrawing()
+        const newDrawingId = await BuerliCadFacade.utils.connect()
         if (newDrawingId) {
           const type = file.substring(file.lastIndexOf('.') + 1, file.length)
           const content = await (await fetch(file)).arrayBuffer()
-          await ccAPI.baseModeler.load(newDrawingId, content, type as never).catch(console.info)
+          await createApi(newDrawingId)
+            .v0.baseModeler.load(content, type as never)
+            .catch(console.info)
         }
       }
     }
@@ -86,11 +89,13 @@ export function WelcomePage() {
     ],
     onClick: async (e: { key: string }) => {
       if (e.key === 'Demo') {
-        const newDrawingId = await ccAPI.base.createCCDrawing()
+        const newDrawingId = await BuerliCadFacade.utils.connect()
         if (newDrawingId) {
           const type = DemoPart.substring(DemoPart.lastIndexOf('.') + 1, DemoPart.length)
           const content = await (await fetch(DemoPart)).arrayBuffer()
-          await ccAPI.baseModeler.load(newDrawingId, content, type as never).catch(console.info)
+          await createApi(newDrawingId)
+            .v0.baseModeler.load(content, type as never)
+            .catch(console.info)
         }
       } else rfRef.current.click()
     },
@@ -131,9 +136,9 @@ export function WelcomePage() {
             </Video>
             <ProductWrapper>
               <Description>
-                Introducing Buerligons, our user-friendly interactive CAD frontend developed with Buerli and ClassCAD. Easily
-                create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies.
-                Buerligons WASM the first one click CAD that runs entirely in the browser.
+                Introducing Buerligons, our user-friendly interactive CAD frontend developed with Buerli and ClassCAD.
+                Easily create, constrain and modify 3D solids and 2D sketches; manage parts and assemblies. Buerligons
+                WASM the first one click CAD that runs entirely in the browser.
               </Description>
               <ButtonGroup>
                 <Dropdown menu={createNewProps}>
@@ -167,7 +172,7 @@ export function WelcomePage() {
             <span style={{ fontWeight: 400 }}>FEATURES</span>
           </Caption>
           <Grid columns={2} rows={4}>
-             <Feature icon={FiGitMerge} title="Parts">
+            <Feature icon={FiGitMerge} title="Parts">
               Effortlessly design 3D solids by combining parametric sketching with extruding and revolving techniques.
               Model objects using fundamental shapes—such as boxes, cylinders, cones, and spheres—and refine them
               through Boolean operations, slicing, and patterning tools for precise positioning and manipulation.
@@ -189,9 +194,9 @@ export function WelcomePage() {
               the desktop, native and mobile. It can also connect to its engine via remote web-sockets, which enables
               more features, like state storage and undo-redo.
             </Feature>
-            <Feature icon={FiDisc} title="Developed with Buerli and ClassCAD engine">                       
-              Buerligons is our Enduser CAD System, that we created with the Buerli Client Framework and our ClassCAD backend engine.
-              More details on Buerli.io  and ClassCAD.ch 
+            <Feature icon={FiDisc} title="Developed with Buerli and ClassCAD engine">
+              Buerligons is our Enduser CAD System, that we created with the Buerli Client Framework and our ClassCAD
+              backend engine. More details on Buerli.io and ClassCAD.ch
             </Feature>
             <Feature icon={FiPackage} title="Open source">
               We have open sourced Buerligons so that it can either be used as a standalone application or integrated
