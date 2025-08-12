@@ -11,10 +11,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
       - name: Install firebase tools
-        run: sudo npm install -g firebase-tools@8.12.1
+        run: sudo npm install -g firebase-tools@13.30.0
 
       - name: Checkout buerligons
         uses: actions/checkout@v3
@@ -31,23 +31,16 @@ jobs:
         env:
           CI: ''
 
-      - name: Deploy to dev site
+      - name: Deploy to staging site
         working-directory: ./buerligons
         if: github.ref == 'refs/heads/develop'
-        run: yarn deploy:dev
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Deploy to dev site
-        working-directory: ./buerligons
-        if: github.ref == 'refs/heads/dev/online'
-        run: yarn deploy:dev
+        run: yarn deploy:staging
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Deploy to production site
         working-directory: ./buerligons
         if: github.ref == 'refs/heads/master'
-        run: yarn deploy
+        run: yarn deploy:production
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

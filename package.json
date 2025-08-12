@@ -13,9 +13,9 @@
     "serve": "vite preview",
     "compile": "tsc",
     "lint": "eslint \"./src/**/*.ts?(x)\"",
-    "deploy": "firebase deploy --only hosting:production",
-    "deploy:dev": "firebase deploy --only hosting:dev",
-    "deploy:prev": "firebase hosting:channel:deploy buerligons-01 --expires 1d --only dev"
+    "deploy:production": "firebase deploy --only hosting:production",
+    "deploy:staging": "firebase deploy --only hosting:staging",
+    "deploy:preview": "firebase hosting:channel:deploy buerligons-01 --expires 1d --only staging"
   },
   "engines": {
     "node": ">=16.14.0"

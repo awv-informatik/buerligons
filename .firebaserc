@@ -5,8 +5,8 @@
   "targets": {
     "buerli": {
       "hosting": {
-        "dev": [
-          "dev-buerligons-io"
+        "staging": [
+          "buerligons-io-staging-01"
         ],
         "production": [
           "buerligons-io"

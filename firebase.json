@@ -3,7 +3,21 @@
     {
       "target": "production",
       "public": "build",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "ignore": [
+        "firebase.json",
+        "package.json",
+        "vite.config.js",
+        "yarn.lock",
+        "README.md",
+        "**/.*",
+        "**/node_modules/**",
+        "**/.firebase/**",
+        "**/.docusaurus/**",
+        "**/.yarn/**",
+        "**/.vscode/**",
+        "**/public/**",
+        "**/src/**"
+      ],
       "rewrites": [
         {
           "source": "**",
@@ -12,9 +26,23 @@
       ]
     },
     {
-      "target": "dev",
+      "target": "staging",
       "public": "build",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "ignore": [
+        "firebase.json",
+        "package.json",
+        "vite.config.js",
+        "yarn.lock",
+        "README.md",
+        "**/.*",
+        "**/node_modules/**",
+        "**/.firebase/**",
+        "**/.docusaurus/**",
+        "**/.yarn/**",
+        "**/.vscode/**",
+        "**/public/**",
+        "**/src/**"
+      ],
       "rewrites": [
         {
           "source": "**",
