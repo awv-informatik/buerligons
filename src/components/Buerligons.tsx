@@ -90,7 +90,7 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
 
 export const Buerligons: React.FC = () => {
   const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId && <App />
+  return drawingId ? <App /> : null
 }
 
 export const App: React.FC = () => {
