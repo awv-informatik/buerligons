@@ -78,7 +78,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           const data = await createApi(drawingId).v0.baseModeler.save(type)
           if (data) {
             const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
+            link.href = window.URL.createObjectURL(new Blob([data as any], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
             link.click()
           }

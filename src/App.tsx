@@ -1,5 +1,5 @@
 import 'antd/dist/antd.css'
 import React from 'react'
-import { Buerligons } from './components/Buerligons'
+import { Startup } from './components/Startup'
 
-export const App: React.FC = () => <Buerligons />
+export const App: React.FC = () => <Startup />
