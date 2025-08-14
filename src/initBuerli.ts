@@ -46,16 +46,13 @@ import {
   WorkPlane,
   WorkPoint,
 } from '@buerli.io/react-cad'
+import { DrawingID } from '@buerli.io/core'
 
-const CCSERVERURL = 'ws://localhost:9091'
-
-export const initBuerli = () => {
+export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws://localhost:9091', id)) => {
   console.info('initBuerli')
-
   init(
     id => {
-      const socket = new SocketIOClient(CCSERVERURL, id)
-
+      const socket = callback(id)
       // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.
