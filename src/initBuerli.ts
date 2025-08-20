@@ -57,14 +57,14 @@ export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws:
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.
       const initSettings = async () => {
-        await createApi(id).v0.common.setDatabaseSettings({
+        await createApi(id).v1.common.setDatabaseSettings({
           isGraphicEnabled: true, // default server: true
           isCCGraphicEnabled: false, // default server: false
           isInvisibleGraphicEnabled: true, // default server: false
           isSketchGraphicEnabled: false, // default server: false
           facetingParamsMode: 1, // default server: 1
-          facetingChordHeightTol: 0.1, // default server: 0.1
-          facetingAngleTol: 0, // default server: 0
+          chordHeightTol: 0.1, // default server: 0.1
+          angleTol: 0, // default server: 0
           doCurveTessellation: false, // default server: false
         })
       }

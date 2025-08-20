@@ -2,7 +2,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { createApi, ccUtils, CCClasses, FlipType, ReorientedType } from '@buerli.io/classcad'
+import { createApi, ccUtils, CCClasses } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
@@ -177,27 +177,10 @@ const createFix = (drawingId: DrawingID, instanceId: ObjectID) => {
   }
 
   const matePath = ccUtils.assembly.getMatePath(drawingId, instanceId)
-  const mate1 = { matePath: [], wcsId: wcSystems1[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
-  const mate2 = { matePath, wcsId: wcSystems2[0], flip: FlipType.FLIP_Z, reoriented: ReorientedType.REORIENTED_0 }
-  const defaultParam = { value: 0, isExpr: false }
+  const mate1 = { path: [], csys: wcSystems1[0] }
+  const mate2 = { path: matePath, csys: wcSystems2[0] }
   createApi(drawingId)
-    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCFastenedConstraint, 'Fix')
-    .then(id => {
-      if (id) {
-        createApi(drawingId).v0.assemblyBuilder.updateFastenedConstraints([
-          {
-            constrId: id,
-            mate1,
-            mate2,
-            xOffset: defaultParam,
-            yOffset: defaultParam,
-            zOffset: defaultParam,
-            useCurrentTransform: true,
-          },
-        ])
-      }
-      return null
-    })
+    .v1.assembly.fastened({ id: curProdId, name: 'Fix', mate1, mate2, useCurrentTransform: true })
     .catch(console.warn)
 }
 
@@ -210,15 +193,7 @@ const createGroup = (drawingId: DrawingID, instanceId: ObjectID) => {
 
   const instanceIds = getSelectedInstances(drawingId, instanceId)
 
-  createApi(drawingId)
-    .v0.assemblyBuilder.create3DConstraint(curProdId, CCClasses.CCGroupConstraint, 'Group')
-    .then(id => {
-      if (id) {
-        createApi(drawingId).v0.assemblyBuilder.updateGroupConstraints([{ constrId: id, instanceIds }])
-      }
-      return null
-    })
-    .catch(console.warn)
+  createApi(drawingId).v1.assembly.group({ id: curProdId, name: 'Group', instanceIds }).catch(console.warn)
 }
 
 const hoverObject = (drawingId: DrawingID, info: InteractionInfo | null) => {
@@ -430,14 +405,7 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedSolids(drawingId, solidId, true)
 
   createApi(drawingId)
-    .v0.feature.createFeature(curProdId, 'CC_EntityDeletion', 'Entity Deletion')
-    .then(res => {
-      if (res) {
-        return createApi(drawingId).v0.feature.updateEntityDeletion(res, ids)
-      }
-
-      return null
-    })
+    .v1.part.entityDeletion({ id: curProdId, name: 'Entity Deletion', targets: ids })
     .catch(console.warn)
 
   drawing.api.interaction.setSelected([])
@@ -452,7 +420,7 @@ const deleteInstance = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedInstances(drawingId, instanceId)
   const idsSorted = ids.sort((a, b) => b - a)
 
-  createApi(drawingId).v0.baseModeler.deleteObjects(idsSorted).catch(console.warn)
+  createApi(drawingId).v1.assembly.deleteInstance({ ids: idsSorted }).catch(console.warn)
 }
 
 const viewNormalToSketch = (
@@ -492,20 +460,15 @@ const fitSketch = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, boundsControl
 const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const drawing = getDrawing(drawingId)
   const curProdId = drawing.structure.currentProduct as ObjectID
+  const planeId = menuInfo.interactionInfo.graphicId || menuInfo.interactionInfo.objectId
 
-  const sketchId = await createApi(drawingId).v0.sketcher.createSketch(curProdId)
-  if (!sketchId) {
+  const res = await createApi(drawingId).v1.sketch.create({ id: curProdId, planeId })
+  if (!res.result) {
     return
   }
 
-  if (menuInfo.interactionInfo.graphicId) {
-    await createApi(drawingId).v0.sketcher.createAndSetWorkPlane(sketchId, menuInfo.interactionInfo.graphicId)
-  } else {
-    await createApi(drawingId).v0.sketcher.setWorkPlane(sketchId, menuInfo.interactionInfo.objectId)
-  }
-
   const pluginApi = drawing.api.plugin
-  pluginApi.setActiveFeature(sketchId)
+  pluginApi.setActiveFeature(res.result)
 }
 
 const convertToVector = (p: PointMem | undefined) => {
