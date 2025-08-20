@@ -2,7 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { CameraHelper } from '@buerli.io/react'
 import { ContextMenu, getCADState } from '@buerli.io/react-cad'
 import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
@@ -120,7 +120,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
 
       if (
         uData.objId &&
-        menuContent.find(menuDescriptor => ccUtils.base.isA(objType, menuDescriptor.objType as CCClasses))
+        menuContent.find(menuDescriptor => ccUtils.base.isA(objType, menuDescriptor.objType as ScgClassType))
       ) {
         // If there is a suitable menu descriptor for this object type, continue with this object for menuInfo creation
         setMenuInfo({ interactionInfo, clickInfo: { clickPos, intersections } })
@@ -149,7 +149,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
 
     const menuDescriptor = menuContent.find(
       menuDescriptor_ =>
-        menuDescriptor_.objType === objType || ccUtils.base.isA(objType, menuDescriptor_.objType as CCClasses),
+        menuDescriptor_.objType === objType || ccUtils.base.isA(objType, menuDescriptor_.objType as ScgClassType),
     )
     const menuItems_ = menuDescriptor?.menuElements
     const caption_ = menuDescriptor?.headerName || ''

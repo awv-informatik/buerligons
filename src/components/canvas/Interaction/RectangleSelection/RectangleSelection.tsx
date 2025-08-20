@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import React from 'react'
 
 import { createGraphicItem, createInfo, DrawingID, getDrawing, InteractionInfo, SelectedItem } from '@buerli.io/core'
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { createTreeObjSelItem, sketchUtils, TreeObjScope } from '@buerli.io/react-cad'
 import { extend, Object3DNode, useThree, ThreeEvent } from '@react-three/fiber'
 
@@ -87,7 +87,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     const isSelActive = selId !== null
     const curProduct = drawing.structure.currentProduct
     const prodClass = tree[curProduct || -1]?.class || ''
-    const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+    const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
     if (isSelActive) {
       const selector = drawing.selection.refs[selId]
@@ -168,7 +168,7 @@ export const RectangleSelection: React.FC<{ drawingId: DrawingID }> = ({ drawing
     const selId = drawing.selection.active
     const isSelActive = selId !== null
     const prodClass = tree[curProduct || -1]?.class || ''
-    const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+    const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
     if (isSelActive) {
       const selector = drawing.selection.refs[selId]

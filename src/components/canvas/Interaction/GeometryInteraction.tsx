@@ -1,7 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { sketchUtils } from '@buerli.io/react-cad'
@@ -131,7 +131,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       e.stopPropagation()
 
       const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
-      const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+      const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
       const intersection = findGeometryIntersection(e.intersections, lineThreshold, pointThreshold)
       const uData = intersection?.object?.userData

@@ -2,13 +2,12 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { createApi, ccUtils, CCClasses } from '@buerli.io/classcad'
+import { createApi, ccUtils, ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
   ObjectID,
-  PointMem,
-  GraphicType,
+  ScgPointMem,
   createInfo,
   InteractionInfo,
   BuerliScope,
@@ -96,41 +95,41 @@ const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
     return isometricURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCPoint)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCPoint)) {
     return pointURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCLine)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCLine)) {
     return lineURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCArc)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCArc)) {
     return arcURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCCircle)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCCircle)) {
     return circleURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CC2DConstraint)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CC2DConstraint)) {
     return constraintURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkPoint)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCWorkPoint)) {
     return workpointURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkAxis)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCWorkAxis)) {
     return workaxisURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, CCClasses.CCWorkPlane)) {
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCWorkPlane)) {
     return workplaneURL
   }
 
   if (
-    ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCSys) ||
-    ccUtils.base.isA(treeObj.class, CCClasses.CCWorkCoordSystem)
+    ccUtils.base.isA(treeObj.class, ScgClassType.CCWorkCSys) ||
+    ccUtils.base.isA(treeObj.class, ScgClassType.CCWorkCoordSystem)
   ) {
     return workcsysURL
   }
@@ -214,7 +213,7 @@ const selectTreeObj = (drawingId: DrawingID, objectId: ObjectID, multi: boolean)
   }
 
   if (selection) {
-    if (ccUtils.base.isA(object.class, CCClasses.IProductReference)) {
+    if (ccUtils.base.isA(object.class, ScgClassType.IProductReference)) {
       const instanceId = ccUtils.assembly.getMatePath(drawingId, object.id).pop() || -1
       object = drawing.structure.tree[instanceId]
     }
@@ -269,7 +268,7 @@ const hideFeatureOrSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
 
 const showOrHideInstance = (drawingId: DrawingID, instanceId: ObjectID, show: boolean) => {
   const drawing = getDrawing(drawingId)
-  if (!ccUtils.base.isA(drawing.structure.tree[instanceId]?.class, CCClasses.IProductReference)) {
+  if (!ccUtils.base.isA(drawing.structure.tree[instanceId]?.class, ScgClassType.IProductReference)) {
     return
   }
 
@@ -312,7 +311,7 @@ const hideOtherInstances = (drawingId: DrawingID, instanceId: ObjectID) => {
   const tree = drawing.structure.tree
 
   const descendants = ccUtils.base.getDescendants(drawingId, curInstance || -1)
-  const instances = descendants.filter(id => ccUtils.base.isA(tree[id].class, CCClasses.IProductReference))
+  const instances = descendants.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.IProductReference))
   const instDescendants = ccUtils.base.getDescendants(drawingId, instanceId)
   const ancestors = ccUtils.base.getAncestors(drawingId, instanceId)
 
@@ -368,12 +367,12 @@ const showOrHideMates = (drawingId: DrawingID, instanceId: ObjectID, show: boole
   const mateIdsArr = instanceIds.map(instanceId_ => {
     const productId = (tree[instanceId_]?.members?.productId?.value as ObjectID) || instanceId_
     const prodChildren = tree[productId]?.children || []
-    const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, CCClasses.CCGeometrySet))
+    const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, ScgClassType.CCGeometrySet))
     const geomSetChildren = tree[geomSetId || -1]?.children || []
     return geomSetChildren.filter(
       id =>
-        ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCSys) ||
-        ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCoordSystem),
+        ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCSys) ||
+        ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCoordSystem),
     )
   })
 
@@ -471,7 +470,7 @@ const newSketch = async (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   pluginApi.setActiveFeature(res.result)
 }
 
-const convertToVector = (p: PointMem | undefined) => {
+const convertToVector = (p: ScgPointMem | undefined) => {
   return p ? new THREE.Vector3(p.value.x, p.value.y, p.value.z) : new THREE.Vector3()
 }
 
@@ -484,12 +483,12 @@ const viewNormalToPlane = (
 ) => {
   const drawing = getDrawing(drawingId)
   const workPlaneObj = drawing.structure.tree[menuInfo.interactionInfo?.objectId || -1]
-  if (!workPlaneObj || !ccUtils.base.isA(workPlaneObj.class, CCClasses.CCWorkPlane)) {
+  if (!workPlaneObj || !ccUtils.base.isA(workPlaneObj.class, ScgClassType.CCWorkPlane)) {
     return
   }
 
   const target = menuInfo.clickInfo.clickPos
-  const normal = convertToVector(workPlaneObj.members?.Normal as PointMem).normalize()
+  const normal = convertToVector(workPlaneObj.members?.Normal as ScgPointMem).normalize()
   const position = target.clone().addScaledVector(normal, camera.position.distanceTo(controls?.target))
   const up = normal.clone().cross(camera.up.clone().cross(normal))
 
@@ -499,7 +498,7 @@ const viewNormalToPlane = (
 export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   const drawing = getDrawing(drawingId)
   const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
-  const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+  const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
   const camera = useThree(state => state.camera)
   const controls = useThree(state => state.controls as unknown as ControlsProto)
@@ -822,14 +821,14 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     ] as MenuElement[]
 
     return [
-      { objType: GraphicType.POINT, ...grDescriptor },
-      { objType: GraphicType.CURVEPOINT, ...grDescriptor },
-      { objType: GraphicType.LINE, ...grDescriptor },
-      { objType: GraphicType.ARC, ...grDescriptor },
-      { objType: GraphicType.CIRCLE, ...grDescriptor },
-      { objType: GraphicType.NURBSCURVE, ...grDescriptor },
+      { objType: ScgGraphicType.POINT, ...grDescriptor },
+      { objType: ScgGraphicType.CURVEPOINT, ...grDescriptor },
+      { objType: ScgGraphicType.LINE, ...grDescriptor },
+      { objType: ScgGraphicType.ARC, ...grDescriptor },
+      { objType: ScgGraphicType.CIRCLE, ...grDescriptor },
+      { objType: ScgGraphicType.NURBSCURVE, ...grDescriptor },
       {
-        objType: GraphicType.PLANE,
+        objType: ScgGraphicType.PLANE,
         ...grDescriptor,
         menuElements: [
           isPartMode
@@ -846,72 +845,72 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           ...graphic,
         ],
       } as MenuDescriptor,
-      { objType: GraphicType.CYLINDER, ...grDescriptor },
-      { objType: GraphicType.CONE, ...grDescriptor },
-      { objType: GraphicType.SPHERE, ...grDescriptor },
-      { objType: GraphicType.NURBSSURFACE, ...grDescriptor },
+      { objType: ScgGraphicType.CYLINDER, ...grDescriptor },
+      { objType: ScgGraphicType.CONE, ...grDescriptor },
+      { objType: ScgGraphicType.SPHERE, ...grDescriptor },
+      { objType: ScgGraphicType.NURBSSURFACE, ...grDescriptor },
       {
-        objType: CCClasses.CCPart,
+        objType: ScgClassType.CCPart,
         headerName: 'Part',
         headerIcon: <MenuHeaderIcon url={partURL} />,
         menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
       },
       {
-        objType: CCClasses.CCAssembly,
+        objType: ScgClassType.CCAssembly,
         headerName: 'Assembly',
         headerIcon: <MenuHeaderIcon url={assemblyURL} />,
         menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
       },
       {
-        objType: CCClasses.CCSketch,
+        objType: ScgClassType.CCSketch,
         headerName: 'Sketch',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketch,
       },
       {
-        objType: CCClasses.CCPoint,
+        objType: ScgClassType.CCPoint,
         headerName: 'Point',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketchItem,
       },
       {
-        objType: CCClasses.CCLine,
+        objType: ScgClassType.CCLine,
         headerName: 'Line',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketchItem,
       },
       {
-        objType: CCClasses.CCArc,
+        objType: ScgClassType.CCArc,
         headerName: 'Arc',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketchItem,
       },
       {
-        objType: CCClasses.CCCircle,
+        objType: ScgClassType.CCCircle,
         headerName: 'Circle',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketchItem,
       },
       {
-        objType: CCClasses.CC2DConstraint,
+        objType: ScgClassType.CC2DConstraint,
         headerName: 'Constraint',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: sketchItem,
       },
       {
-        objType: CCClasses.CCWorkPoint,
+        objType: ScgClassType.CCWorkPoint,
         headerName: 'Workpoint',
         headerIcon: <MenuHeaderIcon url={workpointURL} />,
         menuElements: workGeometry,
       },
       {
-        objType: CCClasses.CCWorkAxis,
+        objType: ScgClassType.CCWorkAxis,
         headerName: 'Workaxis',
         headerIcon: <MenuHeaderIcon url={workaxisURL} />,
         menuElements: workGeometry,
       },
       {
-        objType: CCClasses.CCWorkPlane,
+        objType: ScgClassType.CCWorkPlane,
         headerName: 'Workplane',
         headerIcon: <MenuHeaderIcon url={workplaneURL} />,
         menuElements: [
@@ -936,13 +935,13 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         ] as MenuElement[],
       },
       {
-        objType: CCClasses.CCWorkCSys,
+        objType: ScgClassType.CCWorkCSys,
         headerName: 'Workcsys',
         headerIcon: <MenuHeaderIcon url={workcsysURL} />,
         menuElements: workGeometry,
       },
       {
-        objType: CCClasses.CCWorkCoordSystem,
+        objType: ScgClassType.CCWorkCoordSystem,
         headerName: 'Workcsys',
         headerIcon: <MenuHeaderIcon url={workcsysURL} />,
         menuElements: workGeometry,
