@@ -14,7 +14,7 @@ import {
   createInfo,
   InteractionInfo,
 } from '@buerli.io/core'
-import { TreeObjScope, MateScope, createTreeObjSelItem } from '@buerli.io/react-cad'
+import { TreeObjScope, MateScope, createTreeObjSelItem, sketchUtils } from '@buerli.io/react-cad'
 import { ccUtils } from '@buerli.io/classcad'
 
 export const isBPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
@@ -28,9 +28,10 @@ export const getBuerliGeometry = (intersection: THREE.Intersection | undefined) 
   return (uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]) as GeometryElement | undefined
 }
 
-export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
-  if (intersections.some(i => i.object.userData?.onHUD && i.object.userData?.objId)) {
-    // If there is a tree object on HUD within intersections, consider there are no geometry intersections
+export const findGeometryIntersection = (intersections: THREE.Intersection[], drawingId: DrawingID, lineThreshold: number, pointThreshold: number) => {
+  const tree = getDrawing(drawingId).structure.tree
+  if (intersections.some(i => i.object.userData?.onHUD && i.object.userData?.objId && !sketchUtils.isSketchGeometry(tree[i.object.userData.objId]))) {
+    // If there is a non-sketch tree object on HUD within intersections, consider there are no geometry intersections
     return undefined
   }
 
