@@ -88,9 +88,10 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC = () => {
+export const Buerligons: React.FC<{ minimized?: boolean }> = ({ minimized = false }) => {
+  const app = minimized ? <AppMinimized /> : <App />
   const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App /> : null
+  return drawingId ? app : null
 }
 
 export const App: React.FC = () => {
@@ -131,6 +132,42 @@ export const App: React.FC = () => {
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
+      <Disconnected drawingId={drawingId} />
+    </>
+  )
+}
+
+export const AppMinimized: React.FC = () => {
+  const drawingId = useBuerli(s => s.drawing.active || '')
+  const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
+  const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
+  const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
+  const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
+  useInteractionReset(drawingId)
+  return (
+    <>
+      <CanvasImpl drawingId={drawingId}>
+        <Controls makeDefault staticMoving rotateSpeed={2} />
+        <Lights drawingId={drawingId} />
+        <Threshold />
+        <GeometryOverridesManager drawingId={drawingId} />
+        <Fit drawingId={drawingId}>
+          <Composer drawingId={drawingId} width={5}>
+            <GeometryInteraction drawingId={drawingId}>
+              <BuerliGeometry
+                suspend=".Load"
+                drawingId={drawingId}
+                productId={isPart ? currentProduct : currentInstance}
+                selection={false}
+              />
+            </GeometryInteraction>
+          </Composer>
+          <PluginGeometryBounds drawingId={drawingId} />
+          <ViewCube />
+        </Fit>
+        <BuerliPluginsGeometry drawingId={drawingId} />
+        <HighlightedObjects drawingId={drawingId} />
+      </CanvasImpl>
       <Disconnected drawingId={drawingId} />
     </>
   )
