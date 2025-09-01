@@ -16,6 +16,7 @@ import {
 import {
   MenuElement,
   TreeObjScope,
+  conversionUtils,
   createTreeObjSelItem,
   getCADState,
   sketchUtils,
@@ -402,9 +403,10 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   }
 
   const ids = getSelectedSolids(drawingId, solidId, true)
+  const targets = conversionUtils.solidsV1(drawingId, ids)
 
   createApi(drawingId)
-    .v1.part.entityDeletion({ id: curProdId, name: 'Entity Deletion', targets: ids })
+    .v1.part.entityDeletion({ id: curProdId, name: 'Entity Deletion', targets })
     .catch(console.warn)
 
   drawing.api.interaction.setSelected([])
