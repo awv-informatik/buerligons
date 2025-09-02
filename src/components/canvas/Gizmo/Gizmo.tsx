@@ -11,7 +11,7 @@ import { findInteractableParent } from './utils'
 
 // Artificial delay in 16 ms.
 const artifDelay = 16
-let promise: Promise<void> | null
+let promise: Promise<any> | null
 
 export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix: THREE.Matrix4 }> = ({
   drawingId,
@@ -49,7 +49,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       const mL0CInv = mL0C.invert()
 
       const pivotPos = new THREE.Vector3(...position).applyMatrix4(mL0C).toArray()
-      const mucType = component === 'Arrow' ? 0 : component === 'Slider' ? 1 : 2
+      const mucType = component === 'Arrow' ? 'TRANSLATION_1D' : component === 'Slider' ? 'TRANSLATION_2D' : 'ROTATION'
 
       const selected = drawing.interaction.selected || []
       const selectedRefs = selected.map(obj =>
@@ -63,7 +63,12 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       )
 
       dragInfo.current = { mPInv, mL0CInv }
-      createApi(drawingId).v0.assemblyBuilder.startMovingUnderConstraints(curProdId, draggedInstances, pivotPos, mucType)
+      createApi(drawingId).v1.assembly.startMovingUnderConstraints({
+        id: curProdId,
+        instanceIds: draggedInstances,
+        pivotInfo: pivotPos,
+        mucType,
+      })
     },
     [drawingId, productId, position],
   )
@@ -72,15 +77,14 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     async (mdL_: THREE.Matrix4) => {
       const curProdId = getDrawing(drawingId).structure.currentProduct || -1
 
-      const rot: number[] = []
-      const offset: number[] = []
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          rot.push(mdL_.elements[j * 4 + i])
-        }
-        offset.push(mdL_.elements[i + 12])
+      const rot = {
+        xDir: [mdL_.elements[0], mdL_.elements[1], mdL_.elements[2]],
+        yDir: [mdL_.elements[4], mdL_.elements[5], mdL_.elements[6]],
+        zDir: [mdL_.elements[8], mdL_.elements[9], mdL_.elements[10]],
       }
-      promise = createApi(drawingId).v0.assemblyBuilder.moveUnderConstraints(curProdId, rot, offset).catch(console.warn)
+      const offset = [mdL_.elements[12], mdL_.elements[13], mdL_.elements[14]]
+
+      promise = createApi(drawingId).v1.assembly.moveUnderConstraints({ id: curProdId, rotation: rot, offset }).catch(console.warn)
       await promise
 
       // Artificial slowdown to lessen network/server burden
@@ -120,7 +124,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
     dragInfo.current = null
     mdL.current = null
     const curProdId = getDrawing(drawingId).structure.currentProduct || -1
-    createApi(drawingId).v0.assemblyBuilder.finishMovingUnderConstraints(curProdId)
+    createApi(drawingId).v1.assembly.finishMovingUnderConstraints({ id: curProdId })
   }, [drawingId])
 
   React.useEffect(() => {

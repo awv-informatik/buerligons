@@ -1,4 +1,4 @@
-import { createApi, CCClasses, init, SocketIOClient } from '@buerli.io/classcad'
+import { createApi, ScgClassType, init, SocketIOClient } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -57,14 +57,14 @@ export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws:
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.
       const initSettings = async () => {
-        await createApi(id).v0.common.setDatabaseSettings({
+        await createApi(id).v1.common.setDatabaseSettings({
           isGraphicEnabled: true, // default server: true
           isCCGraphicEnabled: false, // default server: false
           isInvisibleGraphicEnabled: true, // default server: false
           isSketchGraphicEnabled: false, // default server: false
           facetingParamsMode: 1, // default server: 1
-          facetingChordHeightTol: 0.1, // default server: 0.1
-          facetingAngleTol: 0, // default server: 0
+          chordHeightTol: 0.1, // default server: 0.1
+          angleTol: 0, // default server: 0
           doCurveTessellation: false, // default server: false
         })
       }
@@ -90,46 +90,46 @@ export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws:
       elements,
       globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor],
       plugins: {
-        [CCClasses.CCSketch]: Sketch,
-        [CCClasses.CCExtrusion]: Extrusion,
-        [CCClasses.CCChamfer]: Chamfer,
-        [CCClasses.CCConstantRadiusFillet]: Fillet,
-        [CCClasses.CCUnion]: BooleanPlg,
-        [CCClasses.CCWorkAxis]: WorkAxis,
-        [CCClasses.CCWorkPlane]: WorkPlane,
-        [CCClasses.CCWorkPoint]: WorkPoint,
-        [CCClasses.CCRevolve]: Revolve,
-        [CCClasses.CCBox]: Box,
-        [CCClasses.CCSphere]: Sphere,
-        [CCClasses.CCCylinder]: Cylinder,
-        [CCClasses.CCCone]: Cone,
-        [CCClasses.CCWorkCSys]: WorkCSys,
-        [CCClasses.CCIntersection]: BooleanPlg,
-        [CCClasses.CCSubtraction]: BooleanPlg,
-        [CCClasses.CCSlice]: Slice,
-        [CCClasses.CCSliceBySheet]: SliceBySheet,
-        [CCClasses.CCLinearPattern]: LinearPattern,
-        [CCClasses.CCCircularPattern]: CircularPattern,
-        [CCClasses.CCCompositeCurve]: CompositeCurve,
-        [CCClasses.CCTransformationByCSys]: TransformByCsys,
-        [CCClasses.CCTranslation]: Translate,
-        [CCClasses.CCTwist]: Twist,
-        [CCClasses.CCRotation]: Rotate,
-        [CCClasses.CCFastenedOriginConstraint]: FastenedOrigin,
-        [CCClasses.CCFastenedConstraint]: Fastened,
-        [CCClasses.CCSliderConstraint]: Slider,
-        [CCClasses.CCRevoluteConstraint]: Revolute,
-        [CCClasses.CCCylindricalConstraint]: Cylindrical,
-        [CCClasses.CCPlanarConstraint]: Planar,
-        [CCClasses.CCParallelConstraint]: Parallel,
-        [CCClasses.CCSphericalConstraint]: Spherical,
-        [CCClasses.CCGroupConstraint]: Group,
-        [CCClasses.CCLinearPatternConstraint]: LinearPatternConstraint,
-        [CCClasses.CCCircularPatternConstraint]: CircularPatternConstraint,
-        [CCClasses.CCGearRelation]: Gear,
-        [CCClasses.CCImport]: Import,
-        [CCClasses.CCEntityDeletion]: EntityDeletion,
-        [CCClasses.CCMirror]: Mirror,
+        [ScgClassType.CCSketch]: Sketch,
+        [ScgClassType.CCExtrusion]: Extrusion,
+        [ScgClassType.CCChamfer]: Chamfer,
+        [ScgClassType.CCConstantRadiusFillet]: Fillet,
+        [ScgClassType.CCUnion]: BooleanPlg,
+        [ScgClassType.CCWorkAxis]: WorkAxis,
+        [ScgClassType.CCWorkPlane]: WorkPlane,
+        [ScgClassType.CCWorkPoint]: WorkPoint,
+        [ScgClassType.CCRevolve]: Revolve,
+        [ScgClassType.CCBox]: Box,
+        [ScgClassType.CCSphere]: Sphere,
+        [ScgClassType.CCCylinder]: Cylinder,
+        [ScgClassType.CCCone]: Cone,
+        [ScgClassType.CCWorkCSys]: WorkCSys,
+        [ScgClassType.CCIntersection]: BooleanPlg,
+        [ScgClassType.CCSubtraction]: BooleanPlg,
+        [ScgClassType.CCSlice]: Slice,
+        [ScgClassType.CCSliceBySheet]: SliceBySheet,
+        [ScgClassType.CCLinearPattern]: LinearPattern,
+        [ScgClassType.CCCircularPattern]: CircularPattern,
+        [ScgClassType.CCCompositeCurve]: CompositeCurve,
+        [ScgClassType.CCTransformationByCSys]: TransformByCsys,
+        [ScgClassType.CCTranslation]: Translate,
+        [ScgClassType.CCTwist]: Twist,
+        [ScgClassType.CCRotation]: Rotate,
+        [ScgClassType.CCFastenedOriginConstraint]: FastenedOrigin,
+        [ScgClassType.CCFastenedConstraint]: Fastened,
+        [ScgClassType.CCSliderConstraint]: Slider,
+        [ScgClassType.CCRevoluteConstraint]: Revolute,
+        [ScgClassType.CCCylindricalConstraint]: Cylindrical,
+        [ScgClassType.CCPlanarConstraint]: Planar,
+        [ScgClassType.CCParallelConstraint]: Parallel,
+        [ScgClassType.CCSphericalConstraint]: Spherical,
+        [ScgClassType.CCGroupConstraint]: Group,
+        [ScgClassType.CCLinearPatternConstraint]: LinearPatternConstraint,
+        [ScgClassType.CCCircularPatternConstraint]: CircularPatternConstraint,
+        [ScgClassType.CCGearRelation]: Gear,
+        [ScgClassType.CCImport]: Import,
+        [ScgClassType.CCEntityDeletion]: EntityDeletion,
+        [ScgClassType.CCMirror]: Mirror,
       },
     },
   )

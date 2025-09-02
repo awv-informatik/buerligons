@@ -5,7 +5,6 @@ import {
   ProductElement,
   getDrawing,
   BuerliScope,
-  GraphicType,
   MeshTypes,
   MeshGeometry,
   GraphicID,
@@ -15,7 +14,7 @@ import {
   InteractionInfo,
 } from '@buerli.io/core'
 import { TreeObjScope, MateScope, createTreeObjSelItem } from '@buerli.io/react-cad'
-import { ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgGraphicType } from '@buerli.io/classcad'
 
 export const isBPoint = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.pointMap)
 export const isBLine = (intersection: THREE.Intersection) => Boolean(intersection.object?.userData?.lineMap)
@@ -89,7 +88,7 @@ export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, obj
     // All elements of one entity must have the same graphicId in order to have
     // the entity selection working proper.
     prodElements = [{ ...object, type: object.container.type, graphicId: object.container.id, productId }]
-  } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0) {
+  } else if (selection.isSelectable(BuerliScope, ScgGraphicType.LOOP) && MeshTypes.indexOf(object.type) >= 0) {
     // Special handling for LOOP's
     const mesh = object as MeshGeometry
     const edges: GraphicID[] = []

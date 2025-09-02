@@ -8,7 +8,7 @@ import {
   DownOutlined,
   SaveOutlined,
 } from '@ant-design/icons'
-import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
+import { createApi, BuerliCadFacade, compression } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
@@ -46,11 +46,11 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           if (newDrawingId) {
             switch (type) {
               case 'Assembly':
-                await createApi(newDrawingId).v0.assemblyBuilder.createRootAssembly(type)
+                await createApi(newDrawingId).v1.assembly.create({ name: 'Assembly' })
                 break
               case 'Part':
               default:
-                await createApi(newDrawingId).v0.feature.newPart(type)
+                await createApi(newDrawingId).v1.part.create({ name: 'Part' })
                 break
             }
             buerliApi.getState().api.setActiveDrawing(newDrawingId)
@@ -75,10 +75,18 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           let name = drawing.name || 'drawing'
           const ptIndex = name.lastIndexOf('.')
           name = name.substring(0, ptIndex >= 0 ? ptIndex : name.length)
-          const data = await createApi(drawingId).v0.baseModeler.save(type)
-          if (data) {
+
+          const res = await createApi(drawingId).v1.common.save({
+            format: type.toUpperCase() as 'OFB' | 'STP' | 'STL',
+            encoding: 'base64',
+            compression: 'deflate',
+          })
+
+          const content = res?.result?.content
+          if (content) {
+            const data = compression.inflateFromBase64(content)
             const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(new Blob([data as any], { type: 'application/octet-stream' }))
+            link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
             link.click()
           }

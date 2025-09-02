@@ -1,8 +1,7 @@
 import { MenuInfo, MenuElement } from '@buerli.io/react-cad'
-import { CCClasses } from '@buerli.io/classcad'
-import { GraphicType } from '@buerli.io/core'
+import { ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
 
-export type MenuObjType = GraphicType | CCClasses
+export type MenuObjType = ScgGraphicType | ScgClassType
 
 export type CanvasMenuInfo = MenuInfo<{ clickPos: THREE.Vector3; clickNormal?: THREE.Vector3; intersections: THREE.Intersection[] }>
 

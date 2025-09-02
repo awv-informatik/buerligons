@@ -1,8 +1,8 @@
 /* eslint-disable max-lines */
 import * as THREE from 'three'
 
-import { BuerliScope, DrawingID, getDrawing, GraphicID, GraphicType, ObjectID, PointMem, SelectorID } from '@buerli.io/core'
-import { ccUtils, CCClasses } from '@buerli.io/classcad'
+import { BuerliScope, DrawingID, getDrawing, GraphicID, ObjectID, ScgPointMem, SelectorID } from '@buerli.io/core'
+import { ccUtils, ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
 import { sketchIntersectionUtils } from '@buerli.io/react-cad'
 
 type CommonInfo = { id: ObjectID }
@@ -21,7 +21,7 @@ export type SolidInfo = CommonBBObjInfo & CommonInfo
 export type InstanceInfo = SolidInfo
 export type RigidsetInfo = { instancesInfo: InstanceInfo[] } & CommonInfo
 
-export const convertToVector = (point: PointMem | undefined) => {
+export const convertToVector = (point: ScgPointMem | undefined) => {
   return point ? new THREE.Vector3(point.value.x, point.value.y, point.value.z) : new THREE.Vector3()
 }
 
@@ -61,17 +61,17 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
 
     const objClass = tree[id]?.class
 
-    if (ccUtils.base.isA(objClass, CCClasses.CCPoint)) {
-      const pos = convertToVector(sketchObj.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0)
+    if (ccUtils.base.isA(objClass, ScgClassType.CCPoint)) {
+      const pos = convertToVector(sketchObj.members?.pos as ScgPointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0)
       points.push({ id, pos })
 
       return
     }
 
-    if (ccUtils.base.isA(objClass, CCClasses.CCLine)) {
+    if (ccUtils.base.isA(objClass, ScgClassType.CCLine)) {
       const points_ = sketchObj.children?.map(pointId => tree[pointId]) || []
       const [start, end] = points_
-        .map(p => convertToVector(p.members?.pos as PointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
+        .map(p => convertToVector(p.members?.pos as ScgPointMem).applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
       const dir = end.clone().sub(start)
 
       lines.push({ id, start, end, dir })
@@ -79,11 +79,11 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       return
     }
 
-    if (ccUtils.base.isA(objClass, CCClasses.CCArc)) {
+    if (ccUtils.base.isA(objClass, ScgClassType.CCArc)) {
       const points_ = sketchObj.children?.map(pointId => tree[pointId]) || []
       const [start, end, center] = ['startPoint', 'endPoint', 'center'].map(name => {
         const point = points_.find(p => p.name === name)
-        return convertToVector(point?.members?.pos as PointMem)
+        return convertToVector(point?.members?.pos as ScgPointMem)
       })
       const [startH, endH] = [start, end].map(pos => {
         return pos.clone().applyMatrix4(sketchMatrix).project(camera).setZ(0.0)
@@ -103,10 +103,10 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       return
     }
 
-    if (ccUtils.base.isA(objClass, CCClasses.CCCircle)) {
+    if (ccUtils.base.isA(objClass, ScgClassType.CCCircle)) {
       const radius = sketchObj.members?.radius?.value as number
       const center = tree[sketchObj.children?.[0] || -1]
-      const centerL = convertToVector(center?.members?.pos as PointMem)
+      const centerL = convertToVector(center?.members?.pos as ScgPointMem)
       const pos1H = centerL.clone().setX(centerL.x + radius)
       const pos2H = centerL.clone().setY(centerL.y + radius)
       ;[pos1H, pos2H].forEach(pos => pos.applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
@@ -130,7 +130,7 @@ export const getAllSketchesGeomInfo = (drawingId: DrawingID, camera: THREE.Camer
   const curProduct = drawing.structure.currentProduct as ObjectID
   const tree = drawing.structure.tree
   const prodClass = tree[curProduct || -1]?.class || ''
-  const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+  const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
   const sketchesInfo: SketchInfo[] = []
 
@@ -138,7 +138,7 @@ export const getAllSketchesGeomInfo = (drawingId: DrawingID, camera: THREE.Camer
     return sketchesInfo
   }
 
-  const sketchSetId = tree[curProduct].children?.find(id => ccUtils.base.isA(tree[id]?.class, CCClasses.CCSketchSet))
+  const sketchSetId = tree[curProduct].children?.find(id => ccUtils.base.isA(tree[id]?.class, ScgClassType.CCSketchSet))
   const sketchSet = tree[sketchSetId || -1]
   if (!sketchSet) {
     return sketchesInfo
@@ -250,7 +250,7 @@ const __bb3 = new THREE.Box3()
 export const getSolidsInfo = (drawingId: DrawingID, camera: THREE.Camera) => {
   const drawing = getDrawing(drawingId)
   const selector = drawing.selection.refs[drawing.selection.active || -1]
-  if (selector && !selector.isSelectable(BuerliScope, GraphicType.BREP)) {
+  if (selector && !selector.isSelectable(BuerliScope, ScgGraphicType.BREP)) {
     return []
   }
 
@@ -279,7 +279,7 @@ const getVisibleInstances = (drawingId: DrawingID) => {
   const instanceIds = descendants.filter(id => {
     const productId = tree[id]?.members?.productId?.value as ObjectID
     const isHidden = config[id]?.meshes?.hidden
-    return !isHidden && ccUtils.base.isA(tree[id]?.class, CCClasses.IProductReference) && ccUtils.base.isA(tree[productId]?.class, CCClasses.CCPart)
+    return !isHidden && ccUtils.base.isA(tree[id]?.class, ScgClassType.IProductReference) && ccUtils.base.isA(tree[productId]?.class, ScgClassType.CCPart)
   })
 
   return instanceIds

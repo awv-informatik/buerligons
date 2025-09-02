@@ -11,13 +11,13 @@ export const WelcomePage: React.FC = () => {
 
   const createPart = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()
-    newDrawingId && (await createApi(newDrawingId).v0.feature.newPart('Part').catch(console.info))
+    newDrawingId && (await createApi(newDrawingId).v1.part.create({ name: 'Part' }).catch(console.info))
   }, [])
 
   const createAssembly = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()
     newDrawingId &&
-      (await createApi(newDrawingId).v0.assemblyBuilder.createRootAssembly('New Assembly').catch(console.info))
+      (await createApi(newDrawingId).v1.assembly.create({ name: 'Assembly' }).catch(console.info))
   }, [])
 
   const openFile = React.useCallback(() => {

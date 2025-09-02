@@ -1,8 +1,8 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { DrawingID, InteractionInfo, BuerliScope, GraphicType } from '@buerli.io/core'
-import { ccUtils, CCClasses } from '@buerli.io/classcad'
+import { DrawingID, InteractionInfo, BuerliScope } from '@buerli.io/core'
+import { ccUtils, ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
 import { useDrawing, GlobalTransform, Overlay } from '@buerli.io/react'
 import { HUD, WorkPointObj, WorkAxisObj, WorkPlaneObj, WorkCoordSystemObj, WorkCSysObj, CompositeCurveObj } from '@buerli.io/react-cad'
 
@@ -61,13 +61,13 @@ export function OverlayedObjects({
   const renderOrder = getRenderOrder(type)
   
   const prodClass = useDrawing(drawingId, d => d.structure.tree[d.structure.currentProduct || -1]?.class) || ''
-  const isPartMode = ccUtils.base.isA(prodClass, CCClasses.CCPart)
+  const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
 
   if (!info.prodRefId) {
     return null
   }
 
-  if (object?.class === CCClasses.CCWorkPoint && !isVisible) {
+  if (object?.class === ScgClassType.CCWorkPoint && !isVisible) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -77,7 +77,7 @@ export function OverlayedObjects({
     )
   }
 
-  if (object?.class === CCClasses.CCWorkAxis && !isVisible) {
+  if (object?.class === ScgClassType.CCWorkAxis && !isVisible) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -87,7 +87,7 @@ export function OverlayedObjects({
     )
   }
 
-  if (object?.class === CCClasses.CCWorkPlane && !isVisible) {
+  if (object?.class === ScgClassType.CCWorkPlane && !isVisible) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -98,7 +98,7 @@ export function OverlayedObjects({
   }
 
   // At least for now ignore WorkCoordSystems in assembly mode (i.e. Mates). CSysDisplay is supposed to fully handle their visualization...
-  if (object?.class === CCClasses.CCWorkCoordSystem && !isVisible && isPartMode) {
+  if (object?.class === ScgClassType.CCWorkCoordSystem && !isVisible && isPartMode) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -108,7 +108,7 @@ export function OverlayedObjects({
     )
   }
 
-  if (object?.class === CCClasses.CCWorkCSys && !isVisible && isPartMode) {
+  if (object?.class === ScgClassType.CCWorkCSys && !isVisible && isPartMode) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -118,7 +118,7 @@ export function OverlayedObjects({
     )
   }
 
-  if (object?.class === CCClasses.CCCompositeCurve && !isVisible && isPartMode) {
+  if (object?.class === ScgClassType.CCCompositeCurve && !isVisible && isPartMode) {
     return (
       <HUD>
         <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
@@ -133,7 +133,7 @@ export function OverlayedObjects({
   }
 
   // Mesh
-  if (solid && mesh && activeSel?.isSelectable(BuerliScope, GraphicType.LOOP)) {
+  if (solid && mesh && activeSel?.isSelectable(BuerliScope, ScgGraphicType.LOOP)) {
     return (
       <GlobalTransform drawingId={drawingId} objectId={info.prodRefId}>
         {mesh.loops.flat().map(id => <Overlay.Spline key={id} elem={(solid.map[id] as any)} color={color} renderOrder={renderOrder} lineWidth={5} />)}
