@@ -143,11 +143,11 @@ export const convertSelToInteraction = (drawingId: DrawingID, selItems: Selected
       }
       case MateScope: {
         const csys = item.data.csys
-        const matePath = item.data.matePath
+        const path = item.data.path
         return createInfo({
           objectId: csys.id,
-          objectPath: matePath,
-          prodRefId: matePath[0],
+          objectPath: path,
+          prodRefId: path[0],
         })
       }
       default: {
