@@ -21,7 +21,7 @@ import './FileMenu.css'
 type States = {
   current: number
   stack: string[]
-  captionMap: Record<string, { stateName: string; caption: string, undoable?: boolean }>
+  captionMap: Record<string, { stateName: string; caption: string; undoable?: boolean }>
 }
 
 type Command = {
@@ -160,7 +160,7 @@ const getCaption = (state: string, states?: States): string => {
 const isUndoable = (stateName: string, states?: States): boolean => {
   if (states?.captionMap) {
     const key = Object.keys(states.captionMap).find(c => states.captionMap[c].stateName === stateName)
-    const state = key ? states.captionMap[key] : undefined 
+    const state = key ? states.captionMap[key] : undefined
     return state ? (state.undoable ? state.undoable : false) : false
   }
   return false
@@ -170,20 +170,21 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let undoCommands: Command[] = []
   let filteredStack: string[]
   if (drawingId && states?.current && states.stack && states.captionMap) {
-    filteredStack = states?.stack ? states.stack.slice(1) : []  // all from stack, but without first one
+    filteredStack = states.stack.slice(1) // all from stack, but without first one
     filteredStack = filteredStack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states)) // filter for undoable and states older than current
-    undoCommands = filteredStack.length > 0 ? filteredStack.map(state => ({
-      label: getCaption(state, states),
-      stateId: state,
-      command: () => {
-        // Get the state from filteredStack, which is previous to the selected one
-        const index = filteredStack.indexOf(state)
-        const stateToLoad = filteredStack.at(index - 1)
-        stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
-        
-        console.info("state to load (selected): ", Object.values(states.captionMap).find(c => c.stateName === stateToLoad))
-      },
-    })) : []
+    undoCommands =
+      filteredStack.length > 0
+        ? filteredStack.map(state => ({
+            label: getCaption(state, states),
+            stateId: state,
+            command: () => {
+              // Get the state from filteredStack, which is previous to the selected one
+              const index = filteredStack.indexOf(state)
+              const stateToLoad = filteredStack.at(index - 1)
+              stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
+            },
+          }))
+        : []
   }
   return {
     label: 'Undo',
@@ -195,8 +196,6 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
         if (index > -1) {
           const stateToLoad = filteredStack.at(index - 1)
           drawingId && stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
-
-          console.info("state to load (undo): ", Object.values(states.captionMap).find(c => c.stateName === stateToLoad))
         } else {
           drawingId && BuerliCadFacade.utils.undo(drawingId)
         }
@@ -206,22 +205,39 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
 }
 
 const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
-  const redoCommands =
-    drawingId && states?.current && states.stack && states.captionMap
-      ? states.stack
-          .filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))
-          .map(state => ({
+  let redoCommands: Command[] = []
+  let filteredStack: string[]
+  if (drawingId && states?.current && states.stack && states.captionMap) {
+    filteredStack = states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states)) // filter for undoable and states newer than current
+    redoCommands =
+      filteredStack.length > 0
+        ? filteredStack.map(state => ({
             label: getCaption(state, states),
             stateId: state,
-            command: () => BuerliCadFacade.utils.redo(drawingId, state),
+            command: () => {
+              // Get the state from filteredStack, which is after the selected one
+              const index = filteredStack.indexOf(state)
+              const stateToLoad = filteredStack.at(index + 1)
+              stateToLoad && BuerliCadFacade.utils.redo(drawingId, stateToLoad)
+            },
           }))
-      : []
-
+        : []
+  }
   return {
     label: 'Redo',
     sub: [...redoCommands],
     icon: <ArrowRightOutlined />,
-    command: () => drawingId && BuerliCadFacade.utils.redo(drawingId),
+    command: () => {
+      if (states?.current) {
+        const index = filteredStack.indexOf(states?.current.toString())
+        if (index > -1) {
+          const stateToLoad = filteredStack.at(index + 1)
+          drawingId && stateToLoad && BuerliCadFacade.utils.redo(drawingId, stateToLoad)
+        } else {
+          drawingId && BuerliCadFacade.utils.redo(drawingId)
+        }
+      }
+    },
   }
 }
 
