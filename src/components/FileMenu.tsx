@@ -185,10 +185,11 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let undoCommands: Command[] = []
   let filteredStack: string[]
   if (drawingId && states) {
-    filteredStack = getFilteredUndoStack(states)
+    filteredStack = getFilteredUndoStack(states)  // list of states which can be loaded
+    const dropdownList = filteredStack.slice(1)  // list of states visible in the dropdown menu, these ones can be undone, which means the sate before will be loaded
     undoCommands =
-      filteredStack.length > 0
-        ? filteredStack.map(state => ({
+      dropdownList.length > 0
+        ? dropdownList.map(state => ({
             label: getCaption(state, states),
             stateId: state,
             command: () => {
