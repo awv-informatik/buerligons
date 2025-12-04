@@ -167,8 +167,8 @@ const isUndoable = (stateName: string, states?: States): boolean => {
 }
 
 export const getFilteredUndoStack = (states: States): string[] => {
-  const filteredStack = states.stack.slice(1) // all from stack, but without first one
-  return filteredStack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states)) // filter for undoable and states older than current
+  // filter for undoable and states older than current
+  return states.stack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states))
 }
 
 export const undoNext = (drawingId: DrawingID, states: States, stack: string[]) => {
@@ -210,7 +210,8 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
 }
 
 export const getFilteredRedoStack = (states: States): string[] => {
-  return states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))// filter for redoable and states newer than current
+  // filter for redoable and states newer than current
+  return states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))
 }
 
 export const redoNext = (drawingId: DrawingID, stack: string[]) => {
