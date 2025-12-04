@@ -215,9 +215,9 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
             label: getCaption(state, states),
             stateId: state,
             command: () => {
-              // Get the state from filteredStack, which is after the selected one
+              // Get the state from filteredStack, which is the selected one
               const index = filteredStack.indexOf(state)
-              const stateToLoad = filteredStack.at(index + 1)
+              const stateToLoad = filteredStack.at(index)
               stateToLoad && BuerliCadFacade.utils.redo(drawingId, stateToLoad)
             },
           }))
@@ -228,14 +228,8 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
     sub: [...redoCommands],
     icon: <ArrowRightOutlined />,
     command: () => {
-      if (states?.current) {
-        const index = filteredStack.indexOf(states?.current.toString())
-        if (index > -1) {
-          const stateToLoad = filteredStack.at(index + 1)
-          drawingId && stateToLoad && BuerliCadFacade.utils.redo(drawingId, stateToLoad)
-        } else {
-          drawingId && BuerliCadFacade.utils.redo(drawingId)
-        }
+      if (states?.current && filteredStack.length > 0) {
+        drawingId && BuerliCadFacade.utils.redo(drawingId, filteredStack[0])
       }
     },
   }
