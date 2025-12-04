@@ -21,7 +21,7 @@ import './FileMenu.css'
 type States = {
   current: number
   stack: string[]
-  captionMap: Record<string, { stateName: string; caption: string }>
+  captionMap: Record<string, { stateName: string; caption: string; undoable?: boolean }>
 }
 
 type Command = {
@@ -157,49 +157,93 @@ const getCaption = (state: string, states?: States): string => {
   return 'undefined caption'
 }
 
+const isUndoable = (stateName: string, states?: States): boolean => {
+  if (states?.captionMap) {
+    const key = Object.keys(states.captionMap).find(c => states.captionMap[c].stateName === stateName)
+    const state = key ? states.captionMap[key] : undefined
+    return state ? (state.undoable ? state.undoable : false) : false
+  }
+  return false
+}
+
+export const getFilteredUndoStack = (states: States): string[] => {
+  // filter for undoable and states older than current
+  return states.stack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states))
+}
+
+export const undoNext = (drawingId: DrawingID, states: States, stack: string[]) => {
+  const index = stack.indexOf(states.current.toString())
+  if (index > -1) {
+    const stateToLoad = stack.at(index - 1)
+    stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
+  } else {
+    BuerliCadFacade.utils.undo(drawingId)
+  }
+}
+
 const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
-  const filteredStack: string[] = states?.stack ? states.stack.slice(1) : []
-  const undoCommands =
-    drawingId && states?.current && states.stack && states.captionMap
-      ? filteredStack
-          .filter(file => Number.parseInt(file) <= states.current)
-          .map(state => ({
+  let undoCommands: Command[] = []
+  let filteredStack: string[]
+  if (drawingId && states) {
+    filteredStack = getFilteredUndoStack(states)  // list of states which can be loaded
+    const dropdownList = filteredStack.slice(1)  // list of states visible in the dropdown menu, these ones can be undone, which means the sate before will be loaded
+    undoCommands =
+      dropdownList.length > 0
+        ? dropdownList.map(state => ({
             label: getCaption(state, states),
             stateId: state,
             command: () => {
-              // Get the state from stack, which is previous to the selected one
-              const index = states.stack.indexOf(state)
-              const stateToLoad = states.stack.at(index - 1)
+              // Get the state from filteredStack, which is previous to the selected one
+              const index = filteredStack.indexOf(state)
+              const stateToLoad = filteredStack.at(index === 0 ? 0 : index - 1)
               stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
             },
           }))
-      : []
-
+        : []
+  }
   return {
     label: 'Undo',
     sub: [...undoCommands],
     icon: <ArrowLeftOutlined />,
-    command: () => drawingId && BuerliCadFacade.utils.undo(drawingId),
+    command: () => drawingId && states && undoNext(drawingId, states, filteredStack),
+  }
+}
+
+export const getFilteredRedoStack = (states: States): string[] => {
+  // filter for redoable and states newer than current
+  return states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))
+}
+
+export const redoNext = (drawingId: DrawingID, stack: string[]) => {
+  if (stack.length > 0) {
+    drawingId && BuerliCadFacade.utils.redo(drawingId, stack[0])
   }
 }
 
 const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
-  const redoCommands =
-    drawingId && states?.current && states.stack && states.captionMap
-      ? states.stack
-          .filter(file => Number.parseInt(file) > states.current)
-          .map(state => ({
+  let redoCommands: Command[] = []
+  let filteredStack: string[]
+  if (drawingId && states) {
+    filteredStack = getFilteredRedoStack(states)
+    redoCommands =
+      filteredStack.length > 0
+        ? filteredStack.map(state => ({
             label: getCaption(state, states),
             stateId: state,
-            command: () => BuerliCadFacade.utils.redo(drawingId, state),
+            command: () => {
+              // Get the state from filteredStack, which is the selected one
+              const index = filteredStack.indexOf(state)
+              const stateToLoad = filteredStack.at(index)
+              stateToLoad && BuerliCadFacade.utils.redo(drawingId, stateToLoad)
+            },
           }))
-      : []
-
+        : []
+  }
   return {
     label: 'Redo',
     sub: [...redoCommands],
     icon: <ArrowRightOutlined />,
-    command: () => drawingId && BuerliCadFacade.utils.redo(drawingId),
+    command: () => drawingId && redoNext(drawingId, filteredStack),
   }
 }
 
