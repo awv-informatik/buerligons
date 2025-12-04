@@ -194,7 +194,7 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
             command: () => {
               // Get the state from filteredStack, which is previous to the selected one
               const index = filteredStack.indexOf(state)
-              const stateToLoad = filteredStack.at(index - 1)
+              const stateToLoad = filteredStack.at(index === 0 ? 0 : index - 1)
               stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
             },
           }))
