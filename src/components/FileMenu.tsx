@@ -166,12 +166,26 @@ const isUndoable = (stateName: string, states?: States): boolean => {
   return false
 }
 
+export const getFilteredUndoStack = (states: States): string[] => {
+  const filteredStack = states.stack.slice(1) // all from stack, but without first one
+  return filteredStack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states)) // filter for undoable and states older than current
+}
+
+export const undoNext = (drawingId: DrawingID, states: States, stack: string[]) => {
+  const index = stack.indexOf(states.current.toString())
+  if (index > -1) {
+    const stateToLoad = stack.at(index - 1)
+    stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
+  } else {
+    BuerliCadFacade.utils.undo(drawingId)
+  }
+}
+
 const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let undoCommands: Command[] = []
   let filteredStack: string[]
-  if (drawingId && states?.current && states.stack && states.captionMap) {
-    filteredStack = states.stack.slice(1) // all from stack, but without first one
-    filteredStack = filteredStack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states)) // filter for undoable and states older than current
+  if (drawingId && states) {
+    filteredStack = getFilteredUndoStack(states)
     undoCommands =
       filteredStack.length > 0
         ? filteredStack.map(state => ({
@@ -190,25 +204,25 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
     label: 'Undo',
     sub: [...undoCommands],
     icon: <ArrowLeftOutlined />,
-    command: () => {
-      if (states?.current) {
-        const index = filteredStack.indexOf(states?.current.toString())
-        if (index > -1) {
-          const stateToLoad = filteredStack.at(index - 1)
-          drawingId && stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
-        } else {
-          drawingId && BuerliCadFacade.utils.undo(drawingId)
-        }
-      }
-    },
+    command: () => drawingId && states && undoNext(drawingId, states, filteredStack),
+  }
+}
+
+export const getFilteredRedoStack = (states: States): string[] => {
+  return states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))// filter for redoable and states newer than current
+}
+
+export const redoNext = (drawingId: DrawingID, stack: string[]) => {
+  if (stack.length > 0) {
+    drawingId && BuerliCadFacade.utils.redo(drawingId, stack[0])
   }
 }
 
 const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let redoCommands: Command[] = []
   let filteredStack: string[]
-  if (drawingId && states?.current && states.stack && states.captionMap) {
-    filteredStack = states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states)) // filter for undoable and states newer than current
+  if (drawingId && states) {
+    filteredStack = getFilteredRedoStack(states)
     redoCommands =
       filteredStack.length > 0
         ? filteredStack.map(state => ({
@@ -227,11 +241,7 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
     label: 'Redo',
     sub: [...redoCommands],
     icon: <ArrowRightOutlined />,
-    command: () => {
-      if (states?.current && filteredStack.length > 0) {
-        drawingId && BuerliCadFacade.utils.redo(drawingId, filteredStack[0])
-      }
-    },
+    command: () => drawingId && redoNext(drawingId, filteredStack),
   }
 }
 
