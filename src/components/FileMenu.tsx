@@ -8,7 +8,7 @@ import {
   DownOutlined,
   SaveOutlined,
 } from '@ant-design/icons'
-import { createApi, BuerliCadFacade, compression } from '@buerli.io/classcad'
+import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
@@ -79,12 +79,11 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           const res = await createApi(drawingId).v1.common.save({
             format: type.toUpperCase() as 'OFB' | 'STP' | 'STL',
             encoding: 'base64',
-            compression: 'deflate',
           })
 
           const content = res?.result?.content
           if (content) {
-            const data = compression.inflateFromBase64(content)
+            const data = atob(content)
             const link = document.createElement('a')
             link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
@@ -185,8 +184,8 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let undoCommands: Command[] = []
   let filteredStack: string[]
   if (drawingId && states) {
-    filteredStack = getFilteredUndoStack(states)  // list of states which can be loaded
-    const dropdownList = filteredStack.slice(1)  // list of states visible in the dropdown menu, these ones can be undone, which means the sate before will be loaded
+    filteredStack = getFilteredUndoStack(states) // list of states which can be loaded
+    const dropdownList = filteredStack.slice(1) // list of states visible in the dropdown menu, these ones can be undone, which means the sate before will be loaded
     undoCommands =
       dropdownList.length > 0
         ? dropdownList.map(state => ({
