@@ -486,13 +486,13 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
-"@buerli.io/classcad@0.13.1-beta.9":
-  version "0.13.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.13.1-beta.9.tgz#c34e4705ef0f94d9b6069b803d1f6fbd74ac6019"
-  integrity sha512-YE7H9L/B1nFBDp/lqgh2/AbnmQ+CwVjI55dxVsTRWVWsy842l15++U3Ih+Tz/5WCYVxE73uQFVqFl1ITM3wDwA==
+"@buerli.io/classcad@0.13.1-beta.13":
+  version "0.13.1-beta.13"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-0.13.1-beta.13.tgz#0a913828ea61483d4babdba15c021b3b4050cbef"
+  integrity sha512-9SAdYg5K17SvVZnlnK1dYas2wj7TpG2nK4Pqr6ThFJPd4Pn67D6+FDhNZ7QTWp6ZAcXwDv63wtZfjqAFrS8HOw==
   dependencies:
-    "@buerli.io/core" "0.13.1-beta.9"
-    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.105/classcad-api-js-20.0.0-dev.105.tgz"
+    "@buerli.io/core" "0.13.1-beta.13"
+    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.293/classcad-api-js-20.0.0-dev.293.tgz"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
     comlink "^4.3.1"
@@ -507,23 +507,23 @@
     uuid "^9.0.0"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@0.13.1-beta.9":
-  version "0.13.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.13.1-beta.9.tgz#85058b766842825d7768408e949d253e5969605a"
-  integrity sha512-HtSGv7y+hNa/oJUoTNSo3jlygbXzf43bgmxpaPsobXq2/WOrb3QhAOsUwynVSlF1Cr6LUYQcvX5URirPUs/nqg==
+"@buerli.io/core@0.13.1-beta.13":
+  version "0.13.1-beta.13"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-0.13.1-beta.13.tgz#a00877bc5d1beb3285b3d9df226e091407cc9abb"
+  integrity sha512-rns6MicWm9hhpJGJSanscNXz21nSTuSSeptpGBIl+KnWK9BdgxJm74s/qxjq1ITofo91Zg3Rhi9Vw0umBz2OMQ==
   dependencies:
-    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.105/classcad-api-js-20.0.0-dev.105.tgz"
+    "@classcad/api-js" "https://awvstatic.com/classcad/download/dev/20.0.0-dev.293/classcad-api-js-20.0.0-dev.293.tgz"
     fast-json-patch "^3.1.1"
     jsonpatch "^3.1.0"
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/headless@0.13.1-beta.9":
-  version "0.13.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.13.1-beta.9.tgz#3dd4f96f6da65cb726727dc957062a3dd1c53a60"
-  integrity sha512-piMs88PoE3TGmgzR3CZgcaxuzzMgFjy9jMEMXSYUvoKbtaiUMUDLk9HWzV+LQ8TFGT7AhLMbTWrlEaVbXvnMBQ==
+"@buerli.io/headless@0.13.1-beta.13":
+  version "0.13.1-beta.13"
+  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-0.13.1-beta.13.tgz#acf264da68da0f76b511f77dc021145150ce26eb"
+  integrity sha512-bBEg9hecM2GDvW80GsIjn/GCaxou+pTHTfubTwyvH2bAZ+0ZIWbWli8BT1SfxmtSNkVHtNaW1RoMkbUz9/hzug==
   dependencies:
-    "@buerli.io/classcad" "0.13.1-beta.9"
+    "@buerli.io/classcad" "0.13.1-beta.13"
     flat-promise "^1.0.3"
 
 "@buerli.io/icons@^1.0.16":
@@ -531,13 +531,13 @@
   resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.16.tgz#57488a4dcef88b9d60263dfc5457e0a3c86391f3"
   integrity sha512-MVJdGtWtt9DePH2hceLkSF0WNBZkZ79Te+Ej4kaF/U5CMN+Aw+sY/w7+T2m9/ddO/IS9mPQ8/y7AaymrmUKvSA==
 
-"@buerli.io/react-cad@0.13.1-beta.9":
-  version "0.13.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.13.1-beta.9.tgz#eb2acf0f212d9f55d8f655b29f2076d968144bbb"
-  integrity sha512-WItyhqypDcWwf2e3BldHKXMqD6NU9GZaVukjai/xQwpCUSHZBCFpkAj32EwKPSqi+bb1i9DkqfEkO9U+1DZPAw==
+"@buerli.io/react-cad@0.13.1-beta.13":
+  version "0.13.1-beta.13"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-0.13.1-beta.13.tgz#34ee9910abfd60549bd0e0c80210d32e756fb255"
+  integrity sha512-diG2TPgXnm4JQ5JcZJk0ITqfj+8NMvlqi8UmoZFc6K//nDfb/txw4li+UjGRERxeSuwj/2j/1hzKGX5Qyiee4w==
   dependencies:
-    "@buerli.io/classcad" "0.13.1-beta.9"
-    "@buerli.io/react" "0.13.1-beta.9"
+    "@buerli.io/classcad" "0.13.1-beta.13"
+    "@buerli.io/react" "0.13.1-beta.13"
     "@dnd-kit/core" "^6.0.8"
     "@dnd-kit/modifiers" "^6.0.1"
     "@dnd-kit/sortable" "^7.0.2"
@@ -553,14 +553,14 @@
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/react@0.13.1-beta.9":
-  version "0.13.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.13.1-beta.9.tgz#89736ad5cc5e360d1ac5db011da027e70ae48583"
-  integrity sha512-awc9PM1lAHilWvB2nQbD9LaqO3/K4mbWfhTFq18v58VtcHh7bSNqN2hzkmewtCNEQQJ7iqS6wwq1i8yeC7Mafw==
+"@buerli.io/react@0.13.1-beta.13":
+  version "0.13.1-beta.13"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-0.13.1-beta.13.tgz#c388a6b8b2ac5f67078a68713836f2631c4dae29"
+  integrity sha512-Nvr4BHnRXOxuvHQLK2UaxHR9y4KnqqEAemTPsOTk9Tl9QasEHU+pEtsh0gJptjdxT0lCp5Vo+scF7mKTDJmHDA==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "0.13.1-beta.9"
-    "@buerli.io/headless" "0.13.1-beta.9"
+    "@buerli.io/core" "0.13.1-beta.13"
+    "@buerli.io/headless" "0.13.1-beta.13"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
@@ -597,10 +597,10 @@
   resolved "https://registry.yarnpkg.com/@chevrotain/utils/-/utils-10.4.2.tgz#87735732184cc5a2f8aad2f3454082294ef3c924"
   integrity sha512-V34dacxWLwKcvcy32dx96ADJVdB7kOJLm7LyBkBQw5u5HC9WdEFw2G17zml+U3ivavGTrGPJHl8o9/UJm0PlUw==
 
-"@classcad/api-js@https://awvstatic.com/classcad/download/dev/20.0.0-dev.105/classcad-api-js-20.0.0-dev.105.tgz":
-  version "20.0.0-dev.105"
-  uid d6217a6593aeab7936c5269a2d3479d64e836538
-  resolved "https://awvstatic.com/classcad/download/dev/20.0.0-dev.105/classcad-api-js-20.0.0-dev.105.tgz#d6217a6593aeab7936c5269a2d3479d64e836538"
+"@classcad/api-js@https://awvstatic.com/classcad/download/dev/20.0.0-dev.293/classcad-api-js-20.0.0-dev.293.tgz":
+  version "20.0.0-dev.293"
+  uid "1b5aae3509de21e09c3b9a6aa9a2414cfdae33ac"
+  resolved "https://awvstatic.com/classcad/download/dev/20.0.0-dev.293/classcad-api-js-20.0.0-dev.293.tgz#1b5aae3509de21e09c3b9a6aa9a2414cfdae33ac"
 
 "@ctrl/tinycolor@^3.4.0":
   version "3.4.1"

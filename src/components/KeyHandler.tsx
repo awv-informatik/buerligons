@@ -1,11 +1,19 @@
-import { BuerliCadFacade } from '@buerli.io/classcad'
-import { useBuerli } from '@buerli.io/react'
+import { useBuerli, useDrawing } from '@buerli.io/react'
 import React from 'react'
+import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './FileMenu'
 
 export const UndoRedoKeyHandler: React.FC = () => {
   const drId = useBuerli(buerli => buerli.drawing.active)!  
-  const handleUndo = React.useCallback(() => drId && BuerliCadFacade.utils.undo(drId), [drId])
-  const handleRedo = React.useCallback(() => drId && BuerliCadFacade.utils.redo(drId), [drId])
+  const states = useDrawing(drId, d => d.cad.states)
+
+  const handleUndo = React.useCallback(() => {
+    states && undoNext(drId, states, getFilteredUndoStack(states))
+  }, [drId, states])
+  
+  const handleRedo = React.useCallback(() => {
+    states && redoNext(drId, getFilteredRedoStack(states))
+  }, [drId, states])
+
   useKeyHandler(['z'], true, false, false, undefined, handleUndo)
   useKeyHandler(['y'], true, false, false, undefined, handleRedo)
   return null

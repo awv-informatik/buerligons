@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
 import {
   DrawingID,
   getDrawing,
@@ -12,7 +12,6 @@ import {
   GeometryElement,
   createInfo,
   BuerliScope,
-  GraphicType,
   MeshTypes,
 } from '@buerli.io/core'
 import { TreeObjScope, sketchUtils } from '@buerli.io/react-cad'
@@ -56,7 +55,7 @@ export const getSuitableIntersections = (intersections: THREE.Intersection[], dr
       }
 
       const isSolidSelectable = selection.isSelectable(BuerliScope, geom.container.type)
-      const isLoopSelectable = selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(geom.type) >= 0
+      const isLoopSelectable = selection.isSelectable(BuerliScope, ScgGraphicType.LOOP) && MeshTypes.indexOf(geom.type) >= 0
       const isGrSelectable = selection.isSelectable(BuerliScope, geom.type)
 
       return isInstanceSelectable || isSolidSelectable || isLoopSelectable || isGrSelectable
@@ -172,7 +171,7 @@ export const getUniqueSelIntersections = (intersections: THREE.Intersection[], d
 
     if (selection.isSelectable(BuerliScope, geom.container.type)) {
       return processId(`${productId}|${geom.container.id}`)
-    } else if (selection.isSelectable(BuerliScope, GraphicType.LOOP) && MeshTypes.indexOf(geom.type) >= 0 || selection.isSelectable(BuerliScope, geom.type)) {
+    } else if (selection.isSelectable(BuerliScope, ScgGraphicType.LOOP) && MeshTypes.indexOf(geom.type) >= 0 || selection.isSelectable(BuerliScope, geom.type)) {
       // Assume there can't be multiple intersections that would point to exact same loop or BuerliGeometry, so just return true
       return true
     }
@@ -291,7 +290,7 @@ export const getObjType = (drawingId: DrawingID, interactionInfo: InteractionInf
   }
   
   const obj = drawing.structure.tree[interactionInfo.objectId]
-  return obj.class as CCClasses
+  return obj.class as ScgClassType
 }
 
 export function getSelectedInstances(drawingId: DrawingID, instanceId: ObjectID) {
@@ -302,7 +301,7 @@ export function getSelectedInstances(drawingId: DrawingID, instanceId: ObjectID)
   const instanceIds = selectedInfo
     .filter(info => {
       const objClass = tree[info.prodRefId || -1]?.class
-      return ccUtils.base.isA(objClass, CCClasses.IProductReference)
+      return ccUtils.base.isA(objClass, ScgClassType.IProductReference)
     })
     .map(info => info.prodRefId as ObjectID)
   if (instanceIds.indexOf(instanceId) === -1) {
@@ -334,9 +333,9 @@ export function getWCSystems(drawingId: DrawingID, productId: ObjectID) {
   const tree = drawing.structure.tree
 
   const prodChildren = tree[productId]?.children || []
-  const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, CCClasses.CCGeometrySet))
+  const geomSetId = prodChildren.find(id => ccUtils.base.isA(tree[id]?.class, ScgClassType.CCGeometrySet))
   const geomSetChildren = tree[geomSetId || -1]?.children || []
   return geomSetChildren.filter(
-    id => ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCSys) || ccUtils.base.isA(tree[id].class, CCClasses.CCWorkCoordSystem)
+    id => ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCSys) || ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCoordSystem)
   )
 }

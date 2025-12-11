@@ -1,4 +1,4 @@
-import { CCClasses, ccUtils } from '@buerli.io/classcad'
+import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
 import {
@@ -99,7 +99,7 @@ export const App: React.FC = () => {
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
-  const isPart = ccUtils.base.isA(curProdClass, CCClasses.CCPart)
+  const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
   useInteractionReset(drawingId)
   return (
     <>
