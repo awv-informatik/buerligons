@@ -47,8 +47,20 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 import { DrawingID } from '@buerli.io/core'
+import { WASMClient } from '@buerli.io/classcad'
+import { CCSERVERURL } from './config'
 
-export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws://localhost:9091', id)) => {
+const classcadKey = process.env.CLASSCADKEY
+
+export const initBuerli = (
+  callback = (id: DrawingID) => {
+    if (classcadKey) {
+      return new WASMClient(id, { classcadKey })
+    } else {
+      return new SocketIOClient(CCSERVERURL, id)  // TODO: URL also in .env?
+    }
+  },
+) => {
   console.info('initBuerli')
   init(
     id => {
