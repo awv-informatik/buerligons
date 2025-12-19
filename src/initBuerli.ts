@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { createApi, ScgClassType, init, SocketIOClient, WASMClient } from '@buerli.io/classcad'
+import { createApi, init, ScgClassType, SocketIOClient, WASMClient } from '@buerli.io/classcad'
+import { DrawingID } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -47,20 +48,10 @@ import {
   WorkPlane,
   WorkPoint,
 } from '@buerli.io/react-cad'
-import { DrawingID } from '@buerli.io/core'
-
-// @ts-ignore
-const classcadWasmKey = CLASSCAD_WASM_KEY
-// @ts-ignore
-const socketIoUrl = SOCKETIO_URL
 
 export const initBuerli = (
-  callback = (id: DrawingID) => {
-    if (classcadWasmKey) {
-      return new WASMClient(id, { classcadKey: classcadWasmKey })
-    } else {
-      return new SocketIOClient(socketIoUrl, id)
-    }
+  callback = (id: DrawingID): WASMClient | SocketIOClient => {
+    throw new Error('Client factory not implemented')
   },
 ) => {
   console.info('initBuerli')
