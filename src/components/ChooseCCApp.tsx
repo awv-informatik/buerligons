@@ -7,6 +7,7 @@ import { useIPC } from '../ipc'
 export const ChooseCCApp: React.FC = () => {
   const loadClassFile = useIPC(s => s.loadClassFile)
 
+  // TODO: What about the following code? There is still CCAPP mentioned
   return (
     <>
       <Logo>buerligons</Logo>
