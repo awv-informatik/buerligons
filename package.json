@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf ./build",
+    "dev": "npm run start",
     "start": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
