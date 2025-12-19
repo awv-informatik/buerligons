@@ -57,7 +57,7 @@ const socketIoUrl = SOCKETIO_URL
 export const initBuerli = (
   callback = (id: DrawingID) => {
     if (classcadWasmKey) {
-      return new WASMClient(id, { classcadKey: classcadWasmKey, logToConsole: true })
+      return new WASMClient(id, { classcadKey: classcadWasmKey })
     } else {
       return new SocketIOClient(socketIoUrl, id)
     }
