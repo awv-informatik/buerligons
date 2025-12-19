@@ -3,5 +3,5 @@
     "**/build/**": false
   },
   "liveServer.settings.root": "./build",
-  "liveServer.settings.port": 3000
+  "liveServer.settings.port": 5173
 }

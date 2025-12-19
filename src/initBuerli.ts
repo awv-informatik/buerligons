@@ -1,4 +1,5 @@
-import { createApi, ScgClassType, init, SocketIOClient } from '@buerli.io/classcad'
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { createApi, ScgClassType, init, SocketIOClient, WASMClient } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -47,17 +48,18 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 import { DrawingID } from '@buerli.io/core'
-import { WASMClient } from '@buerli.io/classcad'
-import { CCSERVERURL } from './config'
 
-const classcadKey = process.env.CLASSCADKEY
+// @ts-ignore
+const classcadWasmKey = CLASSCAD_WASM_KEY
+// @ts-ignore
+const socketIoUrl = SOCKETIO_URL
 
 export const initBuerli = (
   callback = (id: DrawingID) => {
-    if (classcadKey) {
-      return new WASMClient(id, { classcadKey })
+    if (classcadWasmKey) {
+      return new WASMClient(id, { classcadKey: classcadWasmKey, logToConsole: true })
     } else {
-      return new SocketIOClient(CCSERVERURL, id)  // TODO: URL also in .env?
+      return new SocketIOClient(socketIoUrl, id)
     }
   },
 ) => {

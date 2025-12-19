@@ -8,11 +8,12 @@ import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
 export default () => {
-  const env = loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')
+  const env = loadEnv('', process.cwd(), '')
 
   return defineConfig({
     define: {
-      'process.env.CLASSCADKEY': JSON.stringify(env.CLASSCADKEY ?? ''),
+      'CLASSCAD_WASM_KEY': JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
+      'SOCKETIO_URL': JSON.stringify(env.SOCKETIO_URL ?? ''),
     },
     build: {
       outDir: './build',

@@ -9,7 +9,7 @@
       "name": "Run chrome buerligons",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3000",
+      "url": "http://localhost:5173",
       "sourceMaps": true,
       "webRoot": "${workspaceRoot}/dist",
       "userDataDir": "${workspaceRoot}/.vscode/chrome", //Can be any directory. Makes chrome load in a different directory so that it opens in a new instance.
