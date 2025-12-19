@@ -486,12 +486,12 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
-"@buerli.io/classcad@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-1.0.0.tgz#924353df2460305c797da2921bcd1affe140d2ab"
-  integrity sha512-KrYZBbvNvT7TVlfaBxVRzBHiCUsACvpqTQWR+Zf5jdKlvSDA29gFOu4ba6mOp4vT1LwT1A5QYg/AxzqGdHVoXQ==
+"@buerli.io/classcad@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/classcad/-/classcad-1.0.1.tgz#d494ab3f15a4bbbd06554c11660d992f53d3cc23"
+  integrity sha512-EQC3lU9CxjUdSbvDyZ7oWD+2RSCAsIUSDMySXEliMaTrtTCZxZa+rxr+OLB+VmELoTOIeoV5XI1pWtZpnih5Kg==
   dependencies:
-    "@buerli.io/core" "1.0.0"
+    "@buerli.io/core" "1.0.1"
     "@classcad/api-js" "https://awvstatic.com/classcad/download/release/21.0.0/classcad-api-js-21.0.0.tgz"
     "@types/events" "^3.0.0"
     base64-arraybuffer "^0.2.0"
@@ -507,10 +507,10 @@
     uuid "^9.0.0"
     xmlhttprequest-ssl "^2.0.0"
 
-"@buerli.io/core@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-1.0.0.tgz#af89cf31a04236734f3835123aef33f9c2fdab39"
-  integrity sha512-k+LVpp5NsLnhHMg4DCixrj5NJzqQFI1vbAIo/eyMI6SxpuCitFSQUUxx5RhEb/kgHtCk4myHZxB59keiVXWSIw==
+"@buerli.io/core@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/core/-/core-1.0.1.tgz#535b36103325cb9c52739bcb8882a11cef314812"
+  integrity sha512-vTTNxLgY0OQDR949Wku837b5y5OQPoqH7vGWI3nSm/cJ+IUYh5ExRQXFCwKGZrjgDI/EgL1lQFawdTtJ2ZI67A==
   dependencies:
     "@classcad/api-js" "https://awvstatic.com/classcad/download/release/21.0.0/classcad-api-js-21.0.0.tgz"
     fast-json-patch "^3.1.1"
@@ -518,12 +518,12 @@
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/headless@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-1.0.0.tgz#ab75e9de9ac5269a9164321b529e34f3cb7b26ea"
-  integrity sha512-ujBMCK60pcVy1olYyOw4WTVHDnHmRqPwcWmC3xoWQTOQlB5owqWnVmhfwOq/Ng+UlXRlEvun2wTH3nBlS928Ng==
+"@buerli.io/headless@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/headless/-/headless-1.0.1.tgz#44322a6313b609366a1f3f52c7dea6f2011fabd6"
+  integrity sha512-qd0MQvK6fW9ngC6y0myAX+tjdaMK/p1tkfu3geJMGJvnM+D+pKdLR+5CIG/ltGxTqybCVZ7DyyIcvrFJYbRZHw==
   dependencies:
-    "@buerli.io/classcad" "1.0.0"
+    "@buerli.io/classcad" "1.0.1"
     flat-promise "^1.0.3"
 
 "@buerli.io/icons@^1.0.16":
@@ -531,13 +531,13 @@
   resolved "https://registry.npmjs.org/@buerli.io/icons/-/icons-1.0.16.tgz"
   integrity sha512-MVJdGtWtt9DePH2hceLkSF0WNBZkZ79Te+Ej4kaF/U5CMN+Aw+sY/w7+T2m9/ddO/IS9mPQ8/y7AaymrmUKvSA==
 
-"@buerli.io/react-cad@1.0.1-beta.1":
-  version "1.0.1-beta.1"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.0.1-beta.1.tgz#5ea39aff99814f55848b291f09530a8019a7d4d5"
-  integrity sha512-Acn3BsV9aZk7suuQ3/K5CMYRD1G61xOnZNrW4AzEygiOFQ89/oNX0QqFcoeXmnZih5Iw4BkB2D2mnYUSXuhEBQ==
+"@buerli.io/react-cad@1.0.1-beta.3":
+  version "1.0.1-beta.3"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.0.1-beta.3.tgz#fc9d9dfe99ec5fb853b858ad18eecbabc70ec44e"
+  integrity sha512-3kgZfiEwqR5m/FxKOU3L9U71o5HvY4ZKpC/HLbnW1H8S/skNBNJkHO5IXJr2TQPiFON0qQ5c+azlxzl+SmKLYg==
   dependencies:
-    "@buerli.io/classcad" "1.0.0"
-    "@buerli.io/react" "1.0.0"
+    "@buerli.io/classcad" "1.0.1"
+    "@buerli.io/react" "1.0.1"
     "@dnd-kit/core" "^6.0.8"
     "@dnd-kit/modifiers" "^6.0.1"
     "@dnd-kit/sortable" "^7.0.2"
@@ -553,14 +553,14 @@
     uuid "^9.0.0"
     zustand "^4.1.4"
 
-"@buerli.io/react@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-1.0.0.tgz#3b92067a3d305a65b756dd389b1efa79ba7319dd"
-  integrity sha512-K3utkEGtCHWGjP3NxTa6dMATzX0WnHd7k2J1c0rRoYKwyKNlZ0Py/AdpcRDn8/uN5N7fLEXI/47U3VDFSkm8HQ==
+"@buerli.io/react@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react/-/react-1.0.1.tgz#8e0eae517d5a0c11443b98cde78302cd66c7f760"
+  integrity sha512-BoyD4obNI68yL2fVMmROWG4mxT/eiNfCcj11CuG9jI6JRiLeicy6RA0WDjwJLmZW4L6qpCZNGMJMWR5p+Q0GKQ==
   dependencies:
     "@ant-design/icons" "^4.7.0"
-    "@buerli.io/core" "1.0.0"
-    "@buerli.io/headless" "1.0.0"
+    "@buerli.io/core" "1.0.1"
+    "@buerli.io/headless" "1.0.1"
     antd "^4.23.4"
     deepmerge "^4.2.2"
     lodash-es "^4.17.15"
