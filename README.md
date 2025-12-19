@@ -1,34 +1,56 @@
 # buerligons
 
-buerli's CAD application.
+A collection of examples showing how to use the ClassCAD API in TypeScript. 
 
-## Getting Started
+First, clone the repository
 
-### Install dependencies
-
-First of all you need to install all required dependencies.
-
-```
-yarn install
+```shell
+git clone https://github.com/awv-informatik/buerligons
+cd buerligons
+yarn
 ```
 
-> Note about node.js compatiblity of the development tools used for buerligons. A github action is used to install dependencies on several node.js versions. Please have a look at the github action [build.yml](./.github/workflows/build.yml) to see what node.js versions are tested. We recommend to use `nvm` to easily switch to another compatible version in case of problems with the node.js version you are currently running on your system.
+### Create an account and get your ClassCAD key
 
-### ClassCAD Server
+In order for **buerligons** to work, you need to have a running ClassCAD. You can either run it in the browser using WASM or connect to a local or remote ClassCAD server using SocketIO.
 
-To be able to use buerligons, you need a running ClassCAD Server which offers the CAD service via WebSockets.
+### Running ClassCAD using WASM
 
-Please follow the instructions in the documentation to get a running service.
-https://buerli.io/docs/setup-environment/server
+Follow the instruction points 1-3 about **"Create an account and get your ClassCAD key"** on [Getting Started with WASM](https://buerli.io/docs/quickstart/wasm).
 
-### Client
+Copy your created ClassCAD WASM key into the .env file at `CLASSCAD_WASM_KEY=` in the root of this project. The variable `SOCKETIO_URL` is not relevant in this case.
 
-Just start the development server and open the URL http://localhost:3000. Please note that it may take a moment until the development server is online.
-
+```shell
+CLASSCAD_WASM_KEY=MS4xLlZZUG51....
+SOCKETIO_URL=ws://localhost:9091
 ```
+
+### Running ClassCAD using SocketIO
+
+Follow the instruction points 1-3 about **"Create an account, get your ClassCAD key, download ClassCAD"** on [Getting Started with SocketIO](https://buerli.io/docs/quickstart/socketio)
+
+Start ClassCAD via SocketIO as described in the [Downloads](https://classcad.ch/downloads/) page
+
+Open the .env file in the root of this project and comment out `CLASSCAD_WASM_KEY` to make sure ClassCAD is not running via SocketIO
+
+```shell
+#CLASSCAD_WASM_KEY=MS4xLlZZUG51....
+SOCKETIO_URL=ws://localhost:9091
+```
+
+### Run buerligons
+
+```shell
 yarn start
 ```
 
-After that, you can directly load the sample models contained in this repository (`samples` folder) for a quick and uncomplicated start.
+The buerligons application is now available at http://localhost:5173.
 
-> Depending on your server setup, please change the `CCSERVERURL` in `src/initBuerli.ts`.
+> Please check the console output for possible node incompatiblities of the development tools. In case of problems, the use of `nvm` is recommended. `nvm` allows installing different Node versions on the same system.
+
+### Links to our homepages and documentations
+
+- [buerligons.io](https://buerligons.io)
+- [buerli.io](https://buerli.io)
+- [classcad.ch](https://classcad.ch)
+- [awv-informatik.ch](https://awv-informatik.ch)
