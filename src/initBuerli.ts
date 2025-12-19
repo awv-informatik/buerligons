@@ -1,4 +1,5 @@
-import { createApi, ScgClassType, init, SocketIOClient } from '@buerli.io/classcad'
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { createApi, ScgClassType, init, SocketIOClient, WASMClient } from '@buerli.io/classcad'
 import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
@@ -48,7 +49,20 @@ import {
 } from '@buerli.io/react-cad'
 import { DrawingID } from '@buerli.io/core'
 
-export const initBuerli = (callback = (id: DrawingID) => new SocketIOClient('ws://localhost:9091', id)) => {
+// @ts-ignore
+const classcadWasmKey = CLASSCAD_WASM_KEY
+// @ts-ignore
+const socketIoUrl = SOCKETIO_URL
+
+export const initBuerli = (
+  callback = (id: DrawingID) => {
+    if (classcadWasmKey) {
+      return new WASMClient(id, { classcadKey: classcadWasmKey })
+    } else {
+      return new SocketIOClient(socketIoUrl, id)
+    }
+  },
+) => {
   console.info('initBuerli')
   init(
     id => {
