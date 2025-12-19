@@ -13,7 +13,7 @@ const socketIoUrl = SOCKETIO_URL
 
 initBuerli(id => {
   if (classcadWasmKey) {
-    return new WASMClient(id, { classcadKey: classcadWasmKey, logToConsole: true })
+    return new WASMClient(id, { classcadKey: classcadWasmKey })
   } else {
     return new SocketIOClient(socketIoUrl, id)
   }
