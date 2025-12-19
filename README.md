@@ -1,6 +1,6 @@
 # buerligons
 
-A collection of examples showing how to use the ClassCAD API in TypeScript. 
+A user-friendly interactive CAD application
 
 First, clone the repository
 
