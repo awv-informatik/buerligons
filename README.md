@@ -20,6 +20,8 @@ Follow the instruction points 1-3 about **"Create an account and get your ClassC
 
 Copy your created ClassCAD WASM key into the .env file at `CLASSCAD_WASM_KEY=` in the root of this project. The variable `SOCKETIO_URL` is not relevant in this case.
 
+> The first time ClassCAD starts using WASM, loading may take some time depending on your internet speed.
+
 ```shell
 CLASSCAD_WASM_KEY=MS4xLlZZUG51....
 SOCKETIO_URL=ws://localhost:9091
@@ -31,7 +33,7 @@ Follow the instruction points 1-3 about **"Create an account, get your ClassCAD 
 
 Start ClassCAD via SocketIO as described in the [Downloads](https://classcad.ch/downloads/) page
 
-Open the .env file in the root of this project and comment out `CLASSCAD_WASM_KEY` to make sure ClassCAD is not running via SocketIO
+Open the .env file in the root of this project and comment out `CLASSCAD_WASM_KEY` to make sure ClassCAD is not running using WASM
 
 ```shell
 #CLASSCAD_WASM_KEY=MS4xLlZZUG51....
