@@ -531,10 +531,10 @@
   resolved "https://registry.npmjs.org/@buerli.io/icons/-/icons-1.0.16.tgz"
   integrity sha512-MVJdGtWtt9DePH2hceLkSF0WNBZkZ79Te+Ej4kaF/U5CMN+Aw+sY/w7+T2m9/ddO/IS9mPQ8/y7AaymrmUKvSA==
 
-"@buerli.io/react-cad@1.0.1-beta.3":
-  version "1.0.1-beta.3"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.0.1-beta.3.tgz#fc9d9dfe99ec5fb853b858ad18eecbabc70ec44e"
-  integrity sha512-3kgZfiEwqR5m/FxKOU3L9U71o5HvY4ZKpC/HLbnW1H8S/skNBNJkHO5IXJr2TQPiFON0qQ5c+azlxzl+SmKLYg==
+"@buerli.io/react-cad@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.0.1.tgz#6aad4fa4c5e1cd12fac40ef8b1cd5d25ef77a981"
+  integrity sha512-z3o1ISaaz7wB+Dkvb9UxjTMcm+ctOzp0OWbmheQy5IpJyJrAt64MCPzi/5w+hhvd0kGu6m+boN31B/U8KbUpDw==
   dependencies:
     "@buerli.io/classcad" "1.0.1"
     "@buerli.io/react" "1.0.1"

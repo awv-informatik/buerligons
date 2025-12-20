@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@buerli.io/icons": "^1.0.16",
-    "@buerli.io/react-cad": "1.0.1-beta.3",
+    "@buerli.io/react-cad": "1.0.1",
     "@react-three/drei": "9.92.3",
     "@react-three/fiber": "8.15.14",
     "@react-three/postprocessing": "2.15.0",
