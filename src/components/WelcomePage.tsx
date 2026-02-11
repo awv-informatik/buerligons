@@ -6,6 +6,8 @@ import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
 
+import { SimpleMessage } from './SimpleMessage'
+
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
 
@@ -54,6 +56,9 @@ export const WelcomePage: React.FC = () => {
         <WideButton onClick={openFile}>
           <Space>Open File</Space>
         </WideButton>
+        <MessageSpace>
+          <SimpleMessage />
+        </MessageSpace>
         <Readfile ref={rfRef} singleDrawingApp />
       </Main>
     </>
@@ -63,6 +68,20 @@ export const WelcomePage: React.FC = () => {
 const WideButton = styled(Button)`
   width: 12em;
   height: 3em !important;
+`
+
+const MessageSpace = styled.div`
+  position: relative;
+  width: 60em;
+  height: 0px;
+  .buerli-simple-message {
+    position: absolute;
+    width: 100%;
+    height: auto;
+    text-align: center;
+    word-break: break-word;
+    font-weight: 500;
+  }
 `
 
 const Logo = styled.div`
