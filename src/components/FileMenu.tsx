@@ -78,14 +78,12 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
 
           const res = await createApi(drawingId).v1.common.save({
             format: type.toUpperCase() as 'OFB' | 'STP' | 'STL',
-            encoding: 'base64',
           })
 
           const content = res?.result?.content
           if (content) {
-            const data = atob(content)
             const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
+            link.href = window.URL.createObjectURL(new Blob([content as BlobPart], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
             link.click()
           }
