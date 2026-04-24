@@ -840,7 +840,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const curve = [
       {
-        label: 'Convert to construction',
+        label: 'Convert to construction line',
         icon: <DashOutlined />,
         key: 'convertToConstruction',
         onClick: (menuInfo: CanvasMenuInfo) => {
@@ -848,9 +848,9 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         },
       },
       {
-        label: 'Convert to regular',
+        label: 'Convert to solid line',
         icon: <LineOutlined />,
-        key: 'convertToRegular',
+        key: 'convertToSolid',
         onClick: (menuInfo: CanvasMenuInfo) => {
           convertConstruction(drawingId, menuInfo, false)
         },
