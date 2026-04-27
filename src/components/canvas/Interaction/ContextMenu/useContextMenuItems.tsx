@@ -34,8 +34,6 @@ import {
   EyeOutlined,
   SelectOutlined,
   BgColorsOutlined,
-  LineOutlined,
-  DashOutlined,
 } from '@ant-design/icons'
 
 import partURL from '@buerli.io/icons/SVG/part.svg'
@@ -53,6 +51,8 @@ import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
 import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
 import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
+import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
+import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
@@ -841,7 +841,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     const curve = [
       {
         label: 'Convert to construction line',
-        icon: <DashOutlined />,
+        icon: <MenuItemIcon url={constructionlineURL} />,
         key: 'convertToConstruction',
         onClick: (menuInfo: CanvasMenuInfo) => {
           convertConstruction(drawingId, menuInfo, true)
@@ -849,7 +849,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
       {
         label: 'Convert to solid line',
-        icon: <LineOutlined />,
+        icon: <MenuItemIcon url={solidlineURL} />,
         key: 'convertToSolid',
         onClick: (menuInfo: CanvasMenuInfo) => {
           convertConstruction(drawingId, menuInfo, false)
