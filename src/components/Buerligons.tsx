@@ -88,12 +88,12 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC = () => {
+export const Buerligons: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App /> : null
+  return drawingId ? <App>{children}</App> : null
 }
 
-export const App: React.FC = () => {
+export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
@@ -128,6 +128,7 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
+          {children}
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
