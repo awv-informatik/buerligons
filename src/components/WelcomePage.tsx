@@ -81,9 +81,9 @@ export const WelcomePage: React.FC = () => {
             <Space>Create New ...</Space>
           </WideButton>
         </Dropdown>
-        <WideButton onClick={openFile}>
+        <WideButtonSecondary $dark={mode === 'dark'} onClick={openFile}>
           <Space>Open File</Space>
-        </WideButton>
+        </WideButtonSecondary>
         <MessageSpace>
           <SimpleMessage />
         </MessageSpace>
@@ -96,6 +96,14 @@ export const WelcomePage: React.FC = () => {
 const WideButton = styled(Button)`
   width: 12em;
   height: 3em !important;
+`
+
+const WideButtonSecondary = styled(WideButton)<{ $dark: boolean }>`
+  &&& {
+    background-color: ${p => (p.$dark ? '#3a3a3a' : '#fff')} !important;
+    border-color: ${p => (p.$dark ? '#555' : '#d9d9d9')} !important;
+    color: ${p => (p.$dark ? '#e0e0e0' : 'rgba(0, 0, 0, 0.85)')} !important;
+  }
 `
 
 const MessageSpace = styled.div`
