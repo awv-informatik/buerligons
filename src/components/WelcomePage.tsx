@@ -1,15 +1,34 @@
-import { AppstoreOutlined, FileOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, FileOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons'
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
-import { Readfile } from '@buerli.io/react-cad'
-import { Button, Dropdown, Space, MenuProps } from 'antd'
+import { Readfile, useRCadThemeMode, setRCadThemeMode } from '@buerli.io/react-cad'
+import { Button, Dropdown, Space, MenuProps, Tooltip } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 import styled from 'styled-components'
 
 import { SimpleMessage } from './SimpleMessage'
 
+const welcomeColors = {
+  light: {
+    logoText: '#565656',
+    dotLight: 'rgba(255, 255, 255, 0.35)',
+    dotDark: 'rgba(0, 0, 0, 0.2)',
+    gradientInner: '#f5f5f5',
+    gradientOuter: '#eaeaea',
+  },
+  dark: {
+    logoText: '#c0c0c0',
+    dotLight: 'rgba(255, 255, 255, 0.05)',
+    dotDark: 'rgba(0, 0, 0, 0.4)',
+    gradientInner: '#242424',
+    gradientOuter: '#1a1a1a',
+  },
+}
+
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
+  const mode = useRCadThemeMode()
+  const colors = welcomeColors[mode]
 
   const createPart = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()
@@ -46,16 +65,25 @@ export const WelcomePage: React.FC = () => {
 
   return (
     <>
-      <Logo>buerligons</Logo>
-      <Main>
+      <Logo $color={colors.logoText}>buerligons</Logo>
+      <ThemeToggleWrap>
+        <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+          <Button
+            shape="circle"
+            onClick={() => setRCadThemeMode(mode === 'light' ? 'dark' : 'light')}
+            icon={mode === 'light' ? <BulbOutlined /> : <BulbFilled />}
+          />
+        </Tooltip>
+      </ThemeToggleWrap>
+      <Main $dotLight={colors.dotLight} $dotDark={colors.dotDark} $gradientInner={colors.gradientInner} $gradientOuter={colors.gradientOuter}>
         <Dropdown menu={menuProps}>
           <WideButton type="primary">
             <Space>Create New ...</Space>
           </WideButton>
         </Dropdown>
-        <WideButton onClick={openFile}>
+        <WideButtonSecondary $dark={mode === 'dark'} onClick={openFile}>
           <Space>Open File</Space>
-        </WideButton>
+        </WideButtonSecondary>
         <MessageSpace>
           <SimpleMessage />
         </MessageSpace>
@@ -68,6 +96,14 @@ export const WelcomePage: React.FC = () => {
 const WideButton = styled(Button)`
   width: 12em;
   height: 3em !important;
+`
+
+const WideButtonSecondary = styled(WideButton)<{ $dark: boolean }>`
+  &&& {
+    background-color: ${p => (p.$dark ? '#3a3a3a' : '#fff')} !important;
+    border-color: ${p => (p.$dark ? '#555' : '#d9d9d9')} !important;
+    color: ${p => (p.$dark ? '#e0e0e0' : 'rgba(0, 0, 0, 0.85)')} !important;
+  }
 `
 
 const MessageSpace = styled.div`
@@ -84,16 +120,22 @@ const MessageSpace = styled.div`
   }
 `
 
-const Logo = styled.div`
+const Logo = styled.div<{ $color: string }>`
   position: absolute;
   top: 2rem;
   left: 3rem;
   font-weight: 800;
   font-size: 32px;
-  color: #565656;
+  color: ${p => p.$color};
 `
 
-const Main = styled.div`
+const ThemeToggleWrap = styled.div`
+  position: absolute;
+  top: 2rem;
+  right: 3rem;
+`
+
+const Main = styled.div<{ $dotLight: string; $dotDark: string; $gradientInner: string; $gradientOuter: string }>`
   display: grid;
   width: 100%;
   height: 100%;
@@ -102,15 +144,14 @@ const Main = styled.div`
   gap: 16px;
 
   background:
-    -webkit-radial-gradient(
-      center,
-      circle,
-      rgba(255, 255, 255, 0.35),
+    radial-gradient(
+      circle at center,
+      ${p => p.$dotLight},
       rgba(255, 255, 255, 0) 20%,
       rgba(255, 255, 255, 0) 21%
     ),
-    - webkit-radial-gradient(center, circle, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
-    - webkit-radial-gradient(center, circle farthest-corner, #f5f5f5, #eaeaea);
+    radial-gradient(circle at center, ${p => p.$dotDark}, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
+    radial-gradient(circle farthest-corner at center, ${p => p.$gradientInner}, ${p => p.$gradientOuter});
   background-size:
     10px 10px,
     10px 10px,
