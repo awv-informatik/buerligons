@@ -26,8 +26,12 @@ import {
 } from './canvas'
 import { Disconnected } from './Disconnected'
 import { FileMenu } from './FileMenu'
+import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
+import { SessionSharePanel } from './SessionSharePanel'
+import { ViewOnlyBadge } from './ViewOnlyBadge'
 import { ViewCube } from './canvas/ViewCube'
+import { useSessionRole } from '../session/sessionClient'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
   ReactThreeFiber.PerspectiveCameraProps &
@@ -99,11 +103,12 @@ export const App: React.FC = () => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
+  const readOnly = useSessionRole() === 'view'
   useInteractionReset(drawingId)
   return (
     <>
       <PluginManager />
-      <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
+      <Drawing drawingId={drawingId} readOnly={readOnly} Menu={<FileMenu drawingId={drawingId} />}>
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault staticMoving rotateSpeed={2} />
           <Lights drawingId={drawingId} />
@@ -132,6 +137,9 @@ export const App: React.FC = () => {
         <UndoRedoKeyHandler />
       </Drawing>
       <Disconnected drawingId={drawingId} />
+      <SessionSharePanel />
+      <GuestSessionOverlay drawingId={drawingId} />
+      {readOnly && <ViewOnlyBadge />}
     </>
   )
 }

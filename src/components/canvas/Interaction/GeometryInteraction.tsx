@@ -9,6 +9,7 @@ import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
 import { findGeometryIntersection, attemptSSelection, getBuerliGeometry } from './utils'
+import { useSessionRole } from '../../../session/sessionClient'
 
 class Background extends THREE.Object3D {
   override raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -39,6 +40,8 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
   children,
 }) => {
   const [gizmoInfo, setGizmoInfo] = React.useState<{ productId: ObjectID; matrix: THREE.Matrix4 } | null>(null)
+  // View-only guests can select/hover but not transform: never mount the Gizmo.
+  const readOnly = useSessionRole() === 'view'
 
   const lnTh = useThree(state => state.raycaster.params.Line?.threshold)
   const ptsTh = useThree(state => state.raycaster.params.Points?.threshold)
@@ -145,7 +148,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
         return
       }
 
-      if (!isPartMode && intersection) {
+      if (!isPartMode && intersection && !readOnly) {
         const gizmoInfo_ = getGizmoInfo(drawingId, intersection, e.ray)
         setGizmoInfo(gizmoInfo_)
       }
@@ -161,7 +164,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
 
       select(interactionInfo, multi)
     },
-    [drawingId, lineThreshold, pointThreshold],
+    [drawingId, lineThreshold, pointThreshold, readOnly],
   )
 
   const onBackgroundClick = React.useCallback(
@@ -195,7 +198,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       <group onPointerMove={onGeometryMove} onClick={onGeometryClick}>
         {children}
       </group>
-      {gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}
+      {!readOnly && gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}
       <background onPointerMove={onBackgroundMove} onClick={onBackgroundClick} />
     </>
   )

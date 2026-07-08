@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { createApi, init, ScgClassType, SocketIOClient, WASMClient } from '@buerli.io/classcad'
+import { createApi, init, ScgClassType, SocketIOClient, WASMClient, WSClient } from '@buerli.io/classcad'
 import { DrawingID } from '@buerli.io/core'
 import { elements } from '@buerli.io/react'
 import {
@@ -50,7 +50,7 @@ import {
 } from '@buerli.io/react-cad'
 
 export const initBuerli = (
-  callback = (id: DrawingID): WASMClient | SocketIOClient => {
+  callback = (id: DrawingID): WASMClient | SocketIOClient | WSClient => {
     throw new Error('Client factory not implemented')
   },
 ) => {
