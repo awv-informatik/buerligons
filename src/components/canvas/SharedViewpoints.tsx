@@ -31,7 +31,12 @@ type ViewData = {
 // Marker distance = NORMALIZED_DIST_FACTOR * sender's visible world height.
 // Direction and orientation stay truthful; only the (ortho-irrelevant)
 // distance is normalized so markers hover near the model like in Fusion.
-const NORMALIZED_DIST_FACTOR = 0.8
+// Geometry of the choice: at equal zoom the receiver's screen shows
+// visibleHeight world units vertically, so a marker d away from the target
+// sits at d / (visibleHeight / 2) half-screen-heights from center — it is
+// on-screen only for factors <= 0.5. 0.35 lands it at ~70% toward the edge:
+// clearly separated from the model but inside the view.
+const NORMALIZED_DIST_FACTOR = 0.35
 
 // Custom drei/Html position calculator: projects the label anchor like the
 // default one, but clamps the result to the viewport (with a margin for the
@@ -197,8 +202,35 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     cam.updateMatrixWorld(true)
     helper.update()
     helper.updateMatrixWorld(true)
-    labelRef.current?.position.copy(s.pos)
   }, [cam, helper])
+
+  // Keeps the label's anchor in FRONT of the viewer's camera. drei/Html hides
+  // the element whenever its anchor is behind the camera plane, and our
+  // frustum can legitimately end up there (with ortho cameras the viewer's own
+  // position along the view axis is arbitrary). The trick: with an
+  // orthographic projection, translating a point along the view direction
+  // does not change its screen x/y at all — so sliding the anchor forward is
+  // pixel-invariant but defeats both the behind-camera hiding and near-plane
+  // issues. The label therefore NEVER disappears; combined with the clamped
+  // calculatePosition it pins to the screen border instead.
+  const camDirTmp = React.useRef(new THREE.Vector3())
+  const relTmp = React.useRef(new THREE.Vector3())
+  const updateLabelAnchor = React.useCallback(
+    (viewerCam: THREE.Camera) => {
+      const label = labelRef.current
+      if (!label) return
+      const s = anim.current
+      const camDir = viewerCam.getWorldDirection(camDirTmp.current)
+      const depth = relTmp.current.copy(s.pos).sub(viewerCam.position).dot(camDir)
+      const minDepth = 1 // keep the anchor a little in front of the camera plane
+      label.position.copy(s.pos)
+      if (depth < minDepth) {
+        label.position.addScaledVector(camDir, minDepth - depth)
+      }
+      label.updateMatrixWorld(true)
+    },
+    [],
+  )
 
   // New goal: snap on the very first sample, otherwise just kick a render —
   // the useFrame loop below does the actual easing.
@@ -214,9 +246,13 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     invalidate()
   }, [goal, apply, invalidate])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const s = anim.current
     if (!s.init) return
+    // Every rendered frame (including the viewer's own camera moves): keep the
+    // label anchor in front of the camera so it can never be hidden.
+    updateLabelAnchor(state.camera)
+
     const eps = Math.max(goal.pos.distanceTo(goal.tgt) * 1e-3, 1e-6)
     if (s.pos.distanceTo(goal.pos) < eps && s.tgt.distanceTo(goal.tgt) < eps && s.up.distanceTo(goal.up) < 1e-4) {
       return // converged — let the demand-rendered canvas go idle
