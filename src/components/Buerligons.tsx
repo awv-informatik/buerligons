@@ -31,7 +31,7 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
-import { BroadcastViewpoint, FollowCamera, RemoteViewpoints } from './canvas/SharedViewpoints'
+import { BroadcastCursor, BroadcastViewpoint, FollowCamera, FollowedCursor, RemoteViewpoints } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -135,11 +135,14 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
-          {/* Shared session: broadcast own camera, render the peers' viewpoints,
-              and track a followed peer's camera (click a marker to follow). */}
+          {/* Shared session: broadcast own camera + pointer, render the peers'
+              viewpoints, track a followed peer's camera (click a marker to
+              follow) and show its cursor while following. */}
           <BroadcastViewpoint />
+          <BroadcastCursor />
           <RemoteViewpoints />
           <FollowCamera />
+          <FollowedCursor />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
