@@ -33,6 +33,31 @@ type ViewData = {
 // distance is normalized so markers hover near the model like in Fusion.
 const NORMALIZED_DIST_FACTOR = 0.8
 
+// Custom drei/Html position calculator: projects the label anchor like the
+// default one, but clamps the result to the viewport (with a margin for the
+// label body). When a peer's camera marker drifts out of view, its name tag
+// pins to the screen border instead of disappearing — pointing toward where
+// the peer is.
+const tempV3 = new THREE.Vector3()
+const clampedCalculatePosition = (
+  el: THREE.Object3D,
+  camera: THREE.Camera,
+  size: { width: number; height: number },
+): number[] => {
+  tempV3.setFromMatrixPosition(el.matrixWorld)
+  tempV3.project(camera)
+  const widthHalf = size.width / 2
+  const heightHalf = size.height / 2
+  const x = tempV3.x * widthHalf + widthHalf
+  const y = -(tempV3.y * heightHalf) + heightHalf
+  // Margins keep the full label visible: it renders shifted up by ~140% of
+  // its height and centered horizontally (see the div transform below).
+  const mx = 56
+  const myTop = 44
+  const myBottom = 16
+  return [Math.min(Math.max(x, mx), size.width - mx), Math.min(Math.max(y, myTop), size.height - myBottom)]
+}
+
 // Updates are throttled fairly aggressively to keep server traffic low; the
 // receiver animates between samples (see ViewpointMarker), so a coarser rate
 // still looks perfectly smooth.
@@ -217,7 +242,11 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     <>
       <primitive object={helper} />
       <group ref={labelRef}>
-        <Html position={[0, 0, 0]} style={{ pointerEvents: 'none', userSelect: 'none' }} zIndexRange={[100, 0]}>
+        <Html
+          position={[0, 0, 0]}
+          calculatePosition={clampedCalculatePosition}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+          zIndexRange={[100, 0]}>
           <div
             style={{
               transform: 'translate(-50%, -140%)',
