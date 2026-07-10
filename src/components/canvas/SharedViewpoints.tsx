@@ -33,7 +33,15 @@ type ViewData = {
 // distance is normalized so markers hover near the model like in Fusion.
 const NORMALIZED_DIST_FACTOR = 0.8
 
-const SEND_INTERVAL_MS = 120
+// Updates are throttled fairly aggressively to keep server traffic low; the
+// receiver animates between samples (see ViewpointMarker), so a coarser rate
+// still looks perfectly smooth.
+const SEND_INTERVAL_MS = 200
+
+// Exponential smoothing rate for remote markers (higher = snappier). At ~10,
+// a marker covers most of the way to a new sample in ~200ms — matching the
+// send interval, so continuous movement glides instead of stepping.
+const DAMPING = 10
 
 /** Stable, readable color per peer, derived from its id. */
 const colorFor = (peerId: string): string => {
@@ -121,62 +129,109 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     [helper],
   )
 
-  // Normalized marker position. With an orthographic camera the sender's true
+  // Normalized goal pose. With an orthographic camera the sender's true
   // distance to its target is visually meaningless (the image is invariant to
   // translation along the view direction), so raw positions can be arbitrarily
   // near/far between clients. We keep the truthful view DIRECTION but place
   // the marker at a distance proportional to the sender's visible world
   // height — zoomed-in peers hover close to the model, zoomed-out ones
   // farther, and nobody ends up thousands of units away.
-  const markerPos = React.useMemo<[number, number, number]>(() => {
+  const goal = React.useMemo(() => {
     const pos = new THREE.Vector3(...(data.position ?? [0, 0, 0]))
     const tgt = new THREE.Vector3(...(data.target ?? [0, 0, 0]))
+    const up = new THREE.Vector3(...(data.up ?? [0, 1, 0]))
     const dir = pos.clone().sub(tgt)
     const trueDist = dir.length()
-    if (trueDist < 1e-9) return [pos.x, pos.y, pos.z]
-    dir.divideScalar(trueDist)
-    // Prefer the sender-reported visible height; fall back to the true
-    // distance (clamped) for older peers that don't send it.
-    const dist = data.height && data.height > 0 ? data.height * NORMALIZED_DIST_FACTOR : Math.min(trueDist, 1000)
-    const p = tgt.add(dir.multiplyScalar(dist))
-    return [p.x, p.y, p.z]
+    if (trueDist >= 1e-9) {
+      dir.divideScalar(trueDist)
+      // Prefer the sender-reported visible height; fall back to the true
+      // distance (clamped) for older peers that don't send it.
+      const dist = data.height && data.height > 0 ? data.height * NORMALIZED_DIST_FACTOR : Math.min(trueDist, 1000)
+      pos.copy(tgt).addScaledVector(dir, dist)
+    }
+    return { pos, tgt, up }
   }, [data])
 
-  React.useEffect(() => {
-    const tgt = data.target ?? [0, 0, 0]
-    const up = data.up ?? [0, 1, 0]
-    cam.position.set(markerPos[0], markerPos[1], markerPos[2])
-    cam.up.set(up[0], up[1], up[2])
-    cam.lookAt(tgt[0], tgt[1], tgt[2])
+  // Animated pose: samples arrive at SEND_INTERVAL_MS, but the marker glides
+  // toward the latest goal every frame (exponential damping), so coarse
+  // debounced updates still read as smooth continuous movement.
+  const anim = React.useRef({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0), init: false })
+  const labelRef = React.useRef<THREE.Group>(null)
+
+  const apply = React.useCallback(() => {
+    const s = anim.current
+    cam.position.copy(s.pos)
+    cam.up.copy(s.up)
+    cam.lookAt(s.tgt)
     // Frustum length relative to the (normalized) distance to the target, so
     // the marker stays proportionate regardless of model/scene size.
-    const dist = cam.position.distanceTo(new THREE.Vector3(tgt[0], tgt[1], tgt[2]))
+    const dist = cam.position.distanceTo(s.tgt)
     cam.near = Math.max(dist * 0.02, 1e-4)
     cam.far = Math.max(dist * 0.22, 1e-3)
     cam.updateProjectionMatrix()
     cam.updateMatrixWorld(true)
     helper.update()
     helper.updateMatrixWorld(true)
+    labelRef.current?.position.copy(s.pos)
+  }, [cam, helper])
+
+  // New goal: snap on the very first sample, otherwise just kick a render —
+  // the useFrame loop below does the actual easing.
+  React.useEffect(() => {
+    const s = anim.current
+    if (!s.init) {
+      s.pos.copy(goal.pos)
+      s.tgt.copy(goal.tgt)
+      s.up.copy(goal.up)
+      s.init = true
+      apply()
+    }
     invalidate()
-  }, [cam, helper, data, markerPos, invalidate])
+  }, [goal, apply, invalidate])
+
+  useFrame((_, delta) => {
+    const s = anim.current
+    if (!s.init) return
+    const eps = Math.max(goal.pos.distanceTo(goal.tgt) * 1e-3, 1e-6)
+    if (s.pos.distanceTo(goal.pos) < eps && s.tgt.distanceTo(goal.tgt) < eps && s.up.distanceTo(goal.up) < 1e-4) {
+      return // converged — let the demand-rendered canvas go idle
+    }
+    // Framerate-independent exponential smoothing toward the latest sample.
+    const k = 1 - Math.exp(-DAMPING * Math.min(delta, 0.1))
+    s.pos.lerp(goal.pos, k)
+    s.tgt.lerp(goal.tgt, k)
+    s.up.lerp(goal.up, k)
+    if (s.up.lengthSq() < 1e-8) s.up.copy(goal.up)
+    s.up.normalize()
+    // Snap when close so the loop terminates crisply.
+    if (s.pos.distanceTo(goal.pos) < eps) {
+      s.pos.copy(goal.pos)
+      s.tgt.copy(goal.tgt)
+      s.up.copy(goal.up)
+    }
+    apply()
+    invalidate() // keep animating (frameloop="demand")
+  })
 
   return (
     <>
       <primitive object={helper} />
-      <Html position={markerPos} style={{ pointerEvents: 'none', userSelect: 'none' }} zIndexRange={[100, 0]}>
-        <div
-          style={{
-            transform: 'translate(-50%, -140%)',
-            background: color,
-            color: '#fff',
-            padding: '2px 8px',
-            borderRadius: 4,
-            font: '11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            whiteSpace: 'nowrap',
-          }}>
-          {data.name || 'Peer'}
-        </div>
-      </Html>
+      <group ref={labelRef}>
+        <Html position={[0, 0, 0]} style={{ pointerEvents: 'none', userSelect: 'none' }} zIndexRange={[100, 0]}>
+          <div
+            style={{
+              transform: 'translate(-50%, -140%)',
+              background: color,
+              color: '#fff',
+              padding: '2px 8px',
+              borderRadius: 4,
+              font: '11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              whiteSpace: 'nowrap',
+            }}>
+            {data.name || 'Peer'}
+          </div>
+        </Html>
+      </group>
     </>
   )
 }
