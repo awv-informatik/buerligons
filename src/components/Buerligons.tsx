@@ -31,7 +31,14 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
-import { BroadcastCursor, BroadcastViewpoint, FollowCamera, FollowedCursor, RemoteViewpoints } from './canvas/SharedViewpoints'
+import {
+  BroadcastCursor,
+  BroadcastViewpoint,
+  FollowCamera,
+  FollowedCursor,
+  RemoteViewpoints,
+  SharedViewpointBounds,
+} from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -143,6 +150,7 @@ export const App: React.FC = () => {
           <RemoteViewpoints />
           <FollowCamera />
           <FollowedCursor />
+          <SharedViewpointBounds drawingId={drawingId} />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>

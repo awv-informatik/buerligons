@@ -3,7 +3,22 @@ import { ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
 import { getInviteFromUrl, useSessionClient } from '../../session/sessionClient'
-import { CursorData, getFollow, setFollow, syncViewpoints, useCursors, useFollow, useViewpoints, ViewData } from '../../session/viewpoints'
+import { DrawingID, getDrawing } from '@buerli.io/core'
+import { useDrawing } from '@buerli.io/react'
+import { EditMode, useEditMode, useVisibleSolids } from '@buerli.io/react-cad'
+import {
+  CursorData,
+  getFollow,
+  getModelRadius,
+  setFollow,
+  setModelRadius,
+  syncViewpoints,
+  useCursors,
+  useFollow,
+  useModelRadius,
+  useViewpoints,
+  ViewData,
+} from '../../session/viewpoints'
 
 // Shared viewpoints (Fusion-style): every client broadcasts its camera state
 // on the 'view' presence channel; siblings render it as a small camera
@@ -13,14 +28,17 @@ import { CursorData, getFollow, setFollow, syncViewpoints, useCursors, useFollow
 // follow mode: your camera tracks that peer's view until you exit via the
 // FollowBanner's X (see FollowCamera below).
 
-// Marker distance = NORMALIZED_DIST_FACTOR * sender's visible world height.
-// Direction and orientation stay truthful; only the (ortho-irrelevant)
-// distance is normalized so markers hover near the model like in Fusion.
-// Geometry of the choice: at equal zoom the receiver's screen shows
-// visibleHeight world units vertically, so a marker d away from the target
-// sits at d / (visibleHeight / 2) half-screen-heights from center — it is
-// on-screen only for factors <= 0.5. 0.45 lands it at ~90% toward the edge:
-// clearly separated from the model but still inside the view.
+// Marker distance. Preferred: a stable ring around the model — distance =
+// BOUNDS_DIST_FACTOR * the model's bounding-sphere radius (from the CAD
+// structure, see SharedViewpointBounds). This keeps markers hovering just
+// outside the model regardless of how far anyone is zoomed in or out.
+const BOUNDS_DIST_FACTOR = 1.6
+
+// Fallback when no model bounds are known yet: distance =
+// NORMALIZED_DIST_FACTOR * sender's visible world height. Geometry of the
+// choice: at equal zoom the receiver's screen shows visibleHeight world units
+// vertically, so a marker d away from the target sits at d / (visibleHeight/2)
+// half-screen-heights from center — on-screen only for factors <= 0.5.
 const NORMALIZED_DIST_FACTOR = 0.45
 
 // Custom drei/Html position calculator: projects the label anchor like the
@@ -67,8 +85,9 @@ const colorFor = (peerId: string): string => {
 
 /**
  * Normalized goal pose for a peer's view data. Keeps the truthful view
- * direction/target/up but re-derives the position at a distance proportional
- * to the sender's visible world height (see NORMALIZED_DIST_FACTOR).
+ * direction/target/up but re-derives the position at a normalized distance:
+ * preferably a stable ring scaled by the model bounds, falling back to the
+ * sender's visible world height, then to the (clamped) true distance.
  */
 const goalFromData = (data: ViewData) => {
   const pos = new THREE.Vector3(...(data.position ?? [0, 0, 0]))
@@ -78,12 +97,41 @@ const goalFromData = (data: ViewData) => {
   const trueDist = dir.length()
   if (trueDist >= 1e-9) {
     dir.divideScalar(trueDist)
-    // Prefer the sender-reported visible height; fall back to the true
-    // distance (clamped) for older peers that don't send it.
-    const dist = data.height && data.height > 0 ? data.height * NORMALIZED_DIST_FACTOR : Math.min(trueDist, 1000)
+    const radius = getModelRadius()
+    const dist =
+      radius && radius > 0
+        ? radius * BOUNDS_DIST_FACTOR
+        : data.height && data.height > 0
+          ? data.height * NORMALIZED_DIST_FACTOR
+          : Math.min(trueDist, 1000)
     pos.copy(tgt).addScaledVector(dir, dist)
   }
   return { pos, tgt, up }
+}
+
+/**
+ * Publishes the current model's bounding-sphere radius into the viewpoints
+ * store. Uses the CAD structure's own bounds (calculateProductBounds — the
+ * same source Fit uses), so it is exact, cheap, and unaffected by helper
+ * objects in the three scene. Recomputes when the product, edit mode, or the
+ * set of visible solids changes.
+ */
+export const SharedViewpointBounds: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
+  const editMode = useEditMode(drawingId)
+  const visibleSolids = useVisibleSolids(drawingId)
+  const curProd = useDrawing(drawingId, d => d.structure.currentProduct)
+  const root = useDrawing(drawingId, d => d.structure.root)
+
+  React.useEffect(() => {
+    const structureApi = getDrawing(drawingId)?.api.structure
+    const prodId = editMode === EditMode.Part ? curProd : root
+    const b = prodId != null ? structureApi?.calculateProductBounds(prodId) : null
+    setModelRadius(b && b.radius > 0 ? b.radius : null)
+  }, [drawingId, editMode, curProd, root, visibleSolids])
+
+  React.useEffect(() => () => setModelRadius(null), [])
+
+  return null
 }
 
 const displayName = (): string => {
@@ -171,7 +219,9 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
   // Normalized goal pose (see goalFromData): truthful direction, normalized
   // distance so markers hover near the model regardless of the sender's
   // (ortho-irrelevant) real camera distance.
-  const goal = React.useMemo(() => goalFromData(data), [data])
+  const modelRadius = useModelRadius()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const goal = React.useMemo(() => goalFromData(data), [data, modelRadius])
 
   // Animated pose: samples arrive at SEND_INTERVAL_MS, but the marker glides
   // toward the latest goal every frame (exponential damping), so coarse

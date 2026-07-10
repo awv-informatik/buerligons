@@ -33,6 +33,10 @@ export type CursorData = {
 let viewpoints: Record<string, ViewData> = {}
 let cursors: Record<string, CursorData> = {}
 let follow: FollowState = null
+// Bounding-sphere radius of the current model (world units), fed from the CAD
+// structure (calculateProductBounds). Used to place viewpoint markers on a
+// stable ring around the model instead of deriving distance from peers' zoom.
+let modelRadius: number | null = null
 const listeners = new Set<() => void>()
 
 const notify = () => listeners.forEach(l => l())
@@ -46,6 +50,15 @@ const subscribe = (cb: () => void): (() => void) => {
 export const getViewpoints = (): Record<string, ViewData> => viewpoints
 export const getCursors = (): Record<string, CursorData> => cursors
 export const getFollow = (): FollowState => follow
+export const getModelRadius = (): number | null => modelRadius
+
+export const setModelRadius = (radius: number | null): void => {
+  if (modelRadius === radius) return
+  modelRadius = radius
+  notify()
+}
+
+export const useModelRadius = (): number | null => useSyncExternalStore(subscribe, getModelRadius, getModelRadius)
 
 export const useViewpoints = (): Record<string, ViewData> =>
   useSyncExternalStore(subscribe, getViewpoints, getViewpoints)
