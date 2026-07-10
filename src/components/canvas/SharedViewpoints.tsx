@@ -17,7 +17,21 @@ type ViewData = {
   target?: [number, number, number]
   up?: [number, number, number]
   zoom?: number
+  /**
+   * Visible world height of the sender's viewport (viewportPx / zoom).
+   * With an orthographic camera the on-screen image is invariant to the
+   * camera's distance along the view direction, so raw positions can sit at
+   * wildly different (visually meaningless) distances between clients. This
+   * value is the meaningful "how zoomed out are they" quantity; receivers use
+   * it to place the marker at a normalized distance from the target.
+   */
+  height?: number
 }
+
+// Marker distance = NORMALIZED_DIST_FACTOR * sender's visible world height.
+// Direction and orientation stay truthful; only the (ortho-irrelevant)
+// distance is normalized so markers hover near the model like in Fusion.
+const NORMALIZED_DIST_FACTOR = 0.8
 
 const SEND_INTERVAL_MS = 120
 
@@ -47,6 +61,7 @@ const displayName = (): string => {
 export const BroadcastViewpoint: React.FC = () => {
   const client = useSessionClient()
   const camera = useThree(s => s.camera)
+  const size = useThree(s => s.size)
   const controls = useThree(s => s.controls as unknown as { target?: THREE.Vector3 } | null)
   const lastSent = React.useRef({ at: 0, hash: '' })
   const trailing = React.useRef<number | undefined>(undefined)
@@ -63,8 +78,9 @@ export const BroadcastViewpoint: React.FC = () => {
       target: [t.x, t.y, t.z],
       up: [camera.up.x, camera.up.y, camera.up.z],
       zoom,
+      height: size.height / zoom,
     }
-    const hash = JSON.stringify([data.position, data.target, data.up, zoom])
+    const hash = JSON.stringify([data.position, data.target, data.up, zoom, data.height])
     if (hash === lastSent.current.hash) return
     const now = performance.now()
     const send = () => {
@@ -105,14 +121,34 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     [helper],
   )
 
+  // Normalized marker position. With an orthographic camera the sender's true
+  // distance to its target is visually meaningless (the image is invariant to
+  // translation along the view direction), so raw positions can be arbitrarily
+  // near/far between clients. We keep the truthful view DIRECTION but place
+  // the marker at a distance proportional to the sender's visible world
+  // height — zoomed-in peers hover close to the model, zoomed-out ones
+  // farther, and nobody ends up thousands of units away.
+  const markerPos = React.useMemo<[number, number, number]>(() => {
+    const pos = new THREE.Vector3(...(data.position ?? [0, 0, 0]))
+    const tgt = new THREE.Vector3(...(data.target ?? [0, 0, 0]))
+    const dir = pos.clone().sub(tgt)
+    const trueDist = dir.length()
+    if (trueDist < 1e-9) return [pos.x, pos.y, pos.z]
+    dir.divideScalar(trueDist)
+    // Prefer the sender-reported visible height; fall back to the true
+    // distance (clamped) for older peers that don't send it.
+    const dist = data.height && data.height > 0 ? data.height * NORMALIZED_DIST_FACTOR : Math.min(trueDist, 1000)
+    const p = tgt.add(dir.multiplyScalar(dist))
+    return [p.x, p.y, p.z]
+  }, [data])
+
   React.useEffect(() => {
-    const pos = data.position ?? [0, 0, 0]
     const tgt = data.target ?? [0, 0, 0]
     const up = data.up ?? [0, 1, 0]
-    cam.position.set(pos[0], pos[1], pos[2])
+    cam.position.set(markerPos[0], markerPos[1], markerPos[2])
     cam.up.set(up[0], up[1], up[2])
     cam.lookAt(tgt[0], tgt[1], tgt[2])
-    // Frustum length relative to the sender's distance to its orbit target, so
+    // Frustum length relative to the (normalized) distance to the target, so
     // the marker stays proportionate regardless of model/scene size.
     const dist = cam.position.distanceTo(new THREE.Vector3(tgt[0], tgt[1], tgt[2]))
     cam.near = Math.max(dist * 0.02, 1e-4)
@@ -122,12 +158,12 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     helper.update()
     helper.updateMatrixWorld(true)
     invalidate()
-  }, [cam, helper, data, invalidate])
+  }, [cam, helper, data, markerPos, invalidate])
 
   return (
     <>
       <primitive object={helper} />
-      <Html position={data.position ?? [0, 0, 0]} style={{ pointerEvents: 'none', userSelect: 'none' }} zIndexRange={[100, 0]}>
+      <Html position={markerPos} style={{ pointerEvents: 'none', userSelect: 'none' }} zIndexRange={[100, 0]}>
         <div
           style={{
             transform: 'translate(-50%, -140%)',
