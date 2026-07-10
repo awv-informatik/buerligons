@@ -29,8 +29,9 @@ import { FileMenu } from './FileMenu'
 import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
+import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
-import { BroadcastViewpoint, RemoteViewpoints } from './canvas/SharedViewpoints'
+import { BroadcastViewpoint, FollowCamera, RemoteViewpoints } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -134,9 +135,11 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
-          {/* Shared session: broadcast own camera, render the peers' viewpoints. */}
+          {/* Shared session: broadcast own camera, render the peers' viewpoints,
+              and track a followed peer's camera (click a marker to follow). */}
           <BroadcastViewpoint />
           <RemoteViewpoints />
+          <FollowCamera />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
@@ -144,6 +147,7 @@ export const App: React.FC = () => {
       <SessionSharePanel />
       <GuestSessionOverlay drawingId={drawingId} />
       {readOnly && <ViewOnlyBadge />}
+      <FollowBanner />
     </>
   )
 }
