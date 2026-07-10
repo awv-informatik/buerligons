@@ -30,6 +30,7 @@ import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
+import { BroadcastViewpoint, RemoteViewpoints } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -133,6 +134,9 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
+          {/* Shared session: broadcast own camera, render the peers' viewpoints. */}
+          <BroadcastViewpoint />
+          <RemoteViewpoints />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
