@@ -1,3 +1,4 @@
+import { WSClient } from '@buerli.io/classcad'
 import { Html } from '@react-three/drei'
 import { ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
@@ -33,6 +34,11 @@ import {
 // structure, see SharedViewpointBounds). This keeps markers hovering just
 // outside the model regardless of how far anyone is zoomed in or out.
 const BOUNDS_DIST_FACTOR = 1.6
+
+// Frustum length relative to the model's bounding-sphere radius, so the
+// helper reads at a proportionate size next to the model. Falls back to a
+// fraction of the marker's distance when no bounds are known yet.
+const HELPER_LENGTH_FACTOR = 0.55
 
 // Fallback when no model bounds are known yet: distance =
 // NORMALIZED_DIST_FACTOR * sender's visible world height. Geometry of the
@@ -134,14 +140,18 @@ export const SharedViewpointBounds: React.FC<{ drawingId: DrawingID }> = ({ draw
   return null
 }
 
-const displayName = (): string => {
+// Display name convention matches the token panel: guests are identified by
+// the NAME OF THE INVITE TOKEN they joined with ('unnamed' when the token has
+// no name), the host is 'Host'. A localStorage override wins if set.
+const displayName = (client: WSClient | null): string => {
   try {
     const stored = window.localStorage.getItem('buerligons.username')
     if (stored) return stored
   } catch {
     /* localStorage unavailable — fall through */
   }
-  return getInviteFromUrl() ? 'Guest' : 'Host'
+  if (getInviteFromUrl()) return client?.inviteName || 'unnamed'
+  return 'Host'
 }
 
 /**
@@ -168,7 +178,7 @@ export const BroadcastViewpoint: React.FC = () => {
     const t = controls?.target ?? new THREE.Vector3()
     const zoom = (camera as THREE.OrthographicCamera).zoom ?? 1
     const data: ViewData = {
-      name: displayName(),
+      name: displayName(client),
       position: [camera.position.x, camera.position.y, camera.position.z],
       target: [t.x, t.y, t.z],
       up: [camera.up.x, camera.up.y, camera.up.z],
@@ -235,23 +245,25 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     cam.position.copy(s.pos)
     cam.up.copy(s.up)
     cam.lookAt(s.tgt)
-    // Frustum length relative to the (normalized) distance to the target, so
-    // the marker stays proportionate regardless of model/scene size.
+    // Frustum length scaled by the model bounds (fallback: a fraction of the
+    // marker's distance), so the helper stays proportionate to the model.
     const dist = cam.position.distanceTo(s.tgt)
-    cam.near = Math.max(dist * 0.02, 1e-4)
-    cam.far = Math.max(dist * 0.22, 1e-3)
+    const radius = getModelRadius()
+    const len = radius && radius > 0 ? radius * HELPER_LENGTH_FACTOR : Math.max(dist * 0.22, 1e-3)
+    cam.near = Math.max(len * 0.08, 1e-4)
+    cam.far = Math.max(len, 1e-3)
     cam.updateProjectionMatrix()
     cam.updateMatrixWorld(true)
     helper.update()
     helper.updateMatrixWorld(true)
     // Size the invisible click target with the frustum.
-    hitRef.current?.scale.setScalar(Math.max(dist * 0.18, 1e-3))
+    hitRef.current?.scale.setScalar(Math.max(len * 0.7, 1e-3))
   }, [cam, helper])
 
   const enterFollow = React.useCallback(
     (e?: ThreeEvent<MouseEvent>) => {
       e?.stopPropagation()
-      setFollow(peerId, data.name || 'Peer')
+      setFollow(peerId, data.name || 'unnamed')
     },
     [peerId, data.name],
   )
@@ -358,7 +370,7 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
           zIndexRange={[100, 0]}>
           <div
             onClick={() => enterFollow()}
-            title={`View as ${data.name || 'Peer'}`}
+            title={`View as ${data.name || 'unnamed'}`}
             style={{
               transform: 'translate(-50%, -140%)',
               background: color,
@@ -370,7 +382,7 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}>
-            {data.name || 'Peer'}
+            {data.name || 'unnamed'}
           </div>
         </Html>
       </group>
