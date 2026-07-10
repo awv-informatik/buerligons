@@ -8,6 +8,7 @@ import { DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { EditMode, useEditMode, useVisibleSolids } from '@buerli.io/react-cad'
 import {
+  colorFor,
   CursorData,
   getFollow,
   getModelRadius,
@@ -81,13 +82,6 @@ const SEND_INTERVAL_MS = 200
 // a marker covers most of the way to a new sample in ~200ms — matching the
 // send interval, so continuous movement glides instead of stepping.
 const DAMPING = 10
-
-/** Stable, readable color per peer, derived from its id. */
-const colorFor = (peerId: string): string => {
-  let h = 0
-  for (let i = 0; i < peerId.length; i++) h = (h * 31 + peerId.charCodeAt(i)) >>> 0
-  return `hsl(${h % 360}, 70%, 45%)`
-}
 
 /**
  * Normalized goal pose for a peer's view data. Keeps the truthful view

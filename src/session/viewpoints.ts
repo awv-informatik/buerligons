@@ -20,6 +20,17 @@ export type ViewData = {
 export type FollowState = { peerId: string; name: string } | null
 
 /**
+ * Stable, readable color per peer connection, derived from its id. Used for
+ * the camera frustum, the name tag, the follow-mode cursor, and the swatches
+ * in the token panel — one consistent identity color everywhere.
+ */
+export const colorFor = (peerId: string): string => {
+  let h = 0
+  for (let i = 0; i < peerId.length; i++) h = (h * 31 + peerId.charCodeAt(i)) >>> 0
+  return `hsl(${h % 360}, 70%, 45%)`
+}
+
+/**
  * A peer's pointer, broadcast on the 'cursor' presence channel. `point` is
  * world-space, projected onto the sender's view plane (the plane through the
  * orbit target perpendicular to the view direction) — meaningful for any

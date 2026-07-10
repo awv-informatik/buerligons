@@ -1,6 +1,7 @@
 import { SessionPeer, SessionRole } from '@buerli.io/classcad'
 import React from 'react'
 import { buildInviteUrl, getInviteFromUrl, useSessionClient } from '../session/sessionClient'
+import { colorFor } from '../session/viewpoints'
 
 // A token the host has created this session. The server does not keep a list
 // the host can query, so we track what we minted here; presence events tell us
@@ -10,6 +11,19 @@ type Token = { token: string; name: string; role: SessionRole }
 const ACCENT = '#e36b7c'
 const GREEN = '#52c41a'
 const GRAY = '#bfbfbf'
+
+// Identity swatch: the peer's color as used on its camera frustum, name tag
+// and cursor in the 3D view.
+const swatch = (color: string): React.CSSProperties => ({
+  display: 'inline-block',
+  width: 10,
+  height: 10,
+  borderRadius: 3,
+  background: color,
+  marginLeft: 6,
+  verticalAlign: 'middle',
+  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
+})
 
 const dot = (active: boolean): React.CSSProperties => ({
   width: 9,
@@ -84,7 +98,6 @@ export const SessionSharePanel: React.FC = () => {
 
   if (!client || isGuest) return null
 
-  const guestsFor = (token: string) => peers.filter(p => p.invite === token).length
   const totalGuests = peers.length
 
   const create = async () => {
@@ -144,12 +157,18 @@ export const SessionSharePanel: React.FC = () => {
           )}
 
           {tokens.map(t => {
-            const guests = guestsFor(t.token)
+            const tokenPeers = peers.filter(p => p.invite === t.token)
+            const guests = tokenPeers.length
             return (
               <div key={t.token} style={rowStyle}>
                 <span style={dot(guests > 0)} title={guests > 0 ? `${guests} connected` : 'nobody connected'} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <span style={{ fontWeight: 500 }}>{t.name || 'unnamed'}</span>
+                  {/* One identity swatch per connected guest — the same color
+                      as their camera frustum, name tag, and cursor. */}
+                  {tokenPeers.map(p => (
+                    <span key={p.peerId} style={swatch(colorFor(p.peerId))} title={`${t.name || 'unnamed'} — connected guest`} />
+                  ))}
                   <span style={roleTag}>{t.role}</span>
                   {guests > 0 && <span style={{ color: GREEN, fontSize: 11, marginLeft: 6 }}>{guests} online</span>}
                 </span>
