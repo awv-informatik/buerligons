@@ -15,6 +15,7 @@ export default () => {
       'CLASSCAD_WASM_KEY': JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
       'SOCKETIO_URL': JSON.stringify(env.SOCKETIO_URL ?? ''),
       'WSCLIENT_URL': JSON.stringify(env.WSCLIENT_URL ?? ''),
+      'SESSION_FEATURES': JSON.stringify(env.SESSION_FEATURES ?? ''),
     },
     build: {
       outDir: './build',

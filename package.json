@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "rimraf ./build",
     "dev": "npm run start",
-    "dev:cli": "WSCLIENT_URL=ws://localhost:9094 vite",
+    "dev:cli": "WSCLIENT_URL=ws://localhost:9094 SESSION_FEATURES=viewpoints,cursors vite",
     "start": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",

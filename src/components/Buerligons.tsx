@@ -40,6 +40,7 @@ import {
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
+import { sessionFeatures } from '../session/features'
 import { useSessionRole } from '../session/sessionClient'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -142,15 +143,26 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
-          {/* Shared session: broadcast own camera + pointer, render the peers'
-              viewpoints, track a followed peer's camera (click a marker to
-              follow) and show its cursor while following. */}
-          <BroadcastViewpoint />
-          <BroadcastCursor />
-          <RemoteViewpoints />
-          <FollowCamera />
-          <FollowedCursor />
-          <SharedViewpointBounds drawingId={drawingId} />
+          {/* Shared session collaboration, gated by explicit feature flags
+              (see session/features.ts — OFF unless enabled via
+              SESSION_FEATURES, URL params, or localStorage): broadcast own
+              camera + pointer, render the peers' viewpoints, track a followed
+              peer's camera (click a marker) and show its cursor while
+              following. Gating here keeps the components hook-rule clean. */}
+          {sessionFeatures.viewpoints && (
+            <>
+              <BroadcastViewpoint />
+              <RemoteViewpoints />
+              <FollowCamera />
+              <SharedViewpointBounds drawingId={drawingId} />
+            </>
+          )}
+          {sessionFeatures.cursors && (
+            <>
+              <BroadcastCursor />
+              <FollowedCursor />
+            </>
+          )}
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
@@ -158,7 +170,7 @@ export const App: React.FC = () => {
       <SessionSharePanel />
       <GuestSessionOverlay drawingId={drawingId} />
       {readOnly && <ViewOnlyBadge />}
-      <FollowBanner />
+      {sessionFeatures.viewpoints && <FollowBanner />}
     </>
   )
 }
