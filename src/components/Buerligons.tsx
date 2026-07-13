@@ -40,7 +40,7 @@ import {
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
-import { sessionFeatures } from '../session/features'
+import { useSessionFeatures } from '../session/features'
 import { useSessionRole } from '../session/sessionClient'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -114,6 +114,7 @@ export const App: React.FC = () => {
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
   const readOnly = useSessionRole() === 'view'
+  const features = useSessionFeatures()
   useInteractionReset(drawingId)
   return (
     <>
@@ -143,13 +144,13 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
-          {/* Shared session collaboration, gated by explicit feature flags
-              (see session/features.ts — OFF unless enabled via
-              SESSION_FEATURES, URL params, or localStorage): broadcast own
-              camera + pointer, render the peers' viewpoints, track a followed
-              peer's camera (click a marker) and show its cursor while
-              following. Gating here keeps the components hook-rule clean. */}
-          {sessionFeatures.viewpoints && (
+          {/* Shared session collaboration, gated by the session's runtime
+              feature config (session/features.ts): OFF by default; the HOST
+              enables features in the share panel and the config reaches
+              guests over the owner-only 'config' presence channel. Gating at
+              the mount site keeps the components hook-rule clean and stops
+              broadcasting, not just rendering. */}
+          {features.viewpoints && (
             <>
               <BroadcastViewpoint />
               <RemoteViewpoints />
@@ -157,7 +158,7 @@ export const App: React.FC = () => {
               <SharedViewpointBounds drawingId={drawingId} />
             </>
           )}
-          {sessionFeatures.cursors && (
+          {features.cursors && (
             <>
               <BroadcastCursor />
               <FollowedCursor />
@@ -170,7 +171,7 @@ export const App: React.FC = () => {
       <SessionSharePanel />
       <GuestSessionOverlay drawingId={drawingId} />
       {readOnly && <ViewOnlyBadge />}
-      {sessionFeatures.viewpoints && <FollowBanner />}
+      {features.viewpoints && <FollowBanner />}
     </>
   )
 }

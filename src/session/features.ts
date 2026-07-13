@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// Collaboration feature flags for shared sessions. Everything is OFF by
-// default — features must be enabled explicitly. Resolution per flag, first
-// source that speaks wins:
-//
-//   1. URL param            ?viewpoints=on|off  ?cursors=on|off
-//   2. localStorage         'buerligons.features' = "viewpoints,cursors"
-//   3. build-time define    SESSION_FEATURES="viewpoints,cursors"  (.env / script)
-//   4. default              off
-//
-// Flags are resolved once at startup; changing localStorage or the define
-// requires a reload (the URL param obviously implies one).
+import { useSyncExternalStore } from 'react'
+
+// Session-wide collaboration features. This is RUNTIME configuration owned by
+// the MAIN session (the host): the host toggles features in the share panel
+// and broadcasts the config on the reserved 'config' presence channel, which
+// the server only accepts from the main connection. Guests receive it via
+// that channel (late joiners through the presence snapshot) and apply it —
+// nothing travels in URLs, localStorage, or build defines, so there is
+// nothing for a guest to edit. Everything defaults to OFF until the host
+// enables it.
 
 export type SessionFeatures = {
   /** Peer camera frustums, name tags, and follow mode (click a marker). */
@@ -18,57 +16,38 @@ export type SessionFeatures = {
   cursors: boolean
 }
 
-const FLAG_NAMES: (keyof SessionFeatures)[] = ['viewpoints', 'cursors']
+export const DEFAULT_FEATURES: SessionFeatures = { viewpoints: false, cursors: false }
 
-// @ts-ignore — injected by vite (see vite.config.ts define)
-const buildDefine: string = typeof SESSION_FEATURES !== 'undefined' ? SESSION_FEATURES : ''
+let features: SessionFeatures = DEFAULT_FEATURES
+const listeners = new Set<() => void>()
 
-const parseList = (value: string | null | undefined): Set<string> | null => {
-  if (value == null) return null
-  const trimmed = value.trim().toLowerCase()
-  if (!trimmed) return null
-  if (trimmed === 'off' || trimmed === 'none') return new Set()
-  return new Set(
-    trimmed
-      .split(',')
-      .map(x => x.trim())
-      .filter(Boolean),
-  )
-}
-
-const urlFlag = (name: string): boolean | null => {
-  try {
-    const v = new URLSearchParams(window.location.search).get(name)
-    if (v == null) return null
-    return !['off', '0', 'false', 'no'].includes(v.toLowerCase())
-  } catch {
-    return null
+const subscribe = (cb: () => void): (() => void) => {
+  listeners.add(cb)
+  return () => {
+    listeners.delete(cb)
   }
 }
 
-const storedList = (): Set<string> | null => {
-  try {
-    return parseList(window.localStorage.getItem('buerligons.features'))
-  } catch {
-    return null
-  }
+/** Normalizes a (possibly foreign) config object: cursors implies viewpoints. */
+export const normalizeFeatures = (raw: Partial<SessionFeatures> | null | undefined): SessionFeatures => {
+  const viewpoints = Boolean(raw?.viewpoints)
+  return { viewpoints, cursors: Boolean(raw?.cursors) && viewpoints }
 }
 
-const resolve = (): SessionFeatures => {
-  const ls = storedList()
-  const build = parseList(buildDefine)
-  const flag = (name: keyof SessionFeatures): boolean => {
-    const fromUrl = urlFlag(name)
-    if (fromUrl != null) return fromUrl
-    if (ls) return ls.has(name)
-    if (build) return build.has(name)
-    return false
+export const getSessionFeatures = (): SessionFeatures => features
+
+export const setSessionFeatures = (next: Partial<SessionFeatures>): SessionFeatures => {
+  const normalized = normalizeFeatures({ ...features, ...next })
+  if (normalized.viewpoints !== features.viewpoints || normalized.cursors !== features.cursors) {
+    features = normalized
+    listeners.forEach(l => l())
   }
-  const raw = Object.fromEntries(FLAG_NAMES.map(n => [n, flag(n)])) as SessionFeatures
-  // Cursors only render in follow mode, which requires viewpoint markers to
-  // enter — without viewpoints they would broadcast for nothing.
-  return { ...raw, cursors: raw.cursors && raw.viewpoints }
+  return features
 }
 
-/** Resolved once at startup. */
-export const sessionFeatures: SessionFeatures = resolve()
+export const resetSessionFeatures = (): void => {
+  setSessionFeatures(DEFAULT_FEATURES)
+}
+
+export const useSessionFeatures = (): SessionFeatures =>
+  useSyncExternalStore(subscribe, getSessionFeatures, getSessionFeatures)

@@ -1,5 +1,6 @@
 import { PresenceMessage, WSClient } from '@buerli.io/classcad'
 import { useSyncExternalStore } from 'react'
+import { normalizeFeatures, resetSessionFeatures, setSessionFeatures } from './features'
 
 // Shared state for the viewpoint feature: the last known view of every peer
 // (fed by 'view' presence frames) and the follow-mode selection ("whose camera
@@ -102,6 +103,10 @@ export const syncViewpoints = (client: WSClient): (() => void) => {
     } else if (msg.channel === 'cursor' && msg.peerId) {
       cursors = { ...cursors, [msg.peerId]: msg.data as CursorData }
       notify()
+    } else if (msg.channel === 'config') {
+      // Session feature config from the host. The server only accepts this
+      // channel from the main connection, so guests cannot inject it.
+      setSessionFeatures(normalizeFeatures(msg.data))
     } else if (msg.channel === 'leave' && msg.peerId) {
       if (msg.peerId in viewpoints) {
         const next = { ...viewpoints }
@@ -123,6 +128,7 @@ export const syncViewpoints = (client: WSClient): (() => void) => {
     viewpoints = {}
     cursors = {}
     follow = null
+    resetSessionFeatures()
     notify()
   }
 }
