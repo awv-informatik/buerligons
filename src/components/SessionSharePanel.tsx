@@ -1,6 +1,5 @@
 import { SessionPeer, SessionRole } from '@buerli.io/classcad'
 import React from 'react'
-import { SessionFeatures, setSessionFeatures, useSessionFeatures } from '../session/features'
 import { buildInviteUrl, getInviteFromUrl, useSessionClient } from '../session/sessionClient'
 import { colorFor } from '../session/viewpoints'
 
@@ -47,19 +46,6 @@ const dot = (active: boolean): React.CSSProperties => ({
 export const SessionSharePanel: React.FC = () => {
   const client = useSessionClient()
   const isGuest = Boolean(getInviteFromUrl())
-  const features = useSessionFeatures()
-
-  // Host-only runtime session config: update locally and broadcast on the
-  // reserved 'config' presence channel (the server rejects it from guests).
-  // Late joiners receive the current config via the presence snapshot.
-  const toggleFeature = React.useCallback(
-    (patch: Partial<SessionFeatures>) => {
-      const next = setSessionFeatures(patch)
-      client?.sendPresence('config', next)
-    },
-    [client],
-  )
-
   const [tokens, setTokens] = React.useState<Token[]>([])
   const [peers, setPeers] = React.useState<SessionPeer[]>([])
   const [name, setName] = React.useState('')
@@ -194,27 +180,6 @@ export const SessionSharePanel: React.FC = () => {
               </div>
             )
           })}
-
-          {/* Session-wide collaboration features, controlled by the host. */}
-          <div style={{ display: 'flex', gap: 14, marginTop: 10, paddingTop: 8, borderTop: '1px solid #f2f2f2', fontSize: 12, color: '#555' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={features.viewpoints}
-                onChange={e => toggleFeature({ viewpoints: e.target.checked, cursors: e.target.checked && features.cursors })}
-              />
-              Peer cameras
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: features.viewpoints ? 'pointer' : 'not-allowed', opacity: features.viewpoints ? 1 : 0.5 }}>
-              <input
-                type="checkbox"
-                checked={features.cursors}
-                disabled={!features.viewpoints}
-                onChange={e => toggleFeature({ cursors: e.target.checked })}
-              />
-              Pointers
-            </label>
-          </div>
 
           <div style={formStyle}>
             <input

@@ -4,6 +4,7 @@ import 'antd/dist/antd.less'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { initBuerli } from './initBuerli'
+import { publishSessionConfig } from './session/features'
 import { getInviteFromUrl, setSessionClient } from './session/sessionClient'
 import { Global } from './styles/Global'
 
@@ -19,8 +20,14 @@ initBuerli(id => {
   // Without an ?invite= token this client is the host of a fresh session;
   // with one it joins the shared session as a guest.
   if (wsClientUrl) {
-    const client = new WSClient(wsClientUrl, id, { invite: getInviteFromUrl() })
+    const invite = getInviteFromUrl()
+    const client = new WSClient(wsClientUrl, id, { invite })
     setSessionClient(client)
+    if (!invite) {
+      // Host: publish the code-defined session config (see SESSION_CONFIG in
+      // session/features.ts) so all guests run the same feature set.
+      client.on('connected', () => publishSessionConfig(client))
+    }
     return client
   }
   if (classcadWasmKey) {

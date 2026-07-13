@@ -1,3 +1,4 @@
+import { WSClient } from '@buerli.io/classcad'
 import { useSyncExternalStore } from 'react'
 
 // Session-wide collaboration features. This is RUNTIME configuration owned by
@@ -51,3 +52,20 @@ export const resetSessionFeatures = (): void => {
 
 export const useSessionFeatures = (): SessionFeatures =>
   useSyncExternalStore(subscribe, getSessionFeatures, getSessionFeatures)
+
+// ---------------------------------------------------------------------------
+// CODE-ENABLE POINT (no UI for now): the session's collaboration features are
+// configured here, in code. The host applies this on connect and broadcasts
+// it on the owner-only 'config' presence channel; guests receive it (late
+// joiners via the presence snapshot) and cannot override it.
+// ---------------------------------------------------------------------------
+export const SESSION_CONFIG: SessionFeatures = {
+  viewpoints: true,
+  cursors: true,
+}
+
+/** Host only: apply SESSION_CONFIG locally and publish it to the session. */
+export const publishSessionConfig = (client: WSClient): void => {
+  const applied = setSessionFeatures(SESSION_CONFIG)
+  client.sendPresence('config', applied)
+}
