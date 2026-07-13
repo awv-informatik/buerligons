@@ -1,6 +1,6 @@
 import { WSClient } from '@buerli.io/classcad'
 import { Html } from '@react-three/drei'
-import { ThreeEvent, useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
 import { getInviteFromUrl, useSessionClient } from '../../session/sessionClient'
@@ -231,7 +231,6 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
   // debounced updates still read as smooth continuous movement.
   const anim = React.useRef({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0), init: false })
   const labelRef = React.useRef<THREE.Group>(null)
-  const hitRef = React.useRef<THREE.Mesh>(null)
 
   const apply = React.useCallback(() => {
     const s = anim.current
@@ -250,29 +249,13 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     helper.update()
     helper.updateMatrixWorld(true)
     // Size the invisible click target with the frustum.
-    hitRef.current?.scale.setScalar(Math.max(len * 0.7, 1e-3))
   }, [cam, helper])
 
-  const enterFollow = React.useCallback(
-    (e?: ThreeEvent<MouseEvent>) => {
-      e?.stopPropagation()
-      setFollow(peerId, data.name || 'unnamed')
-    },
-    [peerId, data.name],
-  )
-  const onHitOver = React.useCallback((e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()
-    document.body.style.cursor = 'pointer'
-  }, [])
-  const onHitOut = React.useCallback(() => {
-    document.body.style.cursor = ''
-  }, [])
-  React.useEffect(
-    () => () => {
-      document.body.style.cursor = ''
-    },
-    [],
-  )
+  // Follow mode is entered via the name tag ONLY — the frustum itself is not
+  // a click target (a large invisible hitbox proved too grabby in practice).
+  const enterFollow = React.useCallback(() => {
+    setFollow(peerId, data.name || 'unnamed')
+  }, [peerId, data.name])
 
   // Keeps the label's anchor in FRONT of the viewer's camera. drei/Html hides
   // the element whenever its anchor is behind the camera plane, and our
@@ -348,14 +331,6 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
     <>
       <primitive object={helper} />
       <group ref={labelRef}>
-        {/* Invisible click target around the frustum apex. userData.onHUD makes
-            the raycastFilter prioritize it over model geometry; the anchor
-            group's forward-shift is click-equivalent in ortho (moving along
-            the view direction doesn't change screen x/y). */}
-        <mesh ref={hitRef} userData={{ onHUD: true }} onClick={enterFollow} onPointerOver={onHitOver} onPointerOut={onHitOut}>
-          <sphereGeometry args={[1, 12, 12]} />
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-        </mesh>
         <Html
           position={[0, 0, 0]}
           calculatePosition={clampedCalculatePosition}
