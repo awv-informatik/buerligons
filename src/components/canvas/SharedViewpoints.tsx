@@ -14,7 +14,6 @@ import {
   getModelRadius,
   setFollow,
   setModelRadius,
-  syncViewpoints,
   useCursors,
   useFollow,
   useModelRadius,
@@ -384,18 +383,16 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
   )
 }
 
-/** Renders the viewpoints of all session siblings, kept in sync via presence. */
+/**
+ * Renders the viewpoints of all session siblings. The store itself is fed by
+ * syncViewpoints(client), attached at client creation in index.tsx — NOT here:
+ * this component is gated by the session config, and the config frame that
+ * enables it arrives before any component mounts.
+ */
 export const RemoteViewpoints: React.FC = () => {
-  const client = useSessionClient()
   const invalidate = useThree(s => s.invalidate)
   const views = useViewpoints()
   const follow = useFollow()
-
-  // Feed the shared viewpoints store from the client's presence events.
-  React.useEffect(() => {
-    if (!client) return
-    return syncViewpoints(client)
-  }, [client])
 
   // Any store change needs a repaint on a demand-rendered canvas.
   React.useEffect(() => invalidate(), [views, follow, invalidate])
