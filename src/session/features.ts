@@ -11,13 +11,18 @@ import { useSyncExternalStore } from 'react'
 // enables it.
 
 export type SessionFeatures = {
-  /** Peer camera frustums, name tags, and follow mode (click a marker). */
+  /** Peer camera frustums and name tags. */
   viewpoints: boolean
-  /** Peer pointer while following. Only effective when viewpoints is on. */
+  /**
+   * Whether peer cameras can be clicked (via their name tag) to take over the
+   * local cam controls and look through that peer's view. Requires viewpoints.
+   */
+  follow: boolean
+  /** Peer pointer while following. Requires follow (and thus viewpoints). */
   cursors: boolean
 }
 
-export const DEFAULT_FEATURES: SessionFeatures = { viewpoints: false, cursors: false }
+export const DEFAULT_FEATURES: SessionFeatures = { viewpoints: false, follow: false, cursors: false }
 
 let features: SessionFeatures = DEFAULT_FEATURES
 const listeners = new Set<() => void>()
@@ -29,10 +34,15 @@ const subscribe = (cb: () => void): (() => void) => {
   }
 }
 
-/** Normalizes a (possibly foreign) config object: cursors implies viewpoints. */
+/**
+ * Normalizes a (possibly foreign) config object along the dependency chain
+ * viewpoints -> follow -> cursors: following needs visible markers to click,
+ * and cursors only render while following.
+ */
 export const normalizeFeatures = (raw: Partial<SessionFeatures> | null | undefined): SessionFeatures => {
   const viewpoints = Boolean(raw?.viewpoints)
-  return { viewpoints, cursors: Boolean(raw?.cursors) && viewpoints }
+  const follow = Boolean(raw?.follow) && viewpoints
+  return { viewpoints, follow, cursors: Boolean(raw?.cursors) && follow }
 }
 
 export const getSessionFeatures = (): SessionFeatures => features
@@ -60,8 +70,12 @@ export const useSessionFeatures = (): SessionFeatures =>
 // joiners via the presence snapshot) and cannot override it.
 // ---------------------------------------------------------------------------
 export const SESSION_CONFIG: SessionFeatures = {
-  viewpoints: true,
-  cursors: true,
+  viewpoints: false,
+  // Click a peer camera's name tag to take over the local cam controls and
+  // look through their view. Off by default.
+  follow: false,
+  // Peer pointer while following (no effect unless follow is enabled).
+  cursors: false,
 }
 
 /** Host only: apply SESSION_CONFIG locally and publish it to the session. */

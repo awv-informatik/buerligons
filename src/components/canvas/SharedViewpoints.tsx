@@ -3,6 +3,7 @@ import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
+import { useSessionFeatures } from '../../session/features'
 import { getInviteFromUrl, useSessionClient } from '../../session/sessionClient'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
@@ -253,6 +254,8 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
 
   // Follow mode is entered via the name tag ONLY — the frustum itself is not
   // a click target (a large invisible hitbox proved too grabby in practice).
+  // Gated by the session's 'follow' config flag (host-controlled).
+  const canFollow = useSessionFeatures().follow
   const enterFollow = React.useCallback(() => {
     setFollow(peerId, data.name || 'unnamed')
   }, [peerId, data.name])
@@ -337,8 +340,8 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
           style={{ pointerEvents: 'none', userSelect: 'none' }}
           zIndexRange={[100, 0]}>
           <div
-            onClick={() => enterFollow()}
-            title={`View as ${data.name || 'unnamed'}`}
+            onClick={canFollow ? () => enterFollow() : undefined}
+            title={canFollow ? `View as ${data.name || 'unnamed'}` : undefined}
             style={{
               transform: 'translate(-50%, -140%)',
               background: color,
@@ -347,8 +350,10 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
               borderRadius: 4,
               font: '11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               whiteSpace: 'nowrap',
-              pointerEvents: 'auto',
-              cursor: 'pointer',
+              // Only an interactive click target when the session allows
+              // taking over the cam controls (config flag 'follow').
+              pointerEvents: canFollow ? 'auto' : 'none',
+              cursor: canFollow ? 'pointer' : 'default',
             }}>
             {data.name || 'unnamed'}
           </div>
