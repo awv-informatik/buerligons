@@ -39,6 +39,7 @@ import {
   RemoteViewpoints,
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'
+import { Annotations } from './canvas/Annotations'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -154,6 +155,9 @@ export const App: React.FC = () => {
           <SharedViewpointBounds drawingId={drawingId} />
           <BroadcastCursor />
           <FollowedCursor />
+          {/* Comment threads pinned to the model (CC_Annotation objects in the
+              ClassCAD tree) — persist with the file and sync to all clients. */}
+          <Annotations drawingId={drawingId} />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
