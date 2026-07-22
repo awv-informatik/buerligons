@@ -40,7 +40,6 @@ import {
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
-import { useSessionFeatures } from '../session/features'
 import { useSessionRole } from '../session/sessionClient'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -114,7 +113,6 @@ export const App: React.FC = () => {
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
   const readOnly = useSessionRole() === 'view'
-  const features = useSessionFeatures()
   useInteractionReset(drawingId)
   return (
     <>
@@ -144,26 +142,18 @@ export const App: React.FC = () => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
-          {/* Shared session collaboration, gated by the session's runtime
-              feature config (session/features.ts): OFF by default; the HOST
-              enables features in the share panel and the config reaches
-              guests over the owner-only 'config' presence channel. Gating at
-              the mount site keeps the components hook-rule clean and stops
-              broadcasting, not just rendering. */}
-          {features.viewpoints && (
-            <>
-              <BroadcastViewpoint />
-              <RemoteViewpoints />
-              <FollowCamera />
-              <SharedViewpointBounds drawingId={drawingId} />
-            </>
-          )}
-          {features.cursors && (
-            <>
-              <BroadcastCursor />
-              <FollowedCursor />
-            </>
-          )}
+          {/* Shared session collaboration — always on, feature-based: each
+              piece is inert without a session client / peers and degrades
+              gracefully across clients (unknown presence channels are simply
+              ignored). Broadcast own camera + pointer, render the peers'
+              viewpoints, track a followed peer's camera (click its name tag)
+              and show its cursor while following. */}
+          <BroadcastViewpoint />
+          <RemoteViewpoints />
+          <FollowCamera />
+          <SharedViewpointBounds drawingId={drawingId} />
+          <BroadcastCursor />
+          <FollowedCursor />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
@@ -171,7 +161,7 @@ export const App: React.FC = () => {
       <SessionSharePanel />
       <GuestSessionOverlay drawingId={drawingId} />
       {readOnly && <ViewOnlyBadge />}
-      {features.viewpoints && <FollowBanner />}
+      <FollowBanner />
     </>
   )
 }

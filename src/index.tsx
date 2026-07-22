@@ -4,7 +4,6 @@ import 'antd/dist/antd.less'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { initBuerli } from './initBuerli'
-import { publishSessionConfig } from './session/features'
 import { getInviteFromUrl, setSessionClient } from './session/sessionClient'
 import { syncViewpoints } from './session/viewpoints'
 import { Global } from './styles/Global'
@@ -24,16 +23,10 @@ initBuerli(id => {
     const invite = getInviteFromUrl()
     const client = new WSClient(wsClientUrl, id, { invite })
     setSessionClient(client)
-    // Attach the presence→store sync BEFORE connecting: the session config
-    // and viewpoint snapshots arrive right after SessionJoined, typically
-    // before any React component mounts. Attaching here (instead of inside a
-    // component that is itself gated by the config) avoids losing them.
+    // Attach the presence→store sync BEFORE connecting: viewpoint snapshots
+    // arrive right after SessionJoined, typically before any React component
+    // mounts. Attaching here avoids losing them.
     syncViewpoints(client)
-    if (!invite) {
-      // Host: publish the code-defined session config (see SESSION_CONFIG in
-      // session/features.ts) so all guests run the same feature set.
-      client.on('connected', () => publishSessionConfig(client))
-    }
     return client
   }
   if (classcadWasmKey) {
