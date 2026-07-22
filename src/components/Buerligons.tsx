@@ -31,7 +31,14 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
-import { BroadcastViewpoint, FollowCamera, RemoteViewpoints, SharedViewpointBounds } from './canvas/SharedViewpoints'
+import {
+  BroadcastCursor,
+  BroadcastViewpoint,
+  FollowCamera,
+  FollowedCursor,
+  RemoteViewpoints,
+  SharedViewpointBounds,
+} from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 import { useSessionRole } from '../session/sessionClient'
 
@@ -138,12 +145,15 @@ export const App: React.FC = () => {
           {/* Shared session collaboration — always on, feature-based: each
               piece is inert without a session client / peers and degrades
               gracefully across clients (unknown presence channels are simply
-              ignored). Broadcast own camera, render the peers' viewpoints,
-              and track a followed peer's camera (click its name tag). */}
+              ignored). Broadcast own camera + pointer, render the peers'
+              viewpoints, track a followed peer's camera (click its name tag)
+              and show its cursor while following. */}
           <BroadcastViewpoint />
           <RemoteViewpoints />
           <FollowCamera />
           <SharedViewpointBounds drawingId={drawingId} />
+          <BroadcastCursor />
+          <FollowedCursor />
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
