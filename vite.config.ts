@@ -7,8 +7,11 @@ import svgrPlugin from 'vite-plugin-svgr'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
-export default () => {
-  const env = loadEnv('', process.cwd(), '')
+export default ({ mode }: { mode: string }) => {
+  // Mode-specific env files (.env.<mode>) overlay .env — e.g. `vite --mode cli`
+  // additionally loads .env.cli. Used instead of inline VAR=... env prefixes,
+  // which do not work on Windows (cmd.exe).
+  const env = loadEnv(mode, process.cwd(), '')
 
   return defineConfig({
     define: {
