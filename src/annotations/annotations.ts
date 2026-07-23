@@ -153,6 +153,40 @@ export const startAnnotationDraft = (drawingId: DrawingID, targetId: number, wor
 }
 
 // ---------------------------------------------------------------------------
+// Author colors — stable identity color per author NAME (not per connection:
+// annotations persist with the model, peer ids do not). A curated palette
+// keeps every color dark enough for white chip text and readable as name
+// text on the white panel (no yellows at hostile lightness).
+// ---------------------------------------------------------------------------
+
+const AUTHOR_PALETTE = [
+  'hsl(354, 66%, 46%)', // red
+  'hsl(21, 78%, 42%)', // orange
+  'hsl(36, 85%, 34%)', // amber
+  'hsl(88, 55%, 33%)', // olive
+  'hsl(145, 55%, 32%)', // green
+  'hsl(172, 65%, 30%)', // teal
+  'hsl(196, 75%, 36%)', // cyan
+  'hsl(214, 70%, 45%)', // blue
+  'hsl(248, 55%, 50%)', // indigo
+  'hsl(281, 50%, 44%)', // purple
+  'hsl(316, 60%, 42%)', // magenta
+  'hsl(340, 65%, 47%)', // pink
+]
+
+const NEUTRAL_AUTHOR_COLOR = 'hsl(0, 0%, 45%)'
+
+/** Deterministic palette color for an author name; same name = same color on
+ *  every client and across sessions. Unnamed authors get a neutral gray. */
+export const authorColor = (author: string): string => {
+  const key = (author || '').trim().toLowerCase()
+  if (!key) return NEUTRAL_AUTHOR_COLOR
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+  return AUTHOR_PALETTE[h % AUTHOR_PALETTE.length]
+}
+
+// ---------------------------------------------------------------------------
 // Author identity — last used name wins, session identity as first default.
 // ---------------------------------------------------------------------------
 

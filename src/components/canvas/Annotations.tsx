@@ -7,6 +7,8 @@ import {
   Annotation,
   annotationWorldMatrix,
   AnnotationDraft,
+  AnnotationEntry,
+  authorColor,
   clearAnnotationDraft,
   createAnnotation,
   deleteAnnotation,
@@ -19,14 +21,18 @@ import {
 import { useSessionClient } from '../../session/sessionClient'
 
 // Comment markers pinned to the model. Every CC_Annotation node in the tree
-// renders as a small badge at its (parent-relative) position; clicking the
-// badge opens the thread where entries can be added or removed. A draft
-// marker (from right-click → Add comment) shows the same editor before the
-// ClassCAD object exists. Always on — inert without annotations.
+// renders as a small badge at its (parent-relative) position, tinted with the
+// creator's identity color (derived from the author name, so it is stable
+// across clients and sessions). Hovering the badge unfolds an animated,
+// height-capped preview of the thread; clicking opens the full panel where
+// entries can be added or removed. Each comment row carries the color of its
+// issuer. A draft marker (from right-click -> Add comment) shows the same
+// editor before the ClassCAD object exists.
 
 const ACCENT = '#e36b7c'
+const PREVIEW_MAX_HEIGHT = 140
 
-const badgeStyle = (open: boolean): React.CSSProperties => ({
+const badgeStyle = (color: string, active: boolean): React.CSSProperties => ({
   pointerEvents: 'auto',
   cursor: 'pointer',
   minWidth: 22,
@@ -36,11 +42,11 @@ const badgeStyle = (open: boolean): React.CSSProperties => ({
   alignItems: 'center',
   justifyContent: 'center',
   gap: 3,
-  background: open ? ACCENT : 'rgba(255,255,255,0.95)',
-  color: open ? '#fff' : '#333',
-  border: `1.5px solid ${ACCENT}`,
+  background: color,
+  color: '#fff',
+  border: '1.5px solid rgba(255,255,255,0.85)',
   borderRadius: '11px 11px 11px 2px',
-  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+  boxShadow: active ? `0 0 0 2px ${color}55, 0 2px 6px rgba(0,0,0,0.3)` : '0 2px 6px rgba(0,0,0,0.25)',
   fontSize: 11,
   fontWeight: 600,
   fontFamily: 'system-ui, sans-serif',
@@ -103,6 +109,45 @@ const timeLabel = (ms: number): string => {
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
   return new Date(ms).toLocaleDateString()
+}
+
+/** One comment line: left border + author name in the issuer's color. */
+const EntryRow: React.FC<{
+  entry: AnnotationEntry
+  onRemove?: () => void
+  clampComment?: boolean
+}> = ({ entry, onRemove, clampComment }) => {
+  const color = authorColor(entry.author)
+  return (
+    <div style={{ padding: '6px 8px', borderBottom: '1px solid #f3f3f3', borderLeft: `3px solid ${color}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontWeight: 600, color }}>{entry.author || 'unnamed'}</span>
+        <span style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
+          <span style={{ color: '#999', fontSize: 10 }}>{timeLabel(entry.created)}</span>
+          {onRemove && (
+            <button style={iconButtonStyle} title="Remove this comment" onClick={onRemove}>
+              ✕
+            </button>
+          )}
+        </span>
+      </div>
+      <div
+        style={
+          clampComment
+            ? {
+                marginTop: 2,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical' as const,
+              }
+            : { whiteSpace: 'pre-wrap', marginTop: 2 }
+        }
+      >
+        {entry.comment}
+      </div>
+    </div>
+  )
 }
 
 /** Author + comment inputs shared by the thread editor and the draft form. */
@@ -175,18 +220,74 @@ const AnnotationMarker: React.FC<{
   onToggle: () => void
 }> = ({ drawingId, annotation, open, onToggle }) => {
   const [author, setAuthor] = useDefaultAuthor()
+  const [hovered, setHovered] = React.useState(false)
+  const [clipped, setClipped] = React.useState(false)
+  const previewInnerRef = React.useRef<HTMLDivElement>(null)
+
+  // Chip color = original creator (first entry's author).
+  const creatorColor = authorColor(annotation.entries[0]?.author ?? '')
+
   const worldPos = React.useMemo(() => {
     const m = annotationWorldMatrix(drawingId, annotation.id)
     return [m.elements[12], m.elements[13], m.elements[14]] as [number, number, number]
   }, [drawingId, annotation])
 
+  const showPreview = hovered && !open
+  React.useEffect(() => {
+    const el = previewInnerRef.current
+    if (showPreview && el) setClipped(el.scrollHeight > PREVIEW_MAX_HEIGHT)
+  }, [showPreview, annotation])
+
   return (
     <group position={worldPos}>
       <Html style={{ pointerEvents: 'none' }} zIndexRange={[80, 0]}>
-        <div style={{ position: 'relative' }}>
-          <div style={badgeStyle(open)} onClick={onToggle} title={open ? undefined : 'Open comments'}>
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
+          <div style={badgeStyle(creatorColor, open)} onClick={onToggle} title={open ? undefined : 'Open comments'}>
             💬 {annotation.entries.length}
           </div>
+
+          {/* Hover preview: unfolds to a capped height; "…" hints at cut-off
+              content. Click anywhere on it to open the full thread. */}
+          {!open && (
+            <div
+              style={{
+                ...panelStyle,
+                pointerEvents: showPreview ? 'auto' : 'none',
+                cursor: 'pointer',
+                maxHeight: showPreview ? PREVIEW_MAX_HEIGHT + (clipped ? 16 : 0) : 0,
+                opacity: showPreview ? 1 : 0,
+                border: showPreview ? panelStyle.border : 'none',
+                transition: 'max-height 0.2s ease, opacity 0.15s ease',
+              }}
+              onClick={onToggle}
+              title="Click to open the thread"
+            >
+              <div ref={previewInnerRef} style={{ maxHeight: PREVIEW_MAX_HEIGHT, overflow: 'hidden' }}>
+                {annotation.entries.map((entry, i) => (
+                  <EntryRow key={`${entry.created}-${i}`} entry={entry} clampComment />
+                ))}
+              </div>
+              {clipped && (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#999',
+                    lineHeight: '16px',
+                    height: 16,
+                    background: 'linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1) 60%)',
+                  }}
+                >
+                  …
+                </div>
+              )}
+            </div>
+          )}
+
           {open && (
             <div style={panelStyle} onPointerDown={e => e.stopPropagation()}>
               <div
@@ -196,6 +297,7 @@ const AnnotationMarker: React.FC<{
                   justifyContent: 'space-between',
                   padding: '6px 8px',
                   borderBottom: '1px solid #eee',
+                  borderTop: `3px solid ${creatorColor}`,
                   fontWeight: 600,
                 }}
               >
@@ -215,22 +317,11 @@ const AnnotationMarker: React.FC<{
               </div>
               <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                 {annotation.entries.map((entry, i) => (
-                  <div key={`${entry.created}-${i}`} style={{ padding: '6px 8px', borderBottom: '1px solid #f3f3f3' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontWeight: 600 }}>{entry.author || 'unnamed'}</span>
-                      <span style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-                        <span style={{ color: '#999', fontSize: 10 }}>{timeLabel(entry.created)}</span>
-                        <button
-                          style={iconButtonStyle}
-                          title="Remove this comment"
-                          onClick={() => removeAnnotationEntry(drawingId, annotation.id, i).catch(console.warn)}
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    </div>
-                    <div style={{ whiteSpace: 'pre-wrap', marginTop: 2 }}>{entry.comment}</div>
-                  </div>
+                  <EntryRow
+                    key={`${entry.created}-${i}`}
+                    entry={entry}
+                    onRemove={() => removeAnnotationEntry(drawingId, annotation.id, i).catch(console.warn)}
+                  />
                 ))}
               </div>
               <EntryForm
@@ -269,9 +360,18 @@ const DraftMarker: React.FC<{ drawingId: DrawingID; draft: AnnotationDraft }> = 
     <group position={worldPos}>
       <Html style={{ pointerEvents: 'none' }} zIndexRange={[80, 0]}>
         <div style={{ position: 'relative' }}>
-          <div style={badgeStyle(true)}>💬</div>
+          <div style={badgeStyle(authorColor(author), true)}>💬</div>
           <div style={panelStyle} onPointerDown={e => e.stopPropagation()}>
-            <div style={{ padding: '6px 8px', borderBottom: '1px solid #eee', fontWeight: 600 }}>New comment</div>
+            <div
+              style={{
+                padding: '6px 8px',
+                borderBottom: '1px solid #eee',
+                borderTop: `3px solid ${authorColor(author)}`,
+                fontWeight: 600,
+              }}
+            >
+              New comment
+            </div>
             <EntryForm author={author} onAuthor={setAuthor} onSubmit={submit} onCancel={clearAnnotationDraft} autoFocus />
           </div>
         </div>
