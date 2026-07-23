@@ -31,11 +31,10 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { SessionSharePanel } from './SessionSharePanel'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
+import { BroadcastCursor, FollowedCursor } from './canvas/SharedCursor'
 import {
-  BroadcastCursor,
   BroadcastViewpoint,
   FollowCamera,
-  FollowedCursor,
   RemoteViewpoints,
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'

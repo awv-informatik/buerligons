@@ -39,6 +39,9 @@ export const colorFor = (peerId: string): string => {
 export type CursorData = {
   point?: [number, number, number]
   active?: boolean
+  /** Pressed mouse buttons, PointerEvent.buttons bitmask (1=left, 2=right).
+   *  Lets receivers animate the cursor while the peer clicks or drags. */
+  buttons?: number
 }
 
 let viewpoints: Record<string, ViewData> = {}
