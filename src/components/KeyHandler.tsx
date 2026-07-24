@@ -1,12 +1,12 @@
 import { useBuerli, useDrawing } from '@buerli.io/react'
+import { sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
-import { useSessionRole } from '../session/sessionClient'
 import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './FileMenu'
 
 export const UndoRedoKeyHandler: React.FC = () => {
   const drId = useBuerli(buerli => buerli.drawing.active)!
   const states = useDrawing(drId, d => d.cad.states)
-  const readOnly = useSessionRole() === 'view'
+  const readOnly = sessionClient.useSessionRole() === 'view'
 
   const handleUndo = React.useCallback(() => {
     if (readOnly) return

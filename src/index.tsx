@@ -3,11 +3,9 @@ import { SocketIOClient, WASMClient, WSClient } from '@buerli.io/classcad'
 import 'antd/dist/antd.less'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { useRCadThemeMode } from '@buerli.io/react-cad'
+import { useRCadThemeMode, sessionClient, viewpoints } from '@buerli.io/react-cad'
 import { App } from './App'
 import { initBuerli } from './initBuerli'
-import { getInviteFromUrl, setSessionClient } from './session/sessionClient'
-import { syncViewpoints } from './session/viewpoints'
 import { Global } from './styles/Global'
 
 // @ts-ignore
@@ -22,13 +20,13 @@ initBuerli(id => {
   // Without an ?invite= token this client is the host of a fresh session;
   // with one it joins the shared session as a guest.
   if (wsClientUrl) {
-    const invite = getInviteFromUrl()
+    const invite = sessionClient.getInviteFromUrl()
     const client = new WSClient(wsClientUrl, id, { invite })
-    setSessionClient(client)
+    sessionClient.setSessionClient(client)
     // Attach the presence→store sync BEFORE connecting: viewpoint snapshots
     // arrive right after SessionJoined, typically before any React component
     // mounts. Attaching here avoids losing them.
-    syncViewpoints(client)
+    viewpoints.syncViewpoints(client)
     return client
   }
   if (classcadWasmKey) {

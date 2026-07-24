@@ -22,6 +22,7 @@ import {
   getCADState,
   sketchUtils,
   useOperationSequence,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
@@ -54,7 +55,6 @@ import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
 import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
 
-import { useSessionRole } from '../../../../session/sessionClient'
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
   getInteractionInfo,
@@ -548,7 +548,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   const drawing = getDrawing(drawingId)
   const prodClass = drawing.structure.tree[currentProduct]?.class || ''
   const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
-  const readOnly = useSessionRole() === 'view'
+  const readOnly = sessionClient.useSessionRole() === 'view'
 
   const camera = useThree(state => state.camera)
   const controls = useThree(state => state.controls as unknown as ControlsProto)
