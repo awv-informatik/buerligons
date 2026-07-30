@@ -172,7 +172,17 @@ const EntryForm: React.FC<{
     setComment('')
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: 8 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        padding: 8,
+        background: colors.bg,
+        color: colors.text,
+        borderTop: '1px solid rgba(0,0,0,0.08)',
+      }}
+    >
       <input
         style={inputStyle}
         placeholder="Your name"
@@ -258,8 +268,11 @@ const AnnotationMarker: React.FC<{
   const [clipped, setClipped] = React.useState(false)
   const previewInnerRef = React.useRef<HTMLDivElement>(null)
 
-  // Chip + thread surface = original creator (first entry's author).
+  // Chip + thread frame = original creator (first entry's author). The edit
+  // form at the bottom is the entry YOU are about to write, so it wears your
+  // own identity color (and follows along as you edit the name).
   const creator = authorColors(annotation.entries[0]?.author ?? '')
+  const mine = authorColors(author)
 
   const worldPos = React.useMemo(() => {
     const m = annotationWorldMatrix(drawingId, annotation.id)
@@ -351,7 +364,7 @@ const AnnotationMarker: React.FC<{
               </div>
               <EntryForm
                 author={author}
-                colors={creator}
+                colors={mine}
                 onAuthor={setAuthor}
                 onSubmit={text => addAnnotationEntry(drawingId, annotation.id, author.trim(), text).catch(console.warn)}
               />

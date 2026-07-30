@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { CursorData, sessionClient, viewpoints } from '@buerli.io/react-cad'
 
 const { useSessionClient } = sessionClient
-const { colorFor, useCursors, useFollow } = viewpoints
+const { identityColors, useCursors, useFollow } = viewpoints
 
 // Cursor sharing. The pointer is broadcast as a WORLD-SPACE point on the
 // sender's view plane (the plane through the orbit target, perpendicular to
@@ -119,7 +119,9 @@ export const FollowedCursor: React.FC = () => {
 
   const data = follow ? cursors[follow.peerId] : undefined
   const goal = React.useMemo(() => (data?.point ? new THREE.Vector3(...data.point) : null), [data])
-  const color = follow ? colorFor(follow.name || 'unnamed') : '#000'
+  // Same pastel pair as the peer's chips and name tag; the dark same-hue
+  // outline (instead of white) keeps the arrow readable on any background.
+  const colors = identityColors(follow?.name || 'unnamed')
   const visible = Boolean(follow && data?.active && goal)
 
   // Click animation: shrink while the peer holds a mouse button (left or
@@ -178,7 +180,13 @@ export const FollowedCursor: React.FC = () => {
             height="22"
             viewBox="0 0 24 24"
             style={{ display: 'block', transform: 'translate(-3px, -2px)', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
-            <path d="M5 3.5 L20.5 10.8 L8.5 16.5 Z" fill={color} stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" />
+            <path
+              d="M5 3.5 L20.5 10.8 L8.5 16.5 Z"
+              fill={colors.bg}
+              stroke={colors.text}
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
       </Html>

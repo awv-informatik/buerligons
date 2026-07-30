@@ -9,7 +9,7 @@ import { EditMode, useEditMode, useVisibleSolids, sessionClient, viewpoints, Vie
 
 const { getInviteFromUrl, useSessionClient } = sessionClient
 const {
-  colorFor,
+  identityColors,
   getFollow,
   getModelRadius,
   setFollow,
@@ -199,8 +199,12 @@ export const BroadcastViewpoint: React.FC = () => {
 const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId, data }) => {
   const invalidate = useThree(s => s.invalidate)
   // Keyed by the peer's display NAME (token name / 'Host'), so the same
-  // identity gets the same hue on every surface, annotations included.
-  const color = React.useMemo(() => colorFor(data.name || 'unnamed'), [data.name])
+  // identity gets the same colors on every surface, annotations included:
+  // the tag wears the pastel pair (exactly like a comment chip), the thin
+  // frustum lines the medium accent — a pastel line would vanish against
+  // the light viewport.
+  const colors = React.useMemo(() => identityColors(data.name || 'unnamed'), [data.name])
+  const color = colors.accent
 
   // A small perspective camera gives the classic "pyramid" frustum look —
   // it represents the viewpoint, it doesn't reproduce the ortho projection.
@@ -341,8 +345,9 @@ const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId,
             title={`View as ${data.name || 'unnamed'}`}
             style={{
               transform: 'translate(-50%, -140%)',
-              background: color,
-              color: '#fff',
+              background: colors.bg,
+              color: colors.text,
+              border: `1px solid ${colors.accent}`,
               padding: '2px 8px',
               borderRadius: 4,
               font: '11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
