@@ -159,31 +159,48 @@ export const startAnnotationDraft = (drawingId: DrawingID, targetId: number, wor
 // text on the white panel (no yellows at hostile lightness).
 // ---------------------------------------------------------------------------
 
-const AUTHOR_PALETTE = [
-  'hsl(354, 66%, 46%)', // red
-  'hsl(21, 78%, 42%)', // orange
-  'hsl(36, 85%, 34%)', // amber
-  'hsl(88, 55%, 33%)', // olive
-  'hsl(145, 55%, 32%)', // green
-  'hsl(172, 65%, 30%)', // teal
-  'hsl(196, 75%, 36%)', // cyan
-  'hsl(214, 70%, 45%)', // blue
-  'hsl(248, 55%, 50%)', // indigo
-  'hsl(281, 50%, 44%)', // purple
-  'hsl(316, 60%, 42%)', // magenta
-  'hsl(340, 65%, 47%)', // pink
+// [hue, saturation%, lightness%] — composed per use below.
+const AUTHOR_PALETTE: Array<[number, number, number]> = [
+  [354, 66, 46], // red
+  [21, 78, 42], // orange
+  [36, 85, 34], // amber
+  [88, 55, 33], // olive
+  [145, 55, 32], // green
+  [172, 65, 30], // teal
+  [196, 75, 36], // cyan
+  [214, 70, 45], // blue
+  [248, 55, 50], // indigo
+  [281, 50, 44], // purple
+  [316, 60, 42], // magenta
+  [340, 65, 47], // pink
 ]
 
-const NEUTRAL_AUTHOR_COLOR = 'hsl(0, 0%, 45%)'
-
-/** Deterministic palette color for an author name; same name = same color on
- *  every client and across sessions. Unnamed authors get a neutral gray. */
-export const authorColor = (author: string): string => {
+const paletteIndex = (author: string): number | null => {
   const key = (author || '').trim().toLowerCase()
-  if (!key) return NEUTRAL_AUTHOR_COLOR
+  if (!key) return null
   let h = 0
   for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
-  return AUTHOR_PALETTE[h % AUTHOR_PALETTE.length]
+  return h % AUTHOR_PALETTE.length
+}
+
+/** Deterministic palette color for an author name; same name = same color on
+ *  every client and across sessions. Unnamed authors get a neutral gray.
+ *  Dark enough for white text in both themes (chips, borders, swatches). */
+export const authorColor = (author: string): string => {
+  const i = paletteIndex(author)
+  if (i === null) return 'hsl(0, 0%, 45%)'
+  const [h, s, l] = AUTHOR_PALETTE[i]
+  return `hsl(${h}, ${s}%, ${l}%)`
+}
+
+/** The author color as TEXT color: in dark mode the base palette (tuned for
+ *  white-on-color) is too dark against the dark panel, so lift the lightness
+ *  and drop saturation a touch for readable colored names. */
+export const authorTextColor = (author: string, mode: 'light' | 'dark'): string => {
+  const i = paletteIndex(author)
+  if (i === null) return mode === 'dark' ? 'hsl(0, 0%, 65%)' : 'hsl(0, 0%, 45%)'
+  const [h, s, l] = AUTHOR_PALETTE[i]
+  return mode === 'dark' ? `hsl(${h}, ${Math.max(s - 10, 40)}%, ${Math.min(l + 28, 72)}%)` : `hsl(${h}, ${s}%, ${l}%)`
 }
 
 // ---------------------------------------------------------------------------

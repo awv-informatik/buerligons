@@ -9,6 +9,7 @@ import {
   AnnotationDraft,
   AnnotationEntry,
   authorColor,
+  authorTextColor,
   clearAnnotationDraft,
   createAnnotation,
   deleteAnnotation,
@@ -18,7 +19,7 @@ import {
   useAnnotationDraft,
   useAnnotations,
 } from '../../annotations/annotations'
-import { sessionClient } from '@buerli.io/react-cad'
+import { sessionClient, useRCadThemeMode } from '@buerli.io/react-cad'
 
 // Comment markers pinned to the model. Every CC_Annotation node in the tree
 // renders as a small badge at its (parent-relative) position, tinted with the
@@ -60,20 +61,22 @@ const panelStyle: React.CSSProperties = {
   left: 14,
   top: 14,
   width: 240,
-  background: 'rgba(255,255,255,0.97)',
-  border: '1px solid #ddd',
+  background: 'var(--rcad-bg, rgba(255,255,255,0.97))',
+  border: '1px solid var(--rcad-border, #ddd)',
   borderRadius: 8,
-  boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+  boxShadow: 'var(--rcad-box-shadow, 0 4px 16px rgba(0,0,0,0.25))',
   fontFamily: 'system-ui, sans-serif',
   fontSize: 12,
-  color: '#333',
+  color: 'var(--rcad-text, #333)',
   overflow: 'hidden',
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
   boxSizing: 'border-box',
-  border: '1px solid #ddd',
+  background: 'var(--rcad-input-bg, #fff)',
+  border: '1px solid var(--rcad-input-border, #ddd)',
+  color: 'var(--rcad-input-text, inherit)',
   borderRadius: 4,
   padding: '4px 6px',
   fontSize: 12,
@@ -95,7 +98,7 @@ const buttonStyle: React.CSSProperties = {
 const iconButtonStyle: React.CSSProperties = {
   border: 'none',
   background: 'transparent',
-  color: '#999',
+  color: 'var(--rcad-close-icon, #999)',
   cursor: 'pointer',
   fontSize: 12,
   lineHeight: 1,
@@ -117,13 +120,16 @@ const EntryRow: React.FC<{
   onRemove?: () => void
   clampComment?: boolean
 }> = ({ entry, onRemove, clampComment }) => {
-  const color = authorColor(entry.author)
+  const mode = useRCadThemeMode()
+  // Border/strip: base color (works on both themes). Name text: theme variant.
+  const stripColor = authorColor(entry.author)
+  const nameColor = authorTextColor(entry.author, mode)
   return (
-    <div style={{ padding: '6px 8px', borderBottom: '1px solid #f3f3f3', borderLeft: `3px solid ${color}` }}>
+    <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--rcad-border, #f3f3f3)', borderLeft: `3px solid ${stripColor}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontWeight: 600, color }}>{entry.author || 'unnamed'}</span>
+        <span style={{ fontWeight: 600, color: nameColor }}>{entry.author || 'unnamed'}</span>
         <span style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-          <span style={{ color: '#999', fontSize: 10 }}>{timeLabel(entry.created)}</span>
+          <span style={{ color: 'var(--rcad-text-secondary, #999)', fontSize: 10 }}>{timeLabel(entry.created)}</span>
           {onRemove && (
             <button style={iconButtonStyle} title="Remove this comment" onClick={onRemove}>
               ✕
@@ -189,7 +195,15 @@ const EntryForm: React.FC<{
       />
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
         {onCancel && (
-          <button style={{ ...buttonStyle, background: '#bbb' }} onClick={onCancel}>
+          <button
+            style={{
+              ...buttonStyle,
+              background: 'transparent',
+              border: '1px solid var(--rcad-input-border, #bbb)',
+              color: 'var(--rcad-text-secondary, #666)',
+            }}
+            onClick={onCancel}
+          >
             Cancel
           </button>
         )}
@@ -276,10 +290,10 @@ const AnnotationMarker: React.FC<{
                   style={{
                     textAlign: 'center',
                     fontWeight: 700,
-                    color: '#999',
+                    color: 'var(--rcad-text-secondary, #999)',
                     lineHeight: '16px',
                     height: 16,
-                    background: 'linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1) 60%)',
+                    background: 'linear-gradient(transparent, var(--rcad-bg, #fff) 60%)',
                   }}
                 >
                   …
@@ -296,7 +310,7 @@ const AnnotationMarker: React.FC<{
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 8px',
-                  borderBottom: '1px solid #eee',
+                  borderBottom: '1px solid var(--rcad-border, #eee)',
                   borderTop: `3px solid ${creatorColor}`,
                   fontWeight: 600,
                 }}
@@ -365,7 +379,7 @@ const DraftMarker: React.FC<{ drawingId: DrawingID; draft: AnnotationDraft }> = 
             <div
               style={{
                 padding: '6px 8px',
-                borderBottom: '1px solid #eee',
+                borderBottom: '1px solid var(--rcad-border, #eee)',
                 borderTop: `3px solid ${authorColor(author)}`,
                 fontWeight: 600,
               }}
