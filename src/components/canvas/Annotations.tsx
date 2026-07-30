@@ -114,8 +114,9 @@ const timeLabel = (ms: number): string => {
   return new Date(ms).toLocaleDateString()
 }
 
-/** One comment line: accent strip + author name in the issuer's dark tone
- *  (dark-on-pastel is readable for every hue pairing). */
+/** One comment block, fully surfaced in its ISSUER's pastel with the
+ *  matching dark text — threads with multiple commenters read as stacked
+ *  color blocks from the shared palette. */
 const EntryRow: React.FC<{
   entry: AnnotationEntry
   onRemove?: () => void
@@ -123,9 +124,9 @@ const EntryRow: React.FC<{
 }> = ({ entry, onRemove, clampComment }) => {
   const issuer = authorColors(entry.author)
   return (
-    <div style={{ padding: '6px 8px', borderBottom: '1px solid rgba(0,0,0,0.08)', borderLeft: `3px solid ${issuer.accent}` }}>
+    <div style={{ padding: '6px 8px', background: issuer.bg, color: issuer.text, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontWeight: 600, color: issuer.text }}>{entry.author || 'unnamed'}</span>
+        <span style={{ fontWeight: 600 }}>{entry.author || 'unnamed'}</span>
         <span style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
           <span style={{ opacity: 0.55, fontSize: 10 }}>{timeLabel(entry.created)}</span>
           {onRemove && (
@@ -293,16 +294,7 @@ const AnnotationMarker: React.FC<{
                 ))}
               </div>
               {clipped && (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    opacity: 0.7,
-                    lineHeight: '16px',
-                    height: 16,
-                    background: `linear-gradient(transparent, ${creator.bg} 60%)`,
-                  }}
-                >
+                <div style={{ textAlign: 'center', fontWeight: 700, opacity: 0.7, lineHeight: '16px', height: 16 }}>
                   …
                 </div>
               )}
