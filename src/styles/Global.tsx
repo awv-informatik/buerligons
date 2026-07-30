@@ -1,6 +1,6 @@
 import * as styled from 'styled-components'
 
-export const Global: any = styled.createGlobalStyle`
+export const Global: any = styled.createGlobalStyle<{ background: string; text: string; scrollbarThumb: string; scrollbarBorder: string }>`
   * {
     box-sizing: border-box;
   }
@@ -12,7 +12,7 @@ export const Global: any = styled.createGlobalStyle`
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: #ffffff;
+    background-color: ${p => p.background};
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -30,7 +30,7 @@ export const Global: any = styled.createGlobalStyle`
     position: fixed;
     overscroll-behavior-y: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif !important;
-    color: black;
+    color: ${p => p.text};
     -webkit-font-smoothing: antialiased;
   }
 
@@ -42,8 +42,8 @@ export const Global: any = styled.createGlobalStyle`
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgb(235, 235, 235);
+    background: ${p => p.scrollbarThumb};
     border-radius: 9px;
-    border: 4px solid white;
+    border: 4px solid ${p => p.scrollbarBorder};
   }
 `

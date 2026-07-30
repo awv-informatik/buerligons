@@ -11,12 +11,11 @@ import {
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
+import { Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
 import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
 
-import { useSessionRole } from '../session/sessionClient'
 import './FileMenu.css'
 
 type States = {
@@ -297,7 +296,7 @@ const SubGroup: React.FC<{ command: Command; forceDisabled?: boolean }> = ({ com
 
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const items = useMenuItems(drawingId)
-  const readOnly = useSessionRole() === 'view'
+  const readOnly = sessionClient.useSessionRole() === 'view'
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])

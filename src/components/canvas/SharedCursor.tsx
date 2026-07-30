@@ -2,8 +2,10 @@ import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
-import { useSessionClient } from '../../session/sessionClient'
-import { colorFor, CursorData, useCursors, useFollow } from '../../session/viewpoints'
+import { CursorData, sessionClient, viewpoints } from '@buerli.io/react-cad'
+
+const { useSessionClient } = sessionClient
+const { colorFor, useCursors, useFollow } = viewpoints
 
 // Cursor sharing. The pointer is broadcast as a WORLD-SPACE point on the
 // sender's view plane (the plane through the orbit target, perpendicular to

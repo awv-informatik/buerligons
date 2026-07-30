@@ -1,6 +1,6 @@
 import { EyeOutlined } from '@ant-design/icons'
 import React from 'react'
-import { clearFollow, useFollow } from '../session/viewpoints'
+import { viewpoints } from '@buerli.io/react-cad'
 
 /**
  * Notification shown while follow mode is active ("you are looking through
@@ -8,7 +8,7 @@ import { clearFollow, useFollow } from '../session/viewpoints'
  * the pose that was saved when follow mode was entered.
  */
 export const FollowBanner: React.FC = () => {
-  const follow = useFollow()
+  const follow = viewpoints.useFollow()
   if (!follow) return null
   return (
     <div
@@ -36,7 +36,7 @@ export const FollowBanner: React.FC = () => {
       </span>
       <button
         title="Back to your own view"
-        onClick={clearFollow}
+        onClick={viewpoints.clearFollow}
         style={{
           border: 'none',
           borderRadius: '50%',

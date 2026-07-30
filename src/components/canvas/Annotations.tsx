@@ -18,7 +18,7 @@ import {
   useAnnotationDraft,
   useAnnotations,
 } from '../../annotations/annotations'
-import { useSessionClient } from '../../session/sessionClient'
+import { sessionClient } from '@buerli.io/react-cad'
 
 // Comment markers pinned to the model. Every CC_Annotation node in the tree
 // renders as a small badge at its (parent-relative) position, tinted with the
@@ -204,7 +204,7 @@ const EntryForm: React.FC<{
 /** Prefill order: last used name (localStorage) → invite token name →
  *  'host' when sharing a session → empty. Always editable; edits stick. */
 const useDefaultAuthor = (): [string, (v: string) => void] => {
-  const client = useSessionClient()
+  const client = sessionClient.useSessionClient()
   const [author, setAuthor] = React.useState(() => getStoredAuthor() || client?.inviteName || (client ? 'host' : ''))
   const update = (v: string) => {
     setAuthor(v)

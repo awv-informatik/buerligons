@@ -3,11 +3,12 @@ import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
-import { getInviteFromUrl, useSessionClient } from '../../session/sessionClient'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { EditMode, useEditMode, useVisibleSolids } from '@buerli.io/react-cad'
-import {
+import { EditMode, useEditMode, useVisibleSolids, sessionClient, viewpoints, ViewData } from '@buerli.io/react-cad'
+
+const { getInviteFromUrl, useSessionClient } = sessionClient
+const {
   colorFor,
   getFollow,
   getModelRadius,
@@ -16,8 +17,7 @@ import {
   useFollow,
   useModelRadius,
   useViewpoints,
-  ViewData,
-} from '../../session/viewpoints'
+} = viewpoints
 
 // Shared viewpoints (Fusion-style): every client broadcasts its camera state
 // on the 'view' presence channel; siblings render it as a small camera

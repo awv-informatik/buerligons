@@ -34,6 +34,7 @@ import {
   Revolute,
   Revolve,
   Rotate,
+  SessionManagement,
   Sketch,
   Slice,
   SliceBySheet,
@@ -93,7 +94,7 @@ export const initBuerli = (
         },
       },
       elements,
-      globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor],
+      globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor, SessionManagement],
       plugins: {
         [ScgClassType.CCSketch]: Sketch,
         [ScgClassType.CCExtrusion]: Extrusion,

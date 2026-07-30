@@ -1,7 +1,7 @@
 import { DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
+import { sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
-import { getInviteFromUrl } from '../session/sessionClient'
 
 /**
  * Blocking overlay shown to a GUEST when their shared session ends — the host
@@ -15,7 +15,7 @@ import { getInviteFromUrl } from '../session/sessionClient'
  * a stale model. This gives them a clear, interaction-blocking end state.
  */
 export const GuestSessionOverlay: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
-  const isGuest = Boolean(getInviteFromUrl())
+  const isGuest = Boolean(sessionClient.getInviteFromUrl())
   const connected = useDrawing(drawingId, d => d.cad.connection.connected)
   const wasConnectedRef = React.useRef(false)
   const [ended, setEnded] = React.useState(false)

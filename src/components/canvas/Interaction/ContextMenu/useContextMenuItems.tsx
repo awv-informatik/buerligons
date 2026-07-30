@@ -13,6 +13,7 @@ import {
   BuerliScope,
   GeometryElement,
 } from '@buerli.io/core'
+import { useDrawing } from '@buerli.io/react'
 import {
   MenuElement,
   TreeObjScope,
@@ -21,6 +22,7 @@ import {
   getCADState,
   sketchUtils,
   useOperationSequence,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
@@ -51,9 +53,10 @@ import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
 import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
 import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
 import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
+import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
+import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
 
 import { startAnnotationDraft } from '../../../../annotations/annotations'
-import { useSessionRole } from '../../../../session/sessionClient'
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
   getInteractionInfo,
@@ -519,18 +522,42 @@ const stripMutatingItems = (els: MenuElement[]): MenuElement[] => {
   return out
 }
 
-export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
+const convertConstruction = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, value: boolean) => {
+  const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
+
   const drawing = getDrawing(drawingId)
-  const prodClass = drawing.structure.tree[drawing.structure.currentProduct || -1]?.class || ''
+  const tree = drawing.structure.tree
+  const interaction = drawing.interaction
+  const ids = interaction.selected?.map(info => info.objectId) || []
+  if (menuInfo.interactionInfo.objectId && ids.indexOf(menuInfo.interactionInfo.objectId) === -1) {
+    ids.push(menuInfo.interactionInfo.objectId)
+  }
+
+  const lineIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCLine) && sketchUtils.isConstruction(tree[id]) !== value)
+  const arcIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCArc) && sketchUtils.isConstruction(tree[id]) !== value)
+  const circleIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCCircle) && sketchUtils.isConstruction(tree[id]) !== value)
+  createApi(drawingId).v1.sketch.updateGeometry({
+    id: sketchId,
+    lines: lineIds.map(id => ({ id, isConstruction: value })),
+    arcsByCenter: arcIds.map(id => ({ id, isConstruction: value })),
+    circles: circleIds.map(id => ({ id, isConstruction: value })),
+  }).catch(console.warn)
+}
+
+export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
+  const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct) || -1
+
+  const drawing = getDrawing(drawingId)
+  const prodClass = drawing.structure.tree[currentProduct]?.class || ''
   const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
-  const readOnly = useSessionRole() === 'view'
+  const readOnly = sessionClient.useSessionRole() === 'view'
 
   const camera = useThree(state => state.camera)
   const controls = useThree(state => state.controls as unknown as ControlsProto)
 
   const boundsControls = useBounds()
 
-  const opSeqId = useOperationSequence(drawingId, drawing.structure.currentProduct || -1)
+  const opSeqId = useOperationSequence(drawingId, currentProduct)
 
   const multi = React.useRef<boolean>(false)
   React.useEffect(() => {
@@ -852,6 +879,27 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const sketchItem = [selectEl, { type: 'divider' }, ...sketch] as MenuElement[]
 
+    const curve = [
+      {
+        label: 'Convert to construction line',
+        icon: <MenuItemIcon url={constructionlineURL} />,
+        key: 'convertToConstruction',
+        onClick: (menuInfo: CanvasMenuInfo) => {
+          convertConstruction(drawingId, menuInfo, true)
+        },
+      },
+      {
+        label: 'Convert to solid line',
+        icon: <MenuItemIcon url={solidlineURL} />,
+        key: 'convertToSolid',
+        onClick: (menuInfo: CanvasMenuInfo) => {
+          convertConstruction(drawingId, menuInfo, false)
+        },
+      },
+      { type: 'divider' },
+      ...sketchItem
+    ] as MenuElement[]
+
     const workGeometry = [
       selectEl,
       { type: 'divider' },
@@ -920,19 +968,19 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         objType: ScgClassType.CCLine,
         headerName: 'Line',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
-        menuElements: sketchItem,
+        menuElements: curve,
       },
       {
         objType: ScgClassType.CCArc,
         headerName: 'Arc',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
-        menuElements: sketchItem,
+        menuElements: curve,
       },
       {
         objType: ScgClassType.CCCircle,
         headerName: 'Circle',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
-        menuElements: sketchItem,
+        menuElements: curve,
       },
       {
         objType: ScgClassType.CC2DConstraint,

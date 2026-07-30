@@ -7,6 +7,7 @@ import {
   HoveredConstraintDisplay,
   PluginGeometryBounds,
   useIsSketchActive,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
@@ -28,7 +29,6 @@ import { Disconnected } from './Disconnected'
 import { FileMenu } from './FileMenu'
 import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
-import { SessionSharePanel } from './SessionSharePanel'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
 import { BroadcastCursor, FollowedCursor } from './canvas/SharedCursor'
@@ -40,7 +40,6 @@ import {
 } from './canvas/SharedViewpoints'
 import { Annotations } from './canvas/Annotations'
 import { ViewCube } from './canvas/ViewCube'
-import { useSessionRole } from '../session/sessionClient'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
   ReactThreeFiber.PerspectiveCameraProps &
@@ -101,18 +100,18 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC = () => {
+export const Buerligons: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App /> : null
+  return drawingId ? <App>{children}</App> : null
 }
 
-export const App: React.FC = () => {
+export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
-  const readOnly = useSessionRole() === 'view'
+  const readOnly = sessionClient.useSessionRole() === 'view'
   useInteractionReset(drawingId)
   return (
     <>
@@ -157,11 +156,11 @@ export const App: React.FC = () => {
           {/* Comment threads pinned to the model (CC_Annotation objects in the
               ClassCAD tree) — persist with the file and sync to all clients. */}
           <Annotations drawingId={drawingId} />
+          {children}
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
       <Disconnected drawingId={drawingId} />
-      <SessionSharePanel />
       <GuestSessionOverlay drawingId={drawingId} />
       {readOnly && <ViewOnlyBadge />}
       <FollowBanner />
