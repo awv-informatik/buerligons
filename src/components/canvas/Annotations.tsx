@@ -8,8 +8,8 @@ import {
   annotationWorldMatrix,
   AnnotationDraft,
   AnnotationEntry,
-  authorColor,
-  authorTextColor,
+  authorColors,
+  AuthorColors,
   clearAnnotationDraft,
   createAnnotation,
   deleteAnnotation,
@@ -19,21 +19,22 @@ import {
   useAnnotationDraft,
   useAnnotations,
 } from '../../annotations/annotations'
-import { sessionClient, useRCadThemeMode } from '@buerli.io/react-cad'
+import { sessionClient } from '@buerli.io/react-cad'
 
 // Comment markers pinned to the model. Every CC_Annotation node in the tree
-// renders as a small badge at its (parent-relative) position, tinted with the
-// creator's identity color (derived from the author name, so it is stable
-// across clients and sessions). Hovering the badge unfolds an animated,
-// height-capped preview of the thread; clicking opens the full panel where
-// entries can be added or removed. Each comment row carries the color of its
-// issuer. A draft marker (from right-click -> Add comment) shows the same
-// editor before the ClassCAD object exists.
+// renders as a small badge at its (parent-relative) position, colored in the
+// creator's identity pastel (derived from the author name, so it is stable
+// across clients and sessions). Chip and thread use the pastel as SURFACE
+// with the matching dark same-hue text — contrast is built into the pair, so
+// the colored UI is independent of the app's light/dark theme. Hovering the
+// badge unfolds an animated, height-capped preview; clicking opens the full
+// panel. Each comment row carries the accent of its issuer. A draft marker
+// (from right-click -> Add comment) shows the same editor before the
+// ClassCAD object exists.
 
-const ACCENT = '#e36b7c'
 const PREVIEW_MAX_HEIGHT = 140
 
-const badgeStyle = (color: string, active: boolean): React.CSSProperties => ({
+const badgeStyle = (colors: AuthorColors, active: boolean): React.CSSProperties => ({
   pointerEvents: 'auto',
   cursor: 'pointer',
   minWidth: 22,
@@ -43,11 +44,11 @@ const badgeStyle = (color: string, active: boolean): React.CSSProperties => ({
   alignItems: 'center',
   justifyContent: 'center',
   gap: 3,
-  background: color,
-  color: '#fff',
-  border: '1.5px solid rgba(255,255,255,0.85)',
+  background: colors.bg,
+  color: colors.text,
+  border: `1.5px solid ${colors.accent}`,
   borderRadius: '11px 11px 11px 2px',
-  boxShadow: active ? `0 0 0 2px ${color}55, 0 2px 6px rgba(0,0,0,0.3)` : '0 2px 6px rgba(0,0,0,0.25)',
+  boxShadow: active ? `0 0 0 2px ${colors.accent}55, 0 2px 6px rgba(0,0,0,0.3)` : '0 2px 6px rgba(0,0,0,0.25)',
   fontSize: 11,
   fontWeight: 600,
   fontFamily: 'system-ui, sans-serif',
@@ -55,28 +56,28 @@ const badgeStyle = (color: string, active: boolean): React.CSSProperties => ({
   whiteSpace: 'nowrap',
 })
 
-const panelStyle: React.CSSProperties = {
+const panelStyle = (colors: AuthorColors): React.CSSProperties => ({
   pointerEvents: 'auto',
   position: 'absolute',
   left: 14,
   top: 14,
   width: 240,
-  background: 'var(--rcad-bg, rgba(255,255,255,0.97))',
-  border: '1px solid var(--rcad-border, #ddd)',
+  background: colors.bg,
+  border: `1px solid ${colors.accent}`,
   borderRadius: 8,
-  boxShadow: 'var(--rcad-box-shadow, 0 4px 16px rgba(0,0,0,0.25))',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
   fontFamily: 'system-ui, sans-serif',
   fontSize: 12,
-  color: 'var(--rcad-text, #333)',
+  color: colors.text,
   overflow: 'hidden',
-}
+})
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
   boxSizing: 'border-box',
-  background: 'var(--rcad-input-bg, #fff)',
-  border: '1px solid var(--rcad-input-border, #ddd)',
-  color: 'var(--rcad-input-text, inherit)',
+  background: 'rgba(255,255,255,0.65)',
+  border: '1px solid rgba(0,0,0,0.15)',
+  color: 'rgba(0,0,0,0.85)',
   borderRadius: 4,
   padding: '4px 6px',
   fontSize: 12,
@@ -86,8 +87,6 @@ const inputStyle: React.CSSProperties = {
 
 const buttonStyle: React.CSSProperties = {
   border: 'none',
-  background: ACCENT,
-  color: '#fff',
   borderRadius: 4,
   padding: '4px 10px',
   fontSize: 12,
@@ -98,7 +97,8 @@ const buttonStyle: React.CSSProperties = {
 const iconButtonStyle: React.CSSProperties = {
   border: 'none',
   background: 'transparent',
-  color: 'var(--rcad-close-icon, #999)',
+  color: 'inherit',
+  opacity: 0.55,
   cursor: 'pointer',
   fontSize: 12,
   lineHeight: 1,
@@ -114,22 +114,20 @@ const timeLabel = (ms: number): string => {
   return new Date(ms).toLocaleDateString()
 }
 
-/** One comment line: left border + author name in the issuer's color. */
+/** One comment line: accent strip + author name in the issuer's dark tone
+ *  (dark-on-pastel is readable for every hue pairing). */
 const EntryRow: React.FC<{
   entry: AnnotationEntry
   onRemove?: () => void
   clampComment?: boolean
 }> = ({ entry, onRemove, clampComment }) => {
-  const mode = useRCadThemeMode()
-  // Border/strip: base color (works on both themes). Name text: theme variant.
-  const stripColor = authorColor(entry.author)
-  const nameColor = authorTextColor(entry.author, mode)
+  const issuer = authorColors(entry.author)
   return (
-    <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--rcad-border, #f3f3f3)', borderLeft: `3px solid ${stripColor}` }}>
+    <div style={{ padding: '6px 8px', borderBottom: '1px solid rgba(0,0,0,0.08)', borderLeft: `3px solid ${issuer.accent}` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontWeight: 600, color: nameColor }}>{entry.author || 'unnamed'}</span>
+        <span style={{ fontWeight: 600, color: issuer.text }}>{entry.author || 'unnamed'}</span>
         <span style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-          <span style={{ color: 'var(--rcad-text-secondary, #999)', fontSize: 10 }}>{timeLabel(entry.created)}</span>
+          <span style={{ opacity: 0.55, fontSize: 10 }}>{timeLabel(entry.created)}</span>
           {onRemove && (
             <button style={iconButtonStyle} title="Remove this comment" onClick={onRemove}>
               ✕
@@ -159,11 +157,12 @@ const EntryRow: React.FC<{
 /** Author + comment inputs shared by the thread editor and the draft form. */
 const EntryForm: React.FC<{
   author: string
+  colors: AuthorColors
   onAuthor: (v: string) => void
   onSubmit: (comment: string) => void
   onCancel?: () => void
   autoFocus?: boolean
-}> = ({ author, onAuthor, onSubmit, onCancel, autoFocus }) => {
+}> = ({ author, colors, onAuthor, onSubmit, onCancel, autoFocus }) => {
   const [comment, setComment] = React.useState('')
   const submit = () => {
     const text = comment.trim()
@@ -199,15 +198,23 @@ const EntryForm: React.FC<{
             style={{
               ...buttonStyle,
               background: 'transparent',
-              border: '1px solid var(--rcad-input-border, #bbb)',
-              color: 'var(--rcad-text-secondary, #666)',
+              border: `1px solid ${colors.accent}`,
+              color: 'inherit',
             }}
             onClick={onCancel}
           >
             Cancel
           </button>
         )}
-        <button style={{ ...buttonStyle, opacity: comment.trim() ? 1 : 0.5 }} onClick={submit}>
+        <button
+          style={{
+            ...buttonStyle,
+            background: colors.text,
+            color: colors.bg,
+            opacity: comment.trim() ? 1 : 0.5,
+          }}
+          onClick={submit}
+        >
           Comment
         </button>
       </div>
@@ -238,8 +245,8 @@ const AnnotationMarker: React.FC<{
   const [clipped, setClipped] = React.useState(false)
   const previewInnerRef = React.useRef<HTMLDivElement>(null)
 
-  // Chip color = original creator (first entry's author).
-  const creatorColor = authorColor(annotation.entries[0]?.author ?? '')
+  // Chip + thread surface = original creator (first entry's author).
+  const creator = authorColors(annotation.entries[0]?.author ?? '')
 
   const worldPos = React.useMemo(() => {
     const m = annotationWorldMatrix(drawingId, annotation.id)
@@ -260,7 +267,7 @@ const AnnotationMarker: React.FC<{
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <div style={badgeStyle(creatorColor, open)} onClick={onToggle} title={open ? undefined : 'Open comments'}>
+          <div style={badgeStyle(creator, open)} onClick={onToggle} title={open ? undefined : 'Open comments'}>
             💬 {annotation.entries.length}
           </div>
 
@@ -269,12 +276,12 @@ const AnnotationMarker: React.FC<{
           {!open && (
             <div
               style={{
-                ...panelStyle,
+                ...panelStyle(creator),
                 pointerEvents: showPreview ? 'auto' : 'none',
                 cursor: 'pointer',
                 maxHeight: showPreview ? PREVIEW_MAX_HEIGHT + (clipped ? 16 : 0) : 0,
                 opacity: showPreview ? 1 : 0,
-                border: showPreview ? panelStyle.border : 'none',
+                border: showPreview ? `1px solid ${creator.accent}` : 'none',
                 transition: 'max-height 0.2s ease, opacity 0.15s ease',
               }}
               onClick={onToggle}
@@ -290,10 +297,10 @@ const AnnotationMarker: React.FC<{
                   style={{
                     textAlign: 'center',
                     fontWeight: 700,
-                    color: 'var(--rcad-text-secondary, #999)',
+                    opacity: 0.7,
                     lineHeight: '16px',
                     height: 16,
-                    background: 'linear-gradient(transparent, var(--rcad-bg, #fff) 60%)',
+                    background: `linear-gradient(transparent, ${creator.bg} 60%)`,
                   }}
                 >
                   …
@@ -303,15 +310,15 @@ const AnnotationMarker: React.FC<{
           )}
 
           {open && (
-            <div style={panelStyle} onPointerDown={e => e.stopPropagation()}>
+            <div style={panelStyle(creator)} onPointerDown={e => e.stopPropagation()}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 8px',
-                  borderBottom: '1px solid var(--rcad-border, #eee)',
-                  borderTop: `3px solid ${creatorColor}`,
+                  borderBottom: '1px solid rgba(0,0,0,0.08)',
+                  borderTop: `3px solid ${creator.accent}`,
                   fontWeight: 600,
                 }}
               >
@@ -340,6 +347,7 @@ const AnnotationMarker: React.FC<{
               </div>
               <EntryForm
                 author={author}
+                colors={creator}
                 onAuthor={setAuthor}
                 onSubmit={text => addAnnotationEntry(drawingId, annotation.id, author.trim(), text).catch(console.warn)}
               />
@@ -364,6 +372,8 @@ const DraftMarker: React.FC<{ drawingId: DrawingID; draft: AnnotationDraft }> = 
     ] as [number, number, number]
   }, [drawingId, draft])
 
+  const colors = authorColors(author)
+
   const submit = (text: string) => {
     createAnnotation(drawingId, draft.targetId, draft.position, author.trim(), text)
       .finally(clearAnnotationDraft)
@@ -374,19 +384,19 @@ const DraftMarker: React.FC<{ drawingId: DrawingID; draft: AnnotationDraft }> = 
     <group position={worldPos}>
       <Html style={{ pointerEvents: 'none' }} zIndexRange={[80, 0]}>
         <div style={{ position: 'relative' }}>
-          <div style={badgeStyle(authorColor(author), true)}>💬</div>
-          <div style={panelStyle} onPointerDown={e => e.stopPropagation()}>
+          <div style={badgeStyle(colors, true)}>💬</div>
+          <div style={panelStyle(colors)} onPointerDown={e => e.stopPropagation()}>
             <div
               style={{
                 padding: '6px 8px',
-                borderBottom: '1px solid var(--rcad-border, #eee)',
-                borderTop: `3px solid ${authorColor(author)}`,
+                borderBottom: '1px solid rgba(0,0,0,0.08)',
+                borderTop: `3px solid ${colors.accent}`,
                 fontWeight: 600,
               }}
             >
               New comment
             </div>
-            <EntryForm author={author} onAuthor={setAuthor} onSubmit={submit} onCancel={clearAnnotationDraft} autoFocus />
+            <EntryForm author={author} colors={colors} onAuthor={setAuthor} onSubmit={submit} onCancel={clearAnnotationDraft} autoFocus />
           </div>
         </div>
       </Html>

@@ -154,53 +154,37 @@ export const startAnnotationDraft = (drawingId: DrawingID, targetId: number, wor
 
 // ---------------------------------------------------------------------------
 // Author colors — stable identity color per author NAME (not per connection:
-// annotations persist with the model, peer ids do not). A curated palette
-// keeps every color dark enough for white chip text and readable as name
-// text on the white panel (no yellows at hostile lightness).
+// annotations persist with the model, peer ids do not).
 // ---------------------------------------------------------------------------
 
-// [hue, saturation%, lightness%] — composed per use below.
-const AUTHOR_PALETTE: Array<[number, number, number]> = [
-  [354, 66, 46], // red
-  [21, 78, 42], // orange
-  [36, 85, 34], // amber
-  [88, 55, 33], // olive
-  [145, 55, 32], // green
-  [172, 65, 30], // teal
-  [196, 75, 36], // cyan
-  [214, 70, 45], // blue
-  [248, 55, 50], // indigo
-  [281, 50, 44], // purple
-  [316, 60, 42], // magenta
-  [340, 65, 47], // pink
-]
+// Predefined pastel palette: each identity is a self-contained color PAIR -
+// a light pastel surface plus a dark same-hue text tone - so contrast is
+// built in and the colored chips/threads look identical under the app's
+// light and dark themes. The pick is random-looking but deterministic
+// (author-name hash), so every client and every session shows the same
+// color for the same author; a per-client random pick would diverge.
+const AUTHOR_HUES = [354, 21, 45, 88, 145, 172, 196, 214, 248, 281, 316, 340]
 
-const paletteIndex = (author: string): number | null => {
+export type AuthorColors = {
+  /** Light pastel surface (chip and thread background). */
+  bg: string
+  /** Medium tone for borders, strips and accents. */
+  accent: string
+  /** Dark same-hue tone - always readable on bg. */
+  text: string
+}
+
+export const authorColors = (author: string): AuthorColors => {
   const key = (author || '').trim().toLowerCase()
-  if (!key) return null
+  if (!key) return { bg: 'hsl(0, 0%, 88%)', accent: 'hsl(0, 0%, 60%)', text: 'hsl(0, 0%, 25%)' }
   let h = 0
   for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
-  return h % AUTHOR_PALETTE.length
-}
-
-/** Deterministic palette color for an author name; same name = same color on
- *  every client and across sessions. Unnamed authors get a neutral gray.
- *  Dark enough for white text in both themes (chips, borders, swatches). */
-export const authorColor = (author: string): string => {
-  const i = paletteIndex(author)
-  if (i === null) return 'hsl(0, 0%, 45%)'
-  const [h, s, l] = AUTHOR_PALETTE[i]
-  return `hsl(${h}, ${s}%, ${l}%)`
-}
-
-/** The author color as TEXT color: in dark mode the base palette (tuned for
- *  white-on-color) is too dark against the dark panel, so lift the lightness
- *  and drop saturation a touch for readable colored names. */
-export const authorTextColor = (author: string, mode: 'light' | 'dark'): string => {
-  const i = paletteIndex(author)
-  if (i === null) return mode === 'dark' ? 'hsl(0, 0%, 65%)' : 'hsl(0, 0%, 45%)'
-  const [h, s, l] = AUTHOR_PALETTE[i]
-  return mode === 'dark' ? `hsl(${h}, ${Math.max(s - 10, 40)}%, ${Math.min(l + 28, 72)}%)` : `hsl(${h}, ${s}%, ${l}%)`
+  const hue = AUTHOR_HUES[h % AUTHOR_HUES.length]
+  return {
+    bg: `hsl(${hue}, 70%, 86%)`,
+    accent: `hsl(${hue}, 50%, 60%)`,
+    text: `hsl(${hue}, 65%, 24%)`,
+  }
 }
 
 // ---------------------------------------------------------------------------
