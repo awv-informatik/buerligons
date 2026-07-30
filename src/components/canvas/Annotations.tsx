@@ -223,11 +223,23 @@ const EntryForm: React.FC<{
   )
 }
 
-/** Prefill order: last used name (localStorage) → invite token name →
- *  'host' when sharing a session → empty. Always editable; edits stick. */
+/** Prefill matches the name-tag convention: 'buerligons.username' override →
+ *  invite token name (guests) → 'Host'. Editable; an edit becomes the
+ *  username override, so name AND color stay consistent everywhere. */
 const useDefaultAuthor = (): [string, (v: string) => void] => {
   const client = sessionClient.useSessionClient()
-  const [author, setAuthor] = React.useState(() => getStoredAuthor() || client?.inviteName || (client ? 'host' : ''))
+  const isGuest = Boolean(sessionClient.getInviteFromUrl())
+  const tokenName = client?.inviteName || ''
+  const [author, setAuthor] = React.useState(
+    () => getStoredAuthor() || (isGuest ? tokenName || 'unnamed' : client ? 'Host' : ''),
+  )
+  // The token name arrives with SessionJoined, possibly after mount — adopt
+  // it as long as the user has neither typed nor stored an own name.
+  React.useEffect(() => {
+    if (isGuest && tokenName && !getStoredAuthor()) {
+      setAuthor(a => (!a || a === 'unnamed' ? tokenName : a))
+    }
+  }, [isGuest, tokenName])
   const update = (v: string) => {
     setAuthor(v)
     rememberAuthor(v)

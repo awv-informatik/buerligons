@@ -1,4 +1,6 @@
 import { getApiFacade } from '@buerli.io/classcad'
+import { viewpoints } from '@buerli.io/react-cad'
+import type { IdentityColors } from '@buerli.io/react-cad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import React, { useSyncExternalStore } from 'react'
@@ -153,45 +155,24 @@ export const startAnnotationDraft = (drawingId: DrawingID, targetId: number, wor
 }
 
 // ---------------------------------------------------------------------------
-// Author colors — stable identity color per author NAME (not per connection:
-// annotations persist with the model, peer ids do not).
+// Author colors — the shared identity palette from react-cad (keyed by the
+// display name), so comment chips/threads use the SAME hue as the author's
+// camera frustum, name tag, cursor and token swatch. Annotations use the
+// pastel bg/accent/text variants; the 3D elements use the solid variant.
 // ---------------------------------------------------------------------------
 
-// Predefined pastel palette: each identity is a self-contained color PAIR -
-// a light pastel surface plus a dark same-hue text tone - so contrast is
-// built in and the colored chips/threads look identical under the app's
-// light and dark themes. The pick is random-looking but deterministic
-// (author-name hash), so every client and every session shows the same
-// color for the same author; a per-client random pick would diverge.
-const AUTHOR_HUES = [354, 21, 45, 88, 145, 172, 196, 214, 248, 281, 316, 340]
+export type AuthorColors = IdentityColors
 
-export type AuthorColors = {
-  /** Light pastel surface (chip and thread background). */
-  bg: string
-  /** Medium tone for borders, strips and accents. */
-  accent: string
-  /** Dark same-hue tone - always readable on bg. */
-  text: string
-}
-
-export const authorColors = (author: string): AuthorColors => {
-  const key = (author || '').trim().toLowerCase()
-  if (!key) return { bg: 'hsl(0, 0%, 88%)', accent: 'hsl(0, 0%, 60%)', text: 'hsl(0, 0%, 25%)' }
-  let h = 0
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
-  const hue = AUTHOR_HUES[h % AUTHOR_HUES.length]
-  return {
-    bg: `hsl(${hue}, 70%, 86%)`,
-    accent: `hsl(${hue}, 50%, 60%)`,
-    text: `hsl(${hue}, 65%, 24%)`,
-  }
-}
+export const authorColors = (author: string): AuthorColors => viewpoints.identityColors(author)
 
 // ---------------------------------------------------------------------------
-// Author identity — last used name wins, session identity as first default.
+// Author identity — unified with the viewpoint name-tag convention: the
+// 'buerligons.username' localStorage override wins (and also renames the
+// user's camera tag), guests default to their invite token name, the host
+// to 'Host'. One name -> one color on every surface.
 // ---------------------------------------------------------------------------
 
-const AUTHOR_KEY = 'buerligons-comment-author'
+const AUTHOR_KEY = 'buerligons.username'
 
 export const getStoredAuthor = (): string => {
   try {

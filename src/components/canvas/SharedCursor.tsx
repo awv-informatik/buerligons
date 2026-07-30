@@ -119,7 +119,7 @@ export const FollowedCursor: React.FC = () => {
 
   const data = follow ? cursors[follow.peerId] : undefined
   const goal = React.useMemo(() => (data?.point ? new THREE.Vector3(...data.point) : null), [data])
-  const color = follow ? colorFor(follow.peerId) : '#000'
+  const color = follow ? colorFor(follow.name || 'unnamed') : '#000'
   const visible = Boolean(follow && data?.active && goal)
 
   // Click animation: shrink while the peer holds a mouse button (left or

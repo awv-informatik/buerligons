@@ -198,7 +198,9 @@ export const BroadcastViewpoint: React.FC = () => {
 /** One remote peer's viewpoint: a stylized camera frustum plus a name tag. */
 const ViewpointMarker: React.FC<{ peerId: string; data: ViewData }> = ({ peerId, data }) => {
   const invalidate = useThree(s => s.invalidate)
-  const color = React.useMemo(() => colorFor(peerId), [peerId])
+  // Keyed by the peer's display NAME (token name / 'Host'), so the same
+  // identity gets the same hue on every surface, annotations included.
+  const color = React.useMemo(() => colorFor(data.name || 'unnamed'), [data.name])
 
   // A small perspective camera gives the classic "pyramid" frustum look —
   // it represents the viewpoint, it doesn't reproduce the ortho projection.
