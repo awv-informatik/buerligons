@@ -14,6 +14,7 @@ import { useDrawing } from '@buerli.io/react'
 import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
 import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
+import { inflateRaw } from 'pako'
 import React from 'react'
 
 import './FileMenu.css'
@@ -81,11 +82,20 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
             encoding: 'base64',
           })
 
-          const content = res?.result?.content
+          const result = res?.result as { success: boolean; content?: string; compression?: string } | undefined
+          const content = result?.content
+          const compression = result?.compression
           if (content) {
-            const data = atob(content)
+            // Decode base64 to Uint8Array to preserve binary data
+            const binaryString = atob(content)
+            const decoded = new Uint8Array(binaryString.length)
+            for (let i = 0; i < binaryString.length; i++) {
+              decoded[i] = binaryString.charCodeAt(i)
+            }
+            // If compressed, inflate the data
+            const bytes = compression === 'deflate' ? inflateRaw(decoded) : decoded
             const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
+            link.href = window.URL.createObjectURL(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
             link.click()
           }
