@@ -68,7 +68,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   const save = React.useCallback(
-    (type: 'ofb' | 'stp' | 'stl') => {
+    (type: 'ofb' | 'stp' | 'stl' | 'usda') => {
       const run = async () => {
         try {
           const drawing = getDrawing(drawingId)
@@ -77,7 +77,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           name = name.substring(0, ptIndex >= 0 ? ptIndex : name.length)
 
           const res = await createApi(drawingId).v1.common.save({
-            format: type.toUpperCase() as 'OFB' | 'STP' | 'STL',
+            format: type.toUpperCase() as 'OFB' | 'STP' | 'STL' | 'USDA',
             encoding: 'base64',
           })
 
@@ -141,6 +141,10 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           stl: {
             caption: 'stl',
             callback: () => save('stl'),
+          },
+          usda: {
+            caption: 'usda',
+            callback: () => save('usda'),
           },
         },
       },
