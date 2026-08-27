@@ -38,7 +38,6 @@ import {
   RemoteViewpoints,
   SharedViewpointBounds,
 } from './canvas/SharedViewpoints'
-import { Annotations } from './canvas/Annotations'
 import { ViewCube } from './canvas/ViewCube'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -153,9 +152,6 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           <SharedViewpointBounds drawingId={drawingId} />
           <BroadcastCursor />
           <FollowedCursor />
-          {/* Comment threads pinned to the model (CC_Annotation objects in the
-              ClassCAD tree) — persist with the file and sync to all clients. */}
-          <Annotations drawingId={drawingId} />
           {children}
         </CanvasImpl>
         <UndoRedoKeyHandler />

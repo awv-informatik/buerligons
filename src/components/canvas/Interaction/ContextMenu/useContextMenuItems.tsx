@@ -30,7 +30,6 @@ import {
   ZoomInOutlined,
   VerticalAlignTopOutlined,
   BorderOuterOutlined,
-  CommentOutlined,
   DeleteOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
@@ -56,7 +55,6 @@ import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
 import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
 import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
 
-import { startAnnotationDraft } from '../../../../annotations/annotations'
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
   getInteractionInfo,
@@ -780,22 +778,6 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
     }
 
-    // Deliberately NOT in MUTATING_MENU_KEYS: view-only guests may comment
-    // (review is their job); the model-edit gate is unaffected.
-    const addCommentEl = {
-      label: 'Add comment',
-      icon: <CommentOutlined />,
-      key: 'addComment',
-      onClick: (menuInfo: CanvasMenuInfo) => {
-        // prodRefId is the instance in assembly mode; in part mode fall back
-        // to the current product (the part the clicked solid belongs to).
-        const targetId = menuInfo.interactionInfo.prodRefId || getDrawing(drawingId).structure.currentProduct
-        if (targetId) {
-          startAnnotationDraft(drawingId, targetId, menuInfo.clickInfo.clickPos)
-        }
-      },
-    } as MenuElement
-
     const graphic = [
       isPartMode ? editAppearanceEl : null,
       isPartMode ? null : fixEl,
@@ -833,8 +815,6 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           viewNormalToProduct(menuInfo, camera, controls, boundsControls)
         },
       },
-      { type: 'divider' },
-      addCommentEl,
       { type: 'divider' },
       {
         label: 'Delete',
