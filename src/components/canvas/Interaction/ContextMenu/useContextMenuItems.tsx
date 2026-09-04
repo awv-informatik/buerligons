@@ -115,6 +115,10 @@ const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
     return circleURL
   }
 
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCNurbs) || ccUtils.base.isA(treeObj.class, ScgClassType.CCInterpolationSpline) || ccUtils.base.isA(treeObj.class, ScgClassType.CCBezier)) {
+    return arcURL
+  }
+
   if (ccUtils.base.isA(treeObj.class, ScgClassType.CC2DConstraint)) {
     return constraintURL
   }
@@ -514,11 +518,17 @@ const convertConstruction = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, val
   const lineIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCLine) && sketchUtils.isConstruction(tree[id]) !== value)
   const arcIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCArc) && sketchUtils.isConstruction(tree[id]) !== value)
   const circleIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCCircle) && sketchUtils.isConstruction(tree[id]) !== value)
+  const nurbsIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCNurbs) && sketchUtils.isConstruction(tree[id]) !== value)
+  const intSplineIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCInterpolationSpline) && sketchUtils.isConstruction(tree[id]) !== value)
+  const bezierIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCBezier) && sketchUtils.isConstruction(tree[id]) !== value)
   createApi(drawingId).v1.sketch.updateGeometry({
     id: sketchId,
     lines: lineIds.map(id => ({ id, isConstruction: value })),
     arcsByCenter: arcIds.map(id => ({ id, isConstruction: value })),
     circles: circleIds.map(id => ({ id, isConstruction: value })),
+    nurbs: nurbsIds.map(id => ({ id, isConstruction: value })),
+    interpolationSplines: intSplineIds.map(id => ({ id, isConstruction: value })),
+    beziers: bezierIds.map(id => ({ id, isConstruction: value })),
   }).catch(console.warn)
 }
 
@@ -938,6 +948,24 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       {
         objType: ScgClassType.CCCircle,
         headerName: 'Circle',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: curve,
+      },
+      {
+        objType: ScgClassType.CCNurbs,
+        headerName: 'NURBS',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: curve,
+      },
+      {
+        objType: ScgClassType.CCInterpolationSpline,
+        headerName: 'Interpolation spline',
+        headerIcon: <MenuHeaderIcon url={sketchURL} />,
+        menuElements: curve,
+      },
+      {
+        objType: ScgClassType.CCBezier,
+        headerName: 'Bezier curve',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: curve,
       },
