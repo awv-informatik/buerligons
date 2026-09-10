@@ -1,4 +1,4 @@
-import { WSClient } from '@buerli.io/classcad'
+import { AwvNodeClient } from '@buerli.io/classcad'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
@@ -134,7 +134,7 @@ export const SharedViewpointBounds: React.FC<{ drawingId: DrawingID }> = ({ draw
 // Display name convention matches the token panel: guests are identified by
 // the NAME OF THE INVITE TOKEN they joined with ('unnamed' when the token has
 // no name), the host is 'Host'. A localStorage override wins if set.
-const displayName = (client: WSClient | null): string => {
+const displayName = (client: AwvNodeClient | null): string => {
   try {
     const stored = window.localStorage.getItem('buerligons.username')
     if (stored) return stored

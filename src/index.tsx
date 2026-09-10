@@ -30,7 +30,11 @@ initBuerli(id => {
     return client
   }
   if (classcadWasmKey) {
-    return new WASMClient(id, { classcadKey: classcadWasmKey })
+    // In-page engine: sharing works through MCP bridge tokens (WASMClient.createInvite);
+    // register it as the session client so the Session Management panel shows them.
+    const client = new WASMClient(id, { classcadKey: classcadWasmKey, app: 'buerligons' })
+    sessionClient.setSessionClient(client)
+    return client
   } else {
     return new SocketIOClient(socketIoUrl, id)
   }
