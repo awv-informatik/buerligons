@@ -11,7 +11,7 @@ import {
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
+import { Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
 import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
@@ -256,7 +256,7 @@ const FButton: React.FC<{ command: Command; disabled: boolean }> = ({ command, d
   )
 }
 
-const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
+const SubGroup: React.FC<{ command: Command; forceDisabled?: boolean }> = ({ command, forceDisabled }) => {
   const onClick = React.useCallback(
     (e: { key: string }) => {
       if (command.sub) {
@@ -279,13 +279,14 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
 
   const menuProps = { items: menuItems, onClick }
 
-  const disabled = command.sub && command.sub.length > 0 ? false : true
+  // Read-only guests may not undo/redo; otherwise the dropdown is disabled when empty.
+  const dropdownDisabled = forceDisabled || !(command.sub && command.sub.length > 0)
 
   return (
     <>
       <Button.Group style={{ top: '1px' }}>
-        <FButton command={command} disabled={disabled} />
-        <Dropdown overlayClassName="subgroup-dropdown" disabled={disabled} menu={menuProps}>
+        <FButton command={command} disabled={Boolean(forceDisabled) || dropdownDisabled} />
+        <Dropdown overlayClassName="subgroup-dropdown" disabled={dropdownDisabled} menu={menuProps}>
           <Button icon={<DownOutlined />} size="small" style={{ width: '14px' }} />
         </Dropdown>
       </Button.Group>
@@ -295,21 +296,25 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
 
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const items = useMenuItems(drawingId)
+  const readOnly = sessionClient.useSessionRole() === 'view'
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
 
+  // View-only guests keep export (save) but not create/open; undo/redo are off.
+  const menuItems = readOnly ? { save: items.save } : items
+
   return (
     <Space>
-      <Menu items={items} trigger={['click']}>
+      <Menu items={menuItems} trigger={['click']}>
         <MenuOutlined
           style={{
             width: '30px',
           }}
         />
       </Menu>
-      <SubGroup command={undoCmd} />
-      <SubGroup command={redoCmd} />
+      <SubGroup command={undoCmd} forceDisabled={readOnly} />
+      <SubGroup command={redoCmd} forceDisabled={readOnly} />
     </Space>
   )
 }

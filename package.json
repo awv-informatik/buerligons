@@ -8,6 +8,7 @@
   "scripts": {
     "clean": "rimraf ./build",
     "dev": "npm run start",
+    "dev:cli": "vite --mode cli",
     "start": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
@@ -86,7 +87,7 @@
     "rimraf": "^3.0.2",
     "typescript": "^5.1.6",
     "vite": "^4.4.8",
-    "vite-plugin-checker": "^0.6.1",
+    "vite-plugin-checker": "^0.8.0",
     "vite-plugin-svgr": "^3.2.0",
     "vite-tsconfig-paths": "^4.2.0",
     "webpack-bundle-analyzer": "^4.4.2"

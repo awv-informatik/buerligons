@@ -7,13 +7,20 @@ import svgrPlugin from 'vite-plugin-svgr'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
-export default () => {
-  const env = loadEnv('', process.cwd(), '')
+export default ({ mode }: { mode: string }) => {
+  // Mode-specific env files (.env.<mode>) overlay .env — e.g. `vite --mode cli`
+  // additionally loads .env.cli. Used instead of inline VAR=... env prefixes,
+  // which do not work on Windows (cmd.exe).
+  const env = loadEnv(mode, process.cwd(), '')
 
   return defineConfig({
+    resolve: {
+      dedupe: ['three', '@react-three/fiber', '@react-three/drei', 'react', 'react-dom'],
+    },
     define: {
       'CLASSCAD_WASM_KEY': JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
       'SOCKETIO_URL': JSON.stringify(env.SOCKETIO_URL ?? ''),
+      'WSCLIENT_URL': JSON.stringify(env.WSCLIENT_URL ?? ''),
     },
     build: {
       outDir: './build',
