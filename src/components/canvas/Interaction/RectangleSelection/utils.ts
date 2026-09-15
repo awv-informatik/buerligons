@@ -123,11 +123,7 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       return
     }
 
-    if (
-      ccUtils.base.isA(objClass, ScgClassType.CCNurbs) ||
-      ccUtils.base.isA(objClass, ScgClassType.CCInterpolationSpline) ||
-      ccUtils.base.isA(objClass, ScgClassType.CCBezier)
-    ) {
+    if (ccUtils.base.isA(objClass, ScgClassType.CCNurbs)) {
       const controlPointsMemb = sketchObj.members?.controlPoints as ScgArrayMem
       const knotsMemb = sketchObj.members?.knots as ScgArrayMem
 
