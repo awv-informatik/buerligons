@@ -17,12 +17,9 @@ import 'antd/dist/antd.css'
 import React from 'react'
 
 import './FileMenu.css'
+import { getCaption, getFilteredRedoStack, getFilteredUndoStack, redoNext, States, undoNext } from './undoRedo'
 
-type States = {
-  current: number
-  stack: string[]
-  captionMap: Record<string, { stateName: string; caption: string; undoable?: boolean }>
-}
+export { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './undoRedo'
 
 type Command = {
   label: string
@@ -149,38 +146,6 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   }, [createNewDrawing, save])
 }
 
-const getCaption = (state: string, states?: States): string => {
-  if (states?.captionMap) {
-    const key = Object.keys(states.captionMap).find(c => states.captionMap[c].stateName === state)
-    return key ? states.captionMap[key].caption : 'undefined caption'
-  }
-  return 'undefined caption'
-}
-
-const isUndoable = (stateName: string, states?: States): boolean => {
-  if (states?.captionMap) {
-    const key = Object.keys(states.captionMap).find(c => states.captionMap[c].stateName === stateName)
-    const state = key ? states.captionMap[key] : undefined
-    return state ? (state.undoable ? state.undoable : false) : false
-  }
-  return false
-}
-
-export const getFilteredUndoStack = (states: States): string[] => {
-  // filter for undoable and states older than current
-  return states.stack.filter(file => Number.parseInt(file) <= states.current && isUndoable(file, states))
-}
-
-export const undoNext = (drawingId: DrawingID, states: States, stack: string[]) => {
-  const index = stack.indexOf(states.current.toString())
-  if (index > -1) {
-    const stateToLoad = stack.at(index - 1)
-    stateToLoad && BuerliCadFacade.utils.undo(drawingId, stateToLoad)
-  } else {
-    BuerliCadFacade.utils.undo(drawingId)
-  }
-}
-
 const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   let undoCommands: Command[] = []
   let filteredStack: string[]
@@ -206,17 +171,6 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
     sub: [...undoCommands],
     icon: <ArrowLeftOutlined />,
     command: () => drawingId && states && undoNext(drawingId, states, filteredStack),
-  }
-}
-
-export const getFilteredRedoStack = (states: States): string[] => {
-  // filter for redoable and states newer than current
-  return states.stack.filter(file => Number.parseInt(file) > states.current && isUndoable(file, states))
-}
-
-export const redoNext = (drawingId: DrawingID, stack: string[]) => {
-  if (stack.length > 0) {
-    drawingId && BuerliCadFacade.utils.redo(drawingId, stack[0])
   }
 }
 

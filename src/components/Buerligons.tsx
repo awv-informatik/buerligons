@@ -99,12 +99,21 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App>{children}</App> : null
+export type BuerligonsProps = {
+  /**
+   * Header menu of the drawing. Omitted: the built-in file menu (new/open/save, undo/redo).
+   * `null`: no menu, for hosts that own the document lifecycle (e.g. an embedding PDM).
+   */
+  menu?: JSX.Element | null
+  children?: React.ReactNode
 }
 
-export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+export const Buerligons: React.FC<BuerligonsProps> = ({ menu, children }) => {
+  const drawingId = useBuerli(s => s.drawing.active || '')
+  return drawingId ? <App menu={menu}>{children}</App> : null
+}
+
+export const App: React.FC<BuerligonsProps> = ({ menu, children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
@@ -115,7 +124,11 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <>
       <PluginManager />
-      <Drawing drawingId={drawingId} readOnly={readOnly} Menu={<FileMenu drawingId={drawingId} />}>
+      <Drawing
+        drawingId={drawingId}
+        readOnly={readOnly}
+        Menu={menu === undefined ? <FileMenu drawingId={drawingId} /> : (menu ?? undefined)}
+      >
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault staticMoving rotateSpeed={2} />
           <Lights drawingId={drawingId} />
