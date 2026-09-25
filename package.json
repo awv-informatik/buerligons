@@ -13,7 +13,8 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "compile": "tsc",
-    "lint": "eslint \"./src/**/*.ts?(x)\""
+    "lint": "eslint \"./src/**/*.ts?(x)\"",
+    "build:embed": "tsc -p tsconfig.embed.json"
   },
   "engines": {
     "node": ">=16.14.0"

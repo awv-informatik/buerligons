@@ -1,7 +1,7 @@
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import { sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
-import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './FileMenu'
+import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './undoRedo'
 
 export const UndoRedoKeyHandler: React.FC = () => {
   const drId = useBuerli(buerli => buerli.drawing.active)!
