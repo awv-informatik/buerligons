@@ -126,31 +126,57 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
     if (ccUtils.base.isA(objClass, ScgClassType.CCNurbs)) {
       const controlPointsMemb = sketchObj.members?.controlPoints as ScgArrayMem
       const knotsMemb = sketchObj.members?.knots as ScgArrayMem
+      const weightsMemb = sketchObj.members?.weights as ScgArrayMem
 
       const controlPoints = controlPointsMemb?.members.map(memb => convertToVector(memb as ScgPointMem))
       const knots = knotsMemb.members.map(memb => memb.value as number)
+      const weights = weightsMemb.members.map(memb => memb.value as number)
+      const rational = weights !== undefined && !nurbsUtils.isUniformWeights(weights)
 
       const spans = []
       if (ccUtils.base.isA(sketchObj.class, ScgClassType.CCBezier)) {
-        const cx = nurbsUtils.getBezierCoefficients(...controlPoints.map(p => p.x))
-        const cy = nurbsUtils.getBezierCoefficients(...controlPoints.map(p => p.y))
         const px = controlPoints.map(p => p.x)
         const py = controlPoints.map(p => p.y)
+        const pw = controlPoints.map((_, i) => (rational ? (weights as number[])[i] : 1))
+        const cx = nurbsUtils.getBezierCoefficients(...px.map((x, i) => x * pw[i]))
+        const cy = nurbsUtils.getBezierCoefficients(...py.map((y, i) => y * pw[i]))
+        const cw = nurbsUtils.getBezierCoefficients(...pw)
 
-        spans.push({ cx, cy, px, py, tMin: 0, tMax: 1 })
+        spans.push({ cx, cy, cw, px, py, pw, tMin: 0, tMax: 1 })
       }
       else {
-        const beziers = controlPoints.length === 3 ? [controlPoints] : nurbsUtils.decomposeToBeziers(controlPoints, 3, knots)
-        const degree = controlPoints.length === 3 ? 2 : 3
-        const paramArr = knots.slice(degree, -degree)
-        beziers.forEach((bezier, i) => {
-          const px = bezier.map(p => p.x)
-          const py = bezier.map(p => p.y)
-          const cx = nurbsUtils.getBezierCoefficients(...px)
-          const cy = nurbsUtils.getBezierCoefficients(...py)
+        const degree = sketchObj.members?.degree.value as number
+        // Single Bézier segment when there are no interior knots.
+        const shortcut = controlPoints.length === degree + 1
+        // Distinct knot values are the segment boundaries after full decomposition.
+        const paramArr = Array.from(new Set(knots)).sort((a, b) => a - b)
 
-          spans.push({ cx, cy, px, py, tMin: paramArr[i], tMax: paramArr[i + 1] })
-        })
+        if (rational) {
+          const controlPointsH = nurbsUtils.homogenize(controlPoints, weights as number[])
+          const beziers = shortcut ? [controlPointsH] : nurbsUtils.decomposeToBeziers(controlPointsH, degree, knots)
+          beziers.forEach((hpts, i) => {
+            const projected = nurbsUtils.projectHomogeneous(hpts)
+            const px = projected.map(p => p.x)
+            const py = projected.map(p => p.y)
+            const pw = hpts.map(p => p.w)
+            const cx = nurbsUtils.getBezierCoefficients(...hpts.map(p => p.x))
+            const cy = nurbsUtils.getBezierCoefficients(...hpts.map(p => p.y))
+            const cw = nurbsUtils.getBezierCoefficients(...pw)
+            spans.push({ cx, cy, cw, px, py, pw, tMin: paramArr[i], tMax: paramArr[i + 1] })
+          })
+        } else {
+          const beziers = shortcut ? [controlPoints] : nurbsUtils.decomposeToBeziers(controlPoints, degree, knots)
+          beziers.forEach((pts, i) => {
+            const px = pts.map(p => p.x)
+            const py = pts.map(p => p.y)
+            const pw = pts.map(() => 1)
+            const cx = nurbsUtils.getBezierCoefficients(...px)
+            const cy = nurbsUtils.getBezierCoefficients(...py)
+            const cw = nurbsUtils.getBezierCoefficients(...pw)
+
+            spans.push({ cx, cy, cw, px, py, pw, tMin: paramArr[i], tMax: paramArr[i + 1] })
+          })
+        }
       }
 
       const startH = controlPoints[0].clone()
