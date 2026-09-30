@@ -22,6 +22,7 @@ import {
   getCADState,
   sketchUtils,
   useOperationSequence,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
@@ -500,6 +501,25 @@ const viewNormalToPlane = (
   boundsControls?.refresh().moveTo(position).lookAt({ target, up })
 }
 
+// Keys of the context-menu items that mutate the model; stripped for view-only guests.
+const MUTATING_MENU_KEYS = new Set(['editAppearance', 'fix', 'group', 'editProduct', 'delete', 'newSketch'])
+
+// Drops mutating items from a menu and collapses the dividers they leave behind.
+const stripMutatingItems = (els: MenuElement[]): MenuElement[] => {
+  const isDivider = (el: MenuElement) => Boolean(el) && (el as { type?: string }).type === 'divider'
+  const kept = (els || []).filter(el => {
+    const key = el ? (el as { key?: string }).key : undefined
+    return !(key && MUTATING_MENU_KEYS.has(key))
+  })
+  const out: MenuElement[] = []
+  for (const el of kept) {
+    if (isDivider(el) && (out.length === 0 || isDivider(out[out.length - 1]))) continue
+    out.push(el)
+  }
+  while (out.length && isDivider(out[out.length - 1])) out.pop()
+  return out
+}
+
 const convertConstruction = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, value: boolean) => {
   const sketchId = sketchUtils.getSketchId(drawingId, menuInfo.interactionInfo.objectId)
 
@@ -528,6 +548,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   const drawing = getDrawing(drawingId)
   const prodClass = drawing.structure.tree[currentProduct]?.class || ''
   const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
+  const readOnly = sessionClient.useSessionRole() === 'view'
 
   const camera = useThree(state => state.camera)
   const controls = useThree(state => state.controls as unknown as ControlsProto)
@@ -870,7 +891,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       zoomToFitEl,
     ] as MenuElement[]
 
-    return [
+    const descriptors: MenuDescriptor[] = [
       { objType: ScgGraphicType.POINT, ...grDescriptor },
       { objType: ScgGraphicType.CURVEPOINT, ...grDescriptor },
       { objType: ScgGraphicType.LINE, ...grDescriptor },
@@ -997,5 +1018,12 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         menuElements: workGeometry,
       },
     ]
-  }, [isPartMode, boundsControls, drawingId, opSeqId, camera, controls])
+
+    if (!readOnly) {
+      return descriptors
+    }
+    // View-only guest: keep the view items (select, hide/show, zoom, view-normal),
+    // drop everything that mutates the model.
+    return descriptors.map(d => ({ ...d, menuElements: stripMutatingItems(d.menuElements) }))
+  }, [isPartMode, boundsControls, drawingId, opSeqId, camera, controls, readOnly])
 }

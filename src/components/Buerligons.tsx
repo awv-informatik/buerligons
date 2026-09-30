@@ -7,6 +7,7 @@ import {
   HoveredConstraintDisplay,
   PluginGeometryBounds,
   useIsSketchActive,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
@@ -26,7 +27,17 @@ import {
 } from './canvas'
 import { Disconnected } from './Disconnected'
 import { FileMenu } from './FileMenu'
+import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
+import { FollowBanner } from './FollowBanner'
+import { ViewOnlyBadge } from './ViewOnlyBadge'
+import { BroadcastCursor, FollowedCursor } from './canvas/SharedCursor'
+import {
+  BroadcastViewpoint,
+  FollowCamera,
+  RemoteViewpoints,
+  SharedViewpointBounds,
+} from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -99,11 +110,12 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
+  const readOnly = sessionClient.useSessionRole() === 'view'
   useInteractionReset(drawingId)
   return (
     <>
       <PluginManager />
-      <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
+      <Drawing drawingId={drawingId} readOnly={readOnly} Menu={<FileMenu drawingId={drawingId} />}>
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault staticMoving rotateSpeed={2} />
           <Lights drawingId={drawingId} />
@@ -128,11 +140,26 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
+          {/* Shared session collaboration — always on, feature-based: each
+              piece is inert without a session client / peers and degrades
+              gracefully across clients (unknown presence channels are simply
+              ignored). Broadcast own camera + pointer, render the peers'
+              viewpoints, track a followed peer's camera (click its name tag)
+              and show its cursor while following. */}
+          <BroadcastViewpoint />
+          <RemoteViewpoints />
+          <FollowCamera />
+          <SharedViewpointBounds drawingId={drawingId} />
+          <BroadcastCursor />
+          <FollowedCursor />
           {children}
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
       <Disconnected drawingId={drawingId} />
+      <GuestSessionOverlay drawingId={drawingId} />
+      {readOnly && <ViewOnlyBadge />}
+      <FollowBanner />
     </>
   )
 }
