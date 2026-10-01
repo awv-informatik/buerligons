@@ -1,6 +1,6 @@
 import { useDrawing } from '@buerli.io/react'
 import React from 'react'
-import { EditorController, EditorStatus } from './EditorController'
+import { EditorController, EditorStatus, stateMarkerOf } from './EditorController'
 
 /** Current status of the controller, re-rendered on every change. */
 export const useEditorStatus = (controller: EditorController): EditorStatus => {
@@ -16,8 +16,8 @@ export const useEditorStatus = (controller: EditorController): EditorStatus => {
 export const useEditorDirty = (controller: EditorController): boolean => {
   const status = useEditorStatus(controller)
   const drawingId = status.drawingId ?? ''
-  const current = useDrawing(drawingId, d => d.cad.states.current)
-  return Boolean(status.drawingId) && status.savedState !== null && current !== undefined && current !== status.savedState
+  const current = useDrawing(drawingId, d => stateMarkerOf(d.cad.states))
+  return Boolean(status.drawingId) && status.savedState !== null && current !== undefined && current !== null && current !== status.savedState
 }
 
 /**

@@ -19,5 +19,15 @@ export { initBuerli } from '../initBuerli'
 export { Buerligons } from '../components/Buerligons'
 export type { BuerligonsProps } from '../components/Buerligons'
 export { EditorController, loadFormatOf } from './EditorController'
-export type { EditorLoadFormat, EditorSaveFormat, EditorSource, EditorState, EditorStatus } from './EditorController'
+export type {
+  EditorDefinition,
+  EditorLoadFormat,
+  EditorSaveFormat,
+  EditorSource,
+  EditorState,
+  EditorStatus,
+  ExportDefinitionOptions,
+  ExportedDefinition,
+  ExportedFile,
+} from './EditorController'
 export { useAutosave, useEditorDirty, useEditorStatus } from './hooks'
