@@ -50,7 +50,7 @@ const Chain = React.memo(
     const shade = useRCadThemeMode() === 'dark' ? '#08090b' : '#0f1320'
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {/* a little depth where faces meet: enough to read a corner, not enough to grey the paper */}
+        {/* a little depth where faces meet: enough to read a corner, not enough to dirty a face */}
         {ao && <N8AO aoRadius={36} halfRes intensity={1.1} distanceFalloff={1} screenSpaceRadius color={shade} />}
         <MultiOutline drawingId={drawingId} width={width} />
       </EffectComposer>

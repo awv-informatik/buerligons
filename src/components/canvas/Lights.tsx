@@ -9,10 +9,10 @@ const SHOULDER = new THREE.Vector3(-0.55, 0.75, 1)
 const offset = new THREE.Vector3()
 
 /**
- * The stage's light. A part is drawn as the paper it lies on, so the light's whole job is to say
- * which way a face looks: an even ground light, and one lamp that stays over the reader's shoulder
- * however the part is turned. The faces that look at the reader are paper; the ones that turn
- * away fall off a little, and no further.
+ * The stage's light. Its job is to make a body read as solid and to say which way a face looks:
+ * an even ground light, and one lamp that stays over the reader's shoulder however the part is
+ * turned. The face that looks at the lamp is the body's own tone, the ones that turn away fall
+ * off to about two thirds of it: three faces of a block are three clearly different greys.
  */
 export function Lights() {
   const lamp = React.useRef<THREE.DirectionalLight>(null!)
@@ -30,8 +30,8 @@ export function Lights() {
 
   return (
     <>
-      <ambientLight intensity={0.78} />
-      <directionalLight ref={lamp} intensity={0.3} />
+      <ambientLight intensity={0.68} />
+      <directionalLight ref={lamp} intensity={0.42} />
     </>
   )
 }
