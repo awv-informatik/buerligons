@@ -1,22 +1,10 @@
-import {
-  AppstoreOutlined,
-  FileOutlined,
-  FolderOpenOutlined,
-  MenuOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  DownOutlined,
-  SaveOutlined,
-} from '@ant-design/icons'
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
-import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
+import { Icon, IconName, Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
+import { Tooltip, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
-
-import './FileMenu.css'
 
 type States = {
   current: number
@@ -26,11 +14,19 @@ type States = {
 
 type Command = {
   label: string
-  icon?: any
+  icon?: IconName
   command: () => void
   sub?: Command[]
   stateId?: string
 }
+
+// a format a model is saved in, as a menu's row: what it is, and its file's ending
+const format = (name: string, ending: string) => (
+  <span className="rcad-menu-tool">
+    <span>{name}</span>
+    <code>.{ending}</code>
+  </span>
+)
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -101,17 +97,17 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   return React.useMemo(() => {
     return {
       new: {
-        caption: 'new',
-        icon: <FileOutlined />,
+        caption: 'New',
+        icon: <Icon name="plus" size={16} />,
         children: {
           part: {
-            caption: 'part',
-            icon: <FileOutlined />,
+            caption: 'Part',
+            icon: <Icon name="part" size={16} />,
             callback: () => createNewDrawing('Part'),
           },
           assembly: {
-            caption: 'assembly',
-            icon: <AppstoreOutlined />,
+            caption: 'Assembly',
+            icon: <Icon name="assembly" size={16} />,
             callback: () => createNewDrawing('Assembly'),
           },
         },
@@ -119,27 +115,27 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
       open: {
         caption: (
           <>
-            open
+            Open …
             <Readfile ref={rfRef} singleDrawingApp />
           </>
         ),
-        icon: <FolderOpenOutlined />,
+        icon: <Icon name="open" size={16} />,
         callback: () => rfRef.current && rfRef.current.click(),
       },
       save: {
-        caption: 'save',
-        icon: <SaveOutlined />,
+        caption: 'Save as',
+        icon: <Icon name="download" size={16} />,
         children: {
           ofb: {
-            caption: 'ofb',
+            caption: format('ClassCAD', 'ofb') as any,
             callback: () => save('ofb'),
           },
           stp: {
-            caption: 'stp',
+            caption: format('STEP', 'stp') as any,
             callback: () => save('stp'),
           },
           stl: {
-            caption: 'stl',
+            caption: format('STL', 'stl') as any,
             callback: () => save('stl'),
           },
         },
@@ -203,7 +199,7 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   return {
     label: 'Undo',
     sub: [...undoCommands],
-    icon: <ArrowLeftOutlined />,
+    icon: 'undo',
     command: () => drawingId && states && undoNext(drawingId, states, filteredStack),
   }
 }
@@ -241,22 +237,13 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
   return {
     label: 'Redo',
     sub: [...redoCommands],
-    icon: <ArrowRightOutlined />,
+    icon: 'redo',
     command: () => drawingId && redoNext(drawingId, filteredStack),
   }
 }
 
-const { Text } = Typography
-
-const FButton: React.FC<{ command: Command; disabled: boolean }> = ({ command, disabled }) => {
-  return (
-    <Tooltip title={command.label}>
-      <Button disabled={disabled} size="small" onClick={command.command} icon={command.icon} />
-    </Tooltip>
-  )
-}
-
-const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
+// Undo, or redo: the step itself, and behind the caret the steps it can go back (or forward) to.
+const History: React.FC<{ command: Command }> = ({ command }) => {
   const onClick = React.useCallback(
     (e: { key: string }) => {
       if (command.sub) {
@@ -272,7 +259,7 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
     command.sub?.map(
       subCmd =>
         ({
-          label: <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>,
+          label: subCmd.label,
           key: subCmd.stateId,
         }) as MenuItem,
     ) || []
@@ -282,17 +269,32 @@ const SubGroup: React.FC<{ command: Command }> = ({ command }) => {
   const disabled = command.sub && command.sub.length > 0 ? false : true
 
   return (
-    <>
-      <Button.Group style={{ top: '1px' }}>
-        <FButton command={command} disabled={disabled} />
-        <Dropdown overlayClassName="subgroup-dropdown" disabled={disabled} menu={menuProps}>
-          <Button icon={<DownOutlined />} size="small" style={{ width: '14px' }} />
-        </Dropdown>
-      </Button.Group>
-    </>
+    <span className="rcad-split">
+      <Tooltip title={command.label} placement="bottom" mouseEnterDelay={0.35}>
+        {/* (a span: a tooltip does not show over a button that is disabled) */}
+        <span style={{ display: 'inline-flex' }}>
+          <button
+            type="button"
+            className="rcad-tool"
+            aria-label={command.label}
+            disabled={disabled}
+            onClick={command.command}>
+            {command.icon && <Icon name={command.icon} size={18} />}
+          </button>
+        </span>
+      </Tooltip>
+      <Dropdown disabled={disabled} menu={menuProps} trigger={['click']} placement="bottomLeft">
+        <button type="button" className="rcad-caret" aria-label={`${command.label}: steps`} disabled={disabled}>
+          <Icon name="caret" size={8} />
+        </button>
+      </Dropdown>
+    </span>
   )
 }
 
+/**
+ * What leads the app's bar: the file menu (new, open, save), then undo and redo.
+ */
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const items = useMenuItems(drawingId)
   const states = useDrawing(drawingId, d => d.cad.states)
@@ -300,16 +302,16 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
 
   return (
-    <Space>
-      <Menu items={items} trigger={['click']}>
-        <MenuOutlined
-          style={{
-            width: '30px',
-          }}
-        />
+    <>
+      <Menu items={items} trigger={['click']} placement="bottomLeft">
+        <button type="button" className="rcad-tool rcad-tool-text" aria-label="File">
+          <Icon name="menu" size={18} />
+          <span>File</span>
+        </button>
       </Menu>
-      <SubGroup command={undoCmd} />
-      <SubGroup command={redoCmd} />
-    </Space>
+      <span className="rcad-tools-sep" />
+      <History command={undoCmd} />
+      <History command={redoCmd} />
+    </>
   )
 }

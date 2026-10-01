@@ -1,27 +1,39 @@
-import { DrawingID } from '@buerli.io/core'
-import { useDrawing } from '@buerli.io/react'
+import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'
+import * as THREE from 'three'
 
-export function Lights({ drawingId }: { drawingId: DrawingID }) {
-  const bounds = useDrawing(drawingId, drawing => drawing.geometry.bounds)
-  const factor = React.useMemo(() => (bounds ? bounds.radius : 25) * 4, [bounds])
-  return factor ? (
+type ControlsProto = { target: THREE.Vector3 }
+
+// where the lamp sits, as the reader sees it: over their left shoulder
+const SHOULDER = new THREE.Vector3(-0.55, 0.75, 1)
+const offset = new THREE.Vector3()
+
+/**
+ * The stage's light. A part is drawn as the paper it lies on, so the light's whole job is to say
+ * which way a face looks: an even ground light, and one lamp that stays over the reader's shoulder
+ * however the part is turned. The faces that look at the reader are paper; the ones that turn
+ * away fall off a little, and no further.
+ */
+export function Lights() {
+  const lamp = React.useRef<THREE.DirectionalLight>(null!)
+  const controls = useThree(state => state.controls as unknown as ControlsProto | null)
+
+  useFrame(({ camera }) => {
+    if (!lamp.current) return
+    const target = controls?.target ?? lamp.current.target.position
+    const distance = Math.max(camera.position.distanceTo(target), 1)
+    offset.copy(SHOULDER).normalize().multiplyScalar(distance).applyQuaternion(camera.quaternion)
+    lamp.current.position.copy(target).add(offset)
+    lamp.current.target.position.copy(target)
+    lamp.current.target.updateMatrixWorld()
+  }, -2)
+
+  return (
     <>
-      <hemisphereLight intensity={0.5} />
-      <ambientLight intensity={0.5} />
-      <spotLight
-        castShadow
-        intensity={0.6}
-        angle={0.3}
-        distance={factor * 2}
-        shadow-camera-far={factor * 2}
-        penumbra={1}
-        position={[factor / 2, factor / 2, factor / 2]}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
+      <ambientLight intensity={0.78} />
+      <directionalLight ref={lamp} intensity={0.3} />
     </>
-  ) : null
+  )
 }
 
 export default Lights

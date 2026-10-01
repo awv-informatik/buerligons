@@ -3,7 +3,7 @@ import { SocketIOClient, WASMClient } from '@buerli.io/classcad'
 import 'antd/dist/antd.less'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { useRCadThemeMode } from '@buerli.io/react-cad'
+import { useRCadTheme } from '@buerli.io/react-cad'
 import { App } from './App'
 import { initBuerli } from './initBuerli'
 import { Global } from './styles/Global'
@@ -21,21 +21,16 @@ initBuerli(id => {
   }
 })
 
-const globalColors = {
-  light: { background: '#ffffff', text: 'black', scrollbarThumb: 'rgb(235, 235, 235)', scrollbarBorder: 'white' },
-  dark: { background: '#1a1a1a', text: '#e0e0e0', scrollbarThumb: 'rgb(60, 60, 60)', scrollbarBorder: '#1a1a1a' },
-}
-
+// The page takes the app's own colours: the stage's ground, the theme's ink.
 const ThemedApp: React.FC = () => {
-  const mode = useRCadThemeMode()
-  const colors = globalColors[mode]
+  const theme = useRCadTheme()
   return (
     <>
       <Global
-        background={colors.background}
-        text={colors.text}
-        scrollbarThumb={colors.scrollbarThumb}
-        scrollbarBorder={colors.scrollbarBorder}
+        background={theme.viewport}
+        text={theme.ink}
+        scrollbarThumb={theme.scrollbarThumb}
+        scrollbarBorder="transparent"
       />
       <App />
     </>

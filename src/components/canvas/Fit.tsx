@@ -26,6 +26,16 @@ function DefaultBounds({ drawingId }: { drawingId: DrawingID }) {
   ) : null
 }
 
+// Where a drawing is first looked at from: the iso pose every drawing of the family is in, from the
+// front right and above (azimuth 38°, elevation 35.26°; front is -Y, up is Z).
+const AZIMUTH = (38 * Math.PI) / 180
+const ELEVATION = Math.atan(Math.SQRT1_2)
+const ISO = new THREE.Vector3(
+  Math.sin(AZIMUTH) * Math.cos(ELEVATION),
+  -Math.cos(AZIMUTH) * Math.cos(ELEVATION),
+  Math.sin(ELEVATION),
+)
+
 const defaultCCBounds = { center: new THREE.Vector3(), radius: 200, min: new THREE.Vector3(-100, -100, -100), max: new THREE.Vector3(100, 100, 100) }
 
 const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
@@ -38,7 +48,7 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
 
   const margin = 1.2
 
-  // Set camera on top of the model after loading / product type change (Part <---> Assembly)
+  // Look at the model from the family's iso pose after loading / product type change (Part <---> Assembly)
   React.useEffect(() => {
     const drawing = getDrawing(drawingId)
     const curProd = drawing.structure.currentProduct as ObjectID
@@ -51,8 +61,8 @@ const BoundsControls: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
     }
 
     const target = ccBounds.center
-    const up = new THREE.Vector3(0, 1, 0)
-    const position = new THREE.Vector3(0, 0, ccBounds.radius * margin * 4).add(target)
+    const up = new THREE.Vector3(0, 0, 1)
+    const position = ISO.clone().multiplyScalar(ccBounds.radius * margin * 4).add(target)
     const bb = new THREE.Box3(ccBounds.min, ccBounds.max)
 
     bounds?.refresh(bb).moveTo(position).lookAt({ target, up }).fit().clip()

@@ -25,34 +25,7 @@ import {
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
-import {
-  ZoomInOutlined,
-  VerticalAlignTopOutlined,
-  BorderOuterOutlined,
-  DeleteOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
-  SelectOutlined,
-  BgColorsOutlined,
-} from '@ant-design/icons'
-
-import partURL from '@buerli.io/icons/SVG/part.svg'
-import arcURL from '@buerli.io/icons/SVG/arc-center.svg'
-import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
-import circleURL from '@buerli.io/icons/SVG/circle-center-radius.svg'
-import constraintURL from '@buerli.io/icons/SVG/dimension.svg'
-import fastenedURL from '@buerli.io/icons/SVG/fastened.svg'
-import groupURL from '@buerli.io/icons/SVG/group.svg'
-import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
-import lineURL from '@buerli.io/icons/SVG/line.svg'
-import pointURL from '@buerli.io/icons/SVG/point.svg'
-import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
-import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
-import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
-import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
-import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
-import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
-import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
+import { Icon, iconRef } from '@buerli.io/react-cad'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
@@ -65,6 +38,34 @@ import {
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry } from '../utils'
+
+// the drawings of what a menu can be on, and of what its rows do
+const partURL = iconRef('part')
+const arcURL = iconRef('arcCenter')
+const assemblyURL = iconRef('assembly')
+const circleURL = iconRef('circleCenter')
+const constraintURL = iconRef('dimLinear')
+const fastenedURL = iconRef('fastened')
+const groupURL = iconRef('group')
+const isometricURL = iconRef('solid')
+const lineURL = iconRef('line')
+const pointURL = iconRef('point')
+const sketchURL = iconRef('sketch')
+const workpointURL = iconRef('workPoint')
+const workaxisURL = iconRef('workAxis')
+const workplaneURL = iconRef('workPlane')
+const workcsysURL = iconRef('workCSys')
+const solidlineURL = iconRef('solidLine')
+const constructionlineURL = iconRef('constructionLine')
+
+const ZoomInOutlined = () => <Icon name="zoomFit" size={16} />
+const VerticalAlignTopOutlined = () => <Icon name="viewNormal" size={16} />
+const BorderOuterOutlined = () => <Icon name="zoomFit" size={16} />
+const DeleteOutlined = () => <Icon name="trash" size={16} />
+const EyeInvisibleOutlined = () => <Icon name="eyeOff" size={16} />
+const EyeOutlined = () => <Icon name="eye" size={16} />
+const SelectOutlined = () => <Icon name="select" size={16} />
+const BgColorsOutlined = () => <Icon name="appearance" size={16} />
 
 type ControlsProto = {
   update(): void

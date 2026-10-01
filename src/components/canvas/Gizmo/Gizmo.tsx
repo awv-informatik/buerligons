@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { createApi } from '@buerli.io/classcad'
 import { DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { GlobalTransform } from '@buerli.io/react'
-import { HUD } from '@buerli.io/react-cad'
+import { HUD, useStage } from '@buerli.io/react-cad'
 import { PivotControls } from '@react-three/drei'
 
 import { findInteractableParent } from './utils'
@@ -18,6 +18,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   productId,
   matrix,
 }) => {
+  const stage = useStage()
   const dragInfo = React.useRef<{ mPInv: THREE.Matrix4; mL0CInv: THREE.Matrix4 } | null>(null)
   const mdL = React.useRef<THREE.Matrix4 | null>(null)
   const isBlocked = React.useRef<boolean>(false)
@@ -144,7 +145,10 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       <GlobalTransform drawingId={drawingId} objectId={productId}>
         <PivotControls
           scale={96}
-          lineWidth={5}
+          lineWidth={3.5}
+          // the triad's three colours; the highlight under the hand
+          axisColors={[stage.axisX, stage.axisY, stage.axisZ]}
+          hoveredColor={stage.select}
           fixed
           onDragStart={onDragStart}
           onDrag={onDrag}

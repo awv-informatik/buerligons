@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { createApi, init, ScgClassType, SocketIOClient, WASMClient } from '@buerli.io/classcad'
 import { DrawingID } from '@buerli.io/core'
-import { elements } from '@buerli.io/react'
 import {
   AppearanceEditor,
   Boolean as BooleanPlg,
@@ -15,6 +14,7 @@ import {
   Cylinder,
   Cylindrical,
   Dimensions,
+  elements,
   EntityDeletion,
   Expressions,
   Extrusion,
@@ -22,6 +22,7 @@ import {
   FastenedOrigin,
   Fillet,
   Gear,
+  getStage,
   Group,
   Import,
   LinearPattern,
@@ -55,6 +56,8 @@ export const initBuerli = (
   },
 ) => {
   console.info('initBuerli')
+  // The stage's colours are the theme's (and follow it: the app's frame keeps the edges in step).
+  const stage = getStage()
   init(
     id => {
       const socket = callback(id)
@@ -78,17 +81,17 @@ export const initBuerli = (
     },
     {
       theme: {
-        primary: '#e36b7c',
-        secondary: '#fcc7cb',
-        dark: '#a0a0a0',
-        highlightedGeom: '#e36b7c',
-        hoveredGeom: '#40a9ff',
+        primary: stage.pick,
+        secondary: stage.hover,
+        dark: stage.datum,
+        highlightedGeom: stage.select,
+        hoveredGeom: stage.hover,
       },
       config: {
         geometry: {
           disabled: false,
-          edges: { hidden: false, opacity: 1.0, color: 'black' },
-          points: { hidden: true, opacity: 1.0, color: 'black' },
+          edges: { hidden: false, opacity: 1.0, color: stage.edge },
+          points: { hidden: true, opacity: 1.0, color: stage.edge },
           // meshes: { hidden: false, opacity: 1.0, wireframe: false },
         },
       },

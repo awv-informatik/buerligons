@@ -1,34 +1,18 @@
-import { AppstoreOutlined, FileOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons'
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
-import { Readfile, useRCadThemeMode, setRCadThemeMode } from '@buerli.io/react-cad'
-import { Button, Dropdown, Space, MenuProps, Tooltip } from 'antd'
-import 'antd/dist/antd.css'
+import { AppStyle, Icon, IconName, Readfile, ThemeToggle } from '@buerli.io/react-cad'
 import React from 'react'
 import styled from 'styled-components'
 
 import { SimpleMessage } from './SimpleMessage'
 
-const welcomeColors = {
-  light: {
-    logoText: '#565656',
-    dotLight: 'rgba(255, 255, 255, 0.35)',
-    dotDark: 'rgba(0, 0, 0, 0.2)',
-    gradientInner: '#f5f5f5',
-    gradientOuter: '#eaeaea',
-  },
-  dark: {
-    logoText: '#c0c0c0',
-    dotLight: 'rgba(255, 255, 255, 0.05)',
-    dotDark: 'rgba(0, 0, 0, 0.4)',
-    gradientInner: '#242424',
-    gradientOuter: '#1a1a1a',
-  },
-}
+type Start = { key: string; icon: IconName; name: string; note: string; run: () => void }
 
+/**
+ * What the app opens with while it holds no drawing: a sheet of squared-off paper, and on it the
+ * three ways a drawing starts.
+ */
 export const WelcomePage: React.FC = () => {
   const rfRef = React.useRef<HTMLInputElement>()
-  const mode = useRCadThemeMode()
-  const colors = welcomeColors[mode]
 
   const createPart = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()
@@ -37,127 +21,185 @@ export const WelcomePage: React.FC = () => {
 
   const createAssembly = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()
-    newDrawingId &&
-      (await createApi(newDrawingId).v1.assembly.create({ name: 'Assembly' }).catch(console.info))
+    newDrawingId && (await createApi(newDrawingId).v1.assembly.create({ name: 'Assembly' }).catch(console.info))
   }, [])
 
   const openFile = React.useCallback(() => {
     rfRef.current && rfRef.current.click()
   }, [])
 
-  const onClick = React.useCallback(
-    (e: { key: string }) => {
-      if (e.key === 'Part') {
-        createPart()
-      } else {
-        createAssembly()
-      }
-    },
-    [createPart, createAssembly],
-  )
-
-  const menuItems: MenuProps['items'] = [
-    { label: 'Part', key: 'Part', icon: <FileOutlined /> },
-    { label: 'Assembly', key: 'Assembly', icon: <AppstoreOutlined /> },
+  const starts: Start[] = [
+    { key: 'part', icon: 'part', name: 'New part', note: 'part.create', run: createPart },
+    { key: 'assembly', icon: 'assembly', name: 'New assembly', note: 'assembly.create', run: createAssembly },
+    { key: 'open', icon: 'open', name: 'Open a file', note: '.ofb  .stp  .step  .iwp', run: openFile },
   ]
 
-  const menuProps = { items: menuItems, onClick }
-
   return (
-    <>
-      <Logo $color={colors.logoText}>buerligons</Logo>
-      <ThemeToggleWrap>
-        <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-          <Button
-            shape="circle"
-            onClick={() => setRCadThemeMode(mode === 'light' ? 'dark' : 'light')}
-            icon={mode === 'light' ? <BulbOutlined /> : <BulbFilled />}
-          />
-        </Tooltip>
-      </ThemeToggleWrap>
-      <Main $dotLight={colors.dotLight} $dotDark={colors.dotDark} $gradientInner={colors.gradientInner} $gradientOuter={colors.gradientOuter}>
-        <Dropdown menu={menuProps}>
-          <WideButton type="primary">
-            <Space>Create New ...</Space>
-          </WideButton>
-        </Dropdown>
-        <WideButtonSecondary $dark={mode === 'dark'} onClick={openFile}>
-          <Space>Open File</Space>
-        </WideButtonSecondary>
+    <Sheet className="rcad" data-rcad-root>
+      <AppStyle />
+      {(['tl', 'tr', 'bl', 'br'] as const).map(at => (
+        <i key={at} className="rcad-corner" data-at={at} aria-hidden="true" />
+      ))}
+      <Head>
+        <span>
+          Buerligons <i>·</i> <em>CAD in the browser</em>
+        </span>
+        <ThemeToggle />
+      </Head>
+      <Card>
+        <Kicker>New drawing</Kicker>
+        <Title>Start with a part, an assembly, or a file.</Title>
+        <Starts>
+          {starts.map(start => (
+            <li key={start.key}>
+              <button type="button" onClick={start.run}>
+                <span className="tile">
+                  <Icon name={start.icon} size={20} />
+                </span>
+                <span className="name">{start.name}</span>
+                <code>{start.note}</code>
+                <Icon name="chevronRight" size={12} className="go" />
+              </button>
+            </li>
+          ))}
+        </Starts>
         <MessageSpace>
           <SimpleMessage />
         </MessageSpace>
-        <Readfile ref={rfRef} singleDrawingApp />
-      </Main>
-    </>
+      </Card>
+      <Readfile ref={rfRef} singleDrawingApp />
+    </Sheet>
   )
 }
 
-const WideButton = styled(Button)`
-  width: 12em;
-  height: 3em !important;
+// The paper: the stage's ground, dotted every 28px, as the family's paper is.
+const Sheet = styled.div`
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: 72px 24px 48px;
+  overflow: auto;
+  background:
+    radial-gradient(circle, var(--rcad-line-2) 1px, transparent 1.4px) 0 0 / 28px 28px,
+    var(--rcad-viewport);
 `
 
-const WideButtonSecondary = styled(WideButton)<{ $dark: boolean }>`
-  &&& {
-    background-color: ${p => (p.$dark ? '#3a3a3a' : '#fff')} !important;
-    border-color: ${p => (p.$dark ? '#555' : '#d9d9d9')} !important;
-    color: ${p => (p.$dark ? '#e0e0e0' : 'rgba(0, 0, 0, 0.85)')} !important;
+const Head = styled.header`
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--rcad-ink);
+  font: 500 10.5px/1 var(--rcad-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  i,
+  em {
+    font-style: normal;
+    opacity: 0.5;
+  }
+`
+
+const Card = styled.main`
+  width: min(440px, 100%);
+  padding: 22px 22px 14px;
+  border-radius: var(--rcad-r-window);
+  background: var(--rcad-panel);
+  box-shadow: var(--rcad-shadow-lg), var(--rcad-ring);
+`
+
+const Kicker = styled.div`
+  color: var(--rcad-accent);
+  font: 500 10.5px/1 var(--rcad-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+`
+
+const Title = styled.h1`
+  margin: 10px 0 18px;
+  color: var(--rcad-ink);
+  font: 600 16px/1.35 var(--rcad-font-mono);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+`
+
+const Starts = styled.ul`
+  margin: 0 -8px;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    border-top: 1px solid var(--rcad-chrome-line);
+  }
+  button {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto 12px;
+    align-items: center;
+    column-gap: 12px;
+    width: 100%;
+    margin: 4px 0;
+    padding: 8px;
+    border: 0;
+    border-radius: var(--rcad-r-menu);
+    background: none;
+    color: var(--rcad-ink-2);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  button:hover,
+  button:focus-visible {
+    background: var(--rcad-hover);
+    color: var(--rcad-ink);
+  }
+  button:focus-visible {
+    outline: 2px solid var(--rcad-accent-line);
+    outline-offset: 1px;
+  }
+  .tile {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: var(--rcad-r-ctl);
+    background: var(--rcad-panel-2);
+    color: var(--rcad-ink);
+  }
+  .name {
+    font: 600 13px/1.2 var(--rcad-font-mono);
+  }
+  code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--rcad-dim);
+    font: 500 10.5px/1 var(--rcad-font-mono);
+    white-space: pre;
+  }
+  .go {
+    color: var(--rcad-dim);
+    transition: transform 0.2s var(--rcad-snap);
+  }
+  button:hover .go {
+    color: var(--rcad-accent);
+    transform: translateX(2px);
   }
 `
 
 const MessageSpace = styled.div`
-  position: relative;
-  width: 60em;
-  height: 0px;
   .buerli-simple-message {
-    position: absolute;
-    width: 100%;
-    height: auto;
-    text-align: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rcad-chrome-line);
+    font: 500 11.5px/1.5 var(--rcad-font-mono);
     word-break: break-word;
-    font-weight: 500;
   }
-`
-
-const Logo = styled.div<{ $color: string }>`
-  position: absolute;
-  top: 2rem;
-  left: 3rem;
-  font-weight: 800;
-  font-size: 32px;
-  color: ${p => p.$color};
-`
-
-const ThemeToggleWrap = styled.div`
-  position: absolute;
-  top: 2rem;
-  right: 3rem;
-`
-
-const Main = styled.div<{ $dotLight: string; $dotDark: string; $gradientInner: string; $gradientOuter: string }>`
-  display: grid;
-  width: 100%;
-  height: 100%;
-  justify-items: center;
-  align-content: center;
-  gap: 16px;
-
-  background:
-    radial-gradient(
-      circle at center,
-      ${p => p.$dotLight},
-      rgba(255, 255, 255, 0) 20%,
-      rgba(255, 255, 255, 0) 21%
-    ),
-    radial-gradient(circle at center, ${p => p.$dotDark}, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 21%),
-    radial-gradient(circle farthest-corner at center, ${p => p.$gradientInner}, ${p => p.$gradientOuter});
-  background-size:
-    10px 10px,
-    10px 10px,
-    100% 100%;
-  background-position:
-    1px 1px,
-    0px 0px,
-    center center;
 `

@@ -6,6 +6,7 @@ import {
   GeometryOverridesManager,
   HoveredConstraintDisplay,
   PluginGeometryBounds,
+  StageLook,
   useIsSketchActive,
 } from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
@@ -88,12 +89,22 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App>{children}</App> : null
+type AppProps = {
+  /** What the footer opens with: where the engine runs, say. By default, whether it is connected. */
+  status?: React.ReactNode
+  /** What the bar ends with, before the theme switch. */
+  trail?: React.ReactNode
+  /** false where the page around the app has a theme switch of its own, and sets the app's theme from it. */
+  themeSwitch?: boolean
+  children?: React.ReactNode
 }
 
-export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+export const Buerligons: React.FC<AppProps> = props => {
+  const drawingId = useBuerli(s => s.drawing.active || '')
+  return drawingId ? <App {...props} /> : null
+}
+
+export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
@@ -103,14 +114,20 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <>
       <PluginManager />
-      <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
+      <Drawing
+        drawingId={drawingId}
+        Menu={<FileMenu drawingId={drawingId} />}
+        Trail={trail}
+        Status={status}
+        themeSwitch={themeSwitch}>
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault staticMoving rotateSpeed={2} />
-          <Lights drawingId={drawingId} />
+          <Lights />
+          <StageLook />
           <Threshold />
           <GeometryOverridesManager drawingId={drawingId} />
           <Fit drawingId={drawingId}>
-            <Composer drawingId={drawingId} width={5}>
+            <Composer drawingId={drawingId} width={4}>
               <GeometryInteraction drawingId={drawingId}>
                 <BuerliGeometry
                   suspend=".Load"
