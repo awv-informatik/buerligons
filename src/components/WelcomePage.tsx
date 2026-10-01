@@ -58,7 +58,7 @@ export const WelcomePage: React.FC = () => {
                 </span>
                 <span className="name">{start.name}</span>
                 <code>{start.note}</code>
-                <Icon name="chevronRight" size={12} className="go" />
+                <Icon name="chevronRight" size={14} className="go" />
               </button>
             </li>
           ))}

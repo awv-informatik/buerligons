@@ -1,7 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { useRCadTheme, useRCadThemeMode, useStage } from '@buerli.io/react-cad'
+import { useRCadThemeMode, useStage } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport, useBounds } from '@react-three/drei'
 import { ThreeEvent, useThree } from '@react-three/fiber'
 
@@ -58,19 +58,19 @@ const useFont = (font: string) => {
   return ready
 }
 
-// The frame of a drawing, as the family rules one: its border, a shade under the hand.
+// The cube is a thing on the stage, not a piece of it: its faces are a step off the ground (darker
+// on paper, lighter on graphite, and well short of a body's grey), its edges a step further.
 const cubeColors = {
-  light: { stroke: '#c9ccd4', hover: '#e4e7ec' },
-  dark: { stroke: '#3a3e46', hover: '#9aa0ab' },
+  light: { face: '#dde0e7', stroke: '#9aa1af', text: '#2a2f3a', hover: '#ffffff' },
+  dark: { face: '#353a43', stroke: '#5a606c', text: '#dcdee3', hover: '#4b515d' },
 }
 
 /**
- * The view, in the stage's top right corner: a paper cube with the views' names on it, and the
+ * The view, in the stage's top right corner: a cube with the views' names on it, and the
  * part's three axes in the triad's colours. A face, an edge or a corner turns the view to it.
  */
 export const ViewCube: React.FC = () => {
   const bounds = useBounds()
-  const theme = useRCadTheme()
   const mode = useRCadThemeMode()
   const stage = useStage()
   const fontReady = useFont(FACE_FONT)
@@ -123,8 +123,8 @@ export const ViewCube: React.FC = () => {
           key={key}
           font={FACE_FONT}
           faces={['Right', 'Left', 'Back', 'Front', 'Top', 'Bottom']}
-          color={theme.chrome}
-          textColor={theme.ink2}
+          color={cubeColors[mode].face}
+          textColor={cubeColors[mode].text}
           strokeColor={cubeColors[mode].stroke}
           hoverColor={cubeColors[mode].hover}
           opacity={1}

@@ -285,7 +285,7 @@ const History: React.FC<{ command: Command }> = ({ command }) => {
       </Tooltip>
       <Dropdown disabled={disabled} menu={menuProps} trigger={['click']} placement="bottomLeft">
         <button type="button" className="rcad-caret" aria-label={`${command.label}: steps`} disabled={disabled}>
-          <Icon name="caret" size={8} />
+          <Icon name="caret" size={12} />
         </button>
       </Dropdown>
     </span>

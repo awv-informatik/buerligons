@@ -111,6 +111,14 @@ export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
   useInteractionReset(drawingId)
+  // what the view turns about when a drag begins beside the model: the middle of all of it
+  const center = React.useCallback(() => {
+    const structure = getDrawing(drawingId)?.structure
+    const product = isPart ? structure?.currentProduct : structure?.root
+    if (!product) return null
+    const bounds = getDrawing(drawingId).api.structure.calculateProductBounds(product)
+    return bounds.radius > 0 ? bounds.center : null
+  }, [drawingId, isPart])
   return (
     <>
       <PluginManager />
@@ -121,7 +129,7 @@ export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }
         Status={status}
         themeSwitch={themeSwitch}>
         <CanvasImpl drawingId={drawingId}>
-          <Controls makeDefault staticMoving rotateSpeed={2} />
+          <Controls makeDefault center={center} />
           <Lights />
           <StageLook />
           <Threshold />
