@@ -1,4 +1,4 @@
-import { BuerliCadFacade, createApi } from '@buerli.io/classcad'
+import { BuerliCadFacade, createApi, getApiFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 
 /** Formats `v1/common/load` accepts. */
@@ -11,6 +11,39 @@ export type EditorSource = {
   name: string
   format: EditorLoadFormat
   data: ArrayBuffer
+}
+
+/**
+ * An assembly as a definition (`v1.assembly.importDefinition`, JSON): structure, instances and constraints, with
+ * templates that carry their part inline or point at locations the ClassCAD process loads itself.
+ */
+export type EditorDefinition = {
+  name: string
+  format: 'JSON'
+  /** The definition as JSON text. */
+  data: string
+}
+
+/** Options of `v1.assembly.exportDefinition`. */
+export type ExportDefinitionOptions = {
+  mode?: 'INLINE' | 'REFERENCED'
+  partFormat?: 'OFB' | 'SCG'
+  dir?: string
+  baseUrl?: string
+}
+
+export type ExportedFile =
+  | { name: string; type: 'ofb' | 'scg'; encoding: 'base64'; content: string }
+  | { name: string; type: 'json'; content: unknown }
+
+/** Result of `v1.assembly.exportDefinition`. */
+export type ExportedDefinition = {
+  /** The root assembly definition. */
+  json: Record<string, unknown>
+  rootFile?: string
+  fileNames?: string[]
+  /** REFERENCED without `dir`: the content of all files, the root definition last. */
+  files?: ExportedFile[]
 }
 
 export type EditorState = 'idle' | 'opening' | 'ready' | 'saving' | 'failed' | 'closed'
@@ -69,14 +102,26 @@ export class EditorController {
    * Creates a drawing and loads `source` into it. Without a source an empty part named `name` is
    * created. A previously opened drawing of this controller is removed first.
    */
-  async open(source?: EditorSource, name = 'Part'): Promise<DrawingID> {
+  async open(source?: EditorSource | EditorDefinition, name = 'Part'): Promise<DrawingID> {
     await this.close()
     this.set({ state: 'opening', drawingId: null, savedState: null })
     try {
       const drawingId = await BuerliCadFacade.utils.connect(source?.name ?? name)
       if (!drawingId) throw new Error('Drawing could not be created.')
       buerliApi.getState().api.setActiveDrawing(drawingId)
-      if (source) {
+      if (source?.format === 'JSON') {
+        // Called by name: importDefinition is newer than the typed client some hosts build against.
+        const res = await getApiFacade(drawingId).callSafeApiV(
+          'v1',
+          'assembly',
+          'importDefinition',
+          { data: source.data, format: 'JSON' },
+          { undoable: true },
+        )
+        if (res?.result === undefined || res.result === null) {
+          throw new Error(errorsOf(res?.messages) || 'ClassCAD could not build the assembly from its definition.')
+        }
+      } else if (source) {
         await createApi(drawingId).v1.common.load({ data: source.data, format: source.format })
       } else {
         await createApi(drawingId).v1.part.create({ name })
@@ -108,11 +153,31 @@ export class EditorController {
     }
   }
 
-  /** Undo/redo state id the drawing is at now; `null` when unknown. */
+  /**
+   * Writes the assembly of the drawing as a definition (`v1.assembly.exportDefinition`) and marks the current undo
+   * state as saved. The host stores the definition; with `mode: 'REFERENCED'` the parts come as separate files.
+   */
+  async exportDefinition(options: ExportDefinitionOptions = {}): Promise<ExportedDefinition> {
+    const drawingId = this.status.drawingId
+    if (!drawingId) throw new Error('No drawing is open.')
+    const before = this.status
+    this.set({ ...before, state: 'saving', error: undefined })
+    try {
+      const res = await getApiFacade(drawingId).callSafeApiV('v1', 'assembly', 'exportDefinition', options, { undoable: false })
+      const result = res?.result as ExportedDefinition | undefined
+      if (!result?.json) throw new Error(errorsOf(res?.messages) || 'ClassCAD returned no assembly definition.')
+      this.set({ state: 'ready', drawingId, savedState: this.currentState(drawingId) })
+      return result
+    } catch (error) {
+      this.set({ ...before, state: 'ready', error: messageOf(error) })
+      throw error
+    }
+  }
+
+  /** Marker of the undo/redo state the drawing is at now (see `stateMarkerOf`); `null` when unknown. */
   currentState(drawingId = this.status.drawingId): number | null {
     if (!drawingId) return null
-    const current = getDrawing(drawingId)?.cad?.states?.current
-    return typeof current === 'number' ? current : null
+    return stateMarkerOf(getDrawing(drawingId)?.cad?.states)
   }
 
   /** True when the drawing moved to another undo state since the last open or save. */
@@ -142,4 +207,25 @@ export class EditorController {
   }
 }
 
+/**
+ * A number that changes whenever the drawing changes. A runtime that reports its undo stack (WASM, Socket.IO) is at
+ * the state `current`, so undoing back to the saved state is clean again. The Drogon WebSocket client does not report
+ * the stack; there every undoable command still registers its caption, and their count (negative, so it never meets
+ * a state id) marks the state.
+ */
+export const stateMarkerOf = (
+  states: { current?: number; stack?: unknown[]; captionMap?: Record<string, unknown> } | undefined,
+): number | null => {
+  if (!states) return null
+  if (states.stack?.length) return typeof states.current === 'number' ? states.current : null
+  return -Object.keys(states.captionMap ?? {}).length
+}
+
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error))
+
+/** The error texts of a ClassCAD response, joined; empty without errors. */
+const errorsOf = (messages?: { message?: string; level?: number }[]): string =>
+  (messages ?? [])
+    .filter(m => (m.level ?? 0) >= 2 && m.message)
+    .map(m => m.message)
+    .join(' | ')
