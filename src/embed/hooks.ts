@@ -1,6 +1,7 @@
+import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { useDrawing } from '@buerli.io/react'
 import React from 'react'
-import { EditorController, EditorStatus, stateMarkerOf } from './EditorController'
+import { EditedPart, EditorController, EditorStatus, stateMarkerOf } from './EditorController'
 
 /** Current status of the controller, re-rendered on every change. */
 export const useEditorStatus = (controller: EditorController): EditorStatus => {
@@ -18,6 +19,34 @@ export const useEditorDirty = (controller: EditorController): boolean => {
   const drawingId = status.drawingId ?? ''
   const current = useDrawing(drawingId, d => stateMarkerOf(d.cad.states))
   return Boolean(status.drawingId) && status.savedState !== null && current !== undefined && current !== null && current !== status.savedState
+}
+
+/** The parts that were changed since the drawing was opened or the host cleared them (see `getEditedParts`). */
+export const useEditedParts = (controller: EditorController): EditedPart[] => {
+  const [parts, setParts] = React.useState(controller.getEditedParts())
+  React.useEffect(() => {
+    setParts(controller.getEditedParts())
+    return controller.subscribeEditedParts(setParts)
+  }, [controller])
+  return parts
+}
+
+/**
+ * The part template the user is working in while an assembly is open: the current product when it is a part and
+ * the drawing is an assembly. `null` in the assembly itself and in a part drawing.
+ */
+export const useCurrentPart = (controller: EditorController): EditedPart | null => {
+  const status = useEditorStatus(controller)
+  const drawingId = status.drawingId ?? ''
+  const id = useDrawing(drawingId, d => d.structure.currentProduct)
+  const partClass = useDrawing(drawingId, d => (id ? d.structure.tree[id]?.class : undefined))
+  const name = useDrawing(drawingId, d => (id ? d.structure.tree[id]?.name : undefined))
+  const rootClass = useDrawing(drawingId, d => (d.structure.root ? d.structure.tree[d.structure.root]?.class : undefined))
+  return React.useMemo(() => {
+    if (!id || !partClass || !rootClass) return null
+    if (!ccUtils.base.isA(partClass, ScgClassType.CCPart) || ccUtils.base.isA(rootClass, ScgClassType.CCPart)) return null
+    return { id, name: name ?? '' }
+  }, [id, name, partClass, rootClass])
 }
 
 /**

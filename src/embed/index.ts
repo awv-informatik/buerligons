@@ -20,6 +20,7 @@ export { Buerligons } from '../components/Buerligons'
 export type { BuerligonsProps } from '../components/Buerligons'
 export { EditorController, loadFormatOf } from './EditorController'
 export type {
+  EditedPart,
   EditorDefinition,
   EditorLoadFormat,
   EditorSaveFormat,
@@ -30,4 +31,4 @@ export type {
   ExportedDefinition,
   ExportedFile,
 } from './EditorController'
-export { useAutosave, useEditorDirty, useEditorStatus } from './hooks'
+export { useAutosave, useCurrentPart, useEditedParts, useEditorDirty, useEditorStatus } from './hooks'
