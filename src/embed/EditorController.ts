@@ -1,5 +1,5 @@
-import { BuerliCadFacade, createApi, getApiFacade } from '@buerli.io/classcad'
-import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
+import { BuerliCadFacade, ccUtils, createApi, getApiFacade, ScgClassType } from '@buerli.io/classcad'
+import { api as buerliApi, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 
 /** Formats `v1/common/load` accepts. */
 export type EditorLoadFormat = 'OFB' | 'STP' | 'IWP'
@@ -58,6 +58,24 @@ export type EditorStatus = {
 
 type Listener = (status: EditorStatus) => void
 
+/** A part of the drawing that was changed since it was opened (or since the host cleared it). */
+export type EditedPart = { id: ObjectID; name: string }
+
+type EditedListener = (parts: EditedPart[]) => void
+
+/**
+ * Commands that move around in the model without changing it. Their captions are registered like every undoable
+ * command, but they do not make the part they were issued in an edited one.
+ */
+const NAVIGATION: ReadonlySet<string> = new Set([
+  'v1.assembly.setCurrentInstance',
+  'v1.assembly.setCurrentProduct',
+  'v1.part.openFeature',
+  'v1.part.closeFeature',
+  'v1.part.operationMoveBefore',
+  'v1.part.operationMoveToEnd',
+])
+
 /** Maps a file name to a load format; `null` when the type is not loadable. */
 export const loadFormatOf = (fileName: string): EditorLoadFormat | null => {
   const ext = fileName.toLowerCase().split('.').pop() ?? ''
@@ -84,6 +102,9 @@ const decodeBase64 = (content: string): Uint8Array => {
 export class EditorController {
   private status: EditorStatus = { state: 'idle', drawingId: null, savedState: null }
   private listeners = new Set<Listener>()
+  private edited: EditedPart[] = []
+  private editedListeners = new Set<EditedListener>()
+  private unwatch: (() => void) | null = null
 
   getStatus(): EditorStatus {
     return this.status
@@ -127,6 +148,7 @@ export class EditorController {
         await createApi(drawingId).v1.part.create({ name })
       }
       this.set({ state: 'ready', drawingId, savedState: this.currentState(drawingId) })
+      this.watchEdits(drawingId)
       return drawingId
     } catch (error) {
       this.set({ state: 'failed', drawingId: null, savedState: null, error: messageOf(error) })
@@ -188,8 +210,96 @@ export class EditorController {
     return current !== null && current !== savedState
   }
 
+  /**
+   * The parts that were changed since the drawing was opened: a part is edited when a command that changes the model
+   * was issued while it was the current product. In an assembly these are the part templates the user went into and
+   * worked on; the host saves exactly those (`exportPart`) and clears them.
+   */
+  getEditedParts(): EditedPart[] {
+    return this.edited
+  }
+
+  subscribeEditedParts(listener: EditedListener): () => void {
+    this.editedListeners.add(listener)
+    return () => this.editedListeners.delete(listener)
+  }
+
+  /** Forgets edited parts, all of them or the given ones (after the host has saved them). */
+  clearEditedParts(ids?: ObjectID[]): void {
+    this.setEdited(ids ? this.edited.filter(p => !ids.includes(p.id)) : [])
+  }
+
+  /** One part of the drawing as bytes (`v1/assembly/exportNode`): the part alone, as it would be saved on its own. */
+  async exportPart(id: ObjectID, format: 'OFB' | 'STP' = 'OFB'): Promise<Uint8Array> {
+    const drawingId = this.status.drawingId
+    if (!drawingId) throw new Error('No drawing is open.')
+    const res = await createApi(drawingId).v1.assembly.exportNode({ id, format, encoding: 'base64' })
+    const content = res?.result?.content as string | undefined
+    if (!content) throw new Error(errorsOf(res?.messages) || 'ClassCAD returned no content for the part.')
+    return decodeBase64(content)
+  }
+
+  /**
+   * True when the part starts from imported geometry (`CC_Import`). Such a part has no feature tree that ClassCAD
+   * could rebuild its geometry from, so a host that loaded it without its BRep (as SCG) must not save it.
+   */
+  isImportedPart(id: ObjectID): boolean {
+    const tree = this.status.drawingId ? getDrawing(this.status.drawingId)?.structure.tree : undefined
+    if (!tree) return false
+    const pending = [id]
+    for (let i = 0; i < pending.length; i++) {
+      const object = tree[pending[i]]
+      if (!object) continue
+      if (ccUtils.base.isA(object.class, ScgClassType.CCImport)) return true
+      pending.push(...(object.children ?? []))
+    }
+    return false
+  }
+
+  /** User data of an object of the drawing (`v1/common/getUserData`); keys without a value are left out. */
+  async getUserData(id: ObjectID, keys: string[]): Promise<Record<string, string>> {
+    const drawingId = this.status.drawingId
+    if (!drawingId) throw new Error('No drawing is open.')
+    const data: Record<string, string> = {}
+    for (const key of keys) {
+      const res = await getApiFacade(drawingId).callSafeApiV('v1', 'common', 'getUserData', { id, key }, { undoable: false })
+      if (typeof res?.result === 'string' && res.result) data[key] = res.result
+    }
+    return data
+  }
+
+  /** Follows the commands of the drawing and collects the parts they change. */
+  private watchEdits(drawingId: DrawingID) {
+    this.unwatch?.()
+    this.setEdited([])
+    let known = new Set(Object.keys(getDrawing(drawingId)?.cad?.states?.captionMap ?? {}))
+    this.unwatch = buerliApi.subscribe(state => {
+      const drawing = state.drawing.refs[drawingId]
+      const captions = drawing?.cad?.states?.captionMap
+      if (!captions) return
+      const keys = Object.keys(captions)
+      const added = keys.filter(key => !known.has(key))
+      if (!added.length) return
+      known = new Set(keys)
+      // The caption of a command is registered when it is issued, so the current product is still the one it acts on.
+      if (added.every(key => NAVIGATION.has(captions[key]?.caption))) return
+      const product = drawing.structure.tree[drawing.structure.currentProduct ?? -1]
+      if (!product || !ccUtils.base.isA(product.class, ScgClassType.CCPart)) return
+      if (this.edited.some(p => p.id === product.id)) return
+      this.setEdited([...this.edited, { id: product.id, name: product.name }])
+    })
+  }
+
+  private setEdited(parts: EditedPart[]) {
+    this.edited = parts
+    this.editedListeners.forEach(l => l(parts))
+  }
+
   /** Removes the drawing from the buerli store (and thereby ends its ClassCAD session). */
   async close(): Promise<void> {
+    this.unwatch?.()
+    this.unwatch = null
+    this.setEdited([])
     const drawingId = this.status.drawingId
     if (drawingId) {
       try {
@@ -210,15 +320,15 @@ export class EditorController {
 /**
  * A number that changes whenever the drawing changes. A runtime that reports its undo stack (WASM, Socket.IO) is at
  * the state `current`, so undoing back to the saved state is clean again. The Drogon WebSocket client does not report
- * the stack; there every undoable command still registers its caption, and their count (negative, so it never meets
- * a state id) marks the state.
+ * the stack; there every undoable command still registers its caption, and the count of those that change the model
+ * (negative, so it never meets a state id) marks the state. Going into a part or opening a feature is no change.
  */
 export const stateMarkerOf = (
-  states: { current?: number; stack?: unknown[]; captionMap?: Record<string, unknown> } | undefined,
+  states: { current?: number; stack?: unknown[]; captionMap?: Record<string, { caption?: string }> } | undefined,
 ): number | null => {
   if (!states) return null
   if (states.stack?.length) return typeof states.current === 'number' ? states.current : null
-  return -Object.keys(states.captionMap ?? {}).length
+  return -Object.values(states.captionMap ?? {}).filter(entry => !NAVIGATION.has(entry?.caption ?? '')).length
 }
 
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error))
