@@ -1,7 +1,8 @@
 import { BuerliCadFacade } from '@buerli.io/classcad'
 import { useBuerli } from '@buerli.io/react'
-import { sessionClient } from '@buerli.io/react-cad'
+import { AppStyle, sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
+import styled from 'styled-components'
 import { Buerligons } from './Buerligons'
 import { WelcomePage } from './WelcomePage'
 
@@ -36,20 +37,59 @@ export const Startup: React.FC = () => {
   )
 }
 
+/** What a guest sees until the shared session is there: the app's name, and that it is joining. */
 const JoiningScreen: React.FC = () => (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100%',
-      width: '100%',
-      color: '#565656',
-      font: '16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    }}
-  >
-    <div style={{ fontWeight: 800, fontSize: 32, marginBottom: 12 }}>buerligons</div>
-    <div>Joining shared session…</div>
-  </div>
+  <Joining role="status">
+    <AppStyle />
+    <b>Buerligons</b>
+    <span>
+      <i aria-hidden="true" /> Joining the shared session
+    </span>
+  </Joining>
 )
+
+const Joining = styled.div`
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  background: var(--rcad-viewport);
+  color: var(--rcad-mute);
+  font: 500 12px/1.4 var(--rcad-font-mono);
+
+  b {
+    color: var(--rcad-ink);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  /* orange is for work under way */
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rcad-orange);
+    animation: buerligons-joining 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes buerligons-joining {
+    to {
+      opacity: 0.25;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    i {
+      animation: none;
+    }
+  }
+`
