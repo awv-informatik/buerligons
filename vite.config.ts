@@ -8,8 +8,9 @@ import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
 export default ({ mode }: { mode: string }) => {
-  // Mode-specific env files (.env.<mode>) overlay .env — e.g. `vite --mode cli`
-  // additionally loads .env.cli. Used instead of inline VAR=... env prefixes,
+  // How ClassCAD is reached is set in .env (a worker over WebSocket by default).
+  // Mode-specific env files (.env.<mode>) overlay it — `vite --mode <mode>`
+  // additionally loads .env.<mode>. Used instead of inline VAR=... env prefixes,
   // which do not work on Windows (cmd.exe).
   const env = loadEnv(mode, process.cwd(), '')
 
