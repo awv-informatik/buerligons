@@ -40,6 +40,8 @@ CLASSCAD_WASM_KEY=MS4xLlZZUG51....
 SOCKETIO_URL=ws://localhost:9091
 ```
 
+With the engine in the page, the page hosts its session itself, and the **Session Management** panel creates invite links here too. Nobody can connect to a page, so its guests are introduced by a [ClassCAD MCP](https://github.com/awv-informatik/classcad-ai/tree/master/packages/mcp) running on the same machine: an AI agent joins with the link, and so does another page opened with it. The page looks for the MCP on `ws://127.0.0.1:9098/session`; `CLASSCAD_SESSION_URL` in the .env file names another address. While no MCP runs there, the links cannot be joined.
+
 ### Running ClassCAD using SocketIO
 
 Follow the instruction points 1-3 about **"Create an account, get your ClassCAD key, download ClassCAD"** on [Getting Started with SocketIO](https://buerli.io/docs/quickstart/socketio)
@@ -53,6 +55,20 @@ Open the .env file and comment out `WSCLIENT_URL` and `CLASSCAD_WASM_KEY` to mak
 #CLASSCAD_WASM_KEY=MS4xLlZZUG51....
 SOCKETIO_URL=ws://localhost:9091
 ```
+
+### Working with an AI agent
+
+In a shared session buerligons says what is selected and selects what the others ask for. An AI agent in the session (a ClassCAD MCP that joined with an invite link) therefore knows what "this face" means, and can point something out to you. You both work on the same model: what the agent builds appears as it happens, and what you change is what the agent reads next. This works with a worker and with WASM alike.
+
+### buerligons as the app of a ClassCAD MCP
+
+It also works the other way around: a ClassCAD MCP brings buerligons along as the app of its sessions. There the agent's session is the host, and the page joins it as a guest. That is a build of its own:
+
+```shell
+yarn build:mcp
+```
+
+It is vite's `mcp` mode and reads `.env.mcp`: `WSCLIENT_URL=/session` is an address without a scheme, taken on the server the page came from, because the MCP serves the app and its session on the same local address. The page is opened with the link the agent hands out (`?invite=...`); it has no welcome screen of its own, **New** starts the shared model over, and the File menu saves in the formats the session offers. In the classcad-ai repository `npm run build:app -w @classcad/mcp` runs this build and puts it into the MCP package.
 
 ### Run buerligons
 
