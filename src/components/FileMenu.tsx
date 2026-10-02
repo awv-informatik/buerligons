@@ -5,6 +5,7 @@ import { Icon, IconName, Menu, MenuItems, Readfile } from '@buerli.io/react-cad'
 import { Tooltip, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
+import { runsInPage } from '../engine'
 
 type States = {
   current: number
@@ -242,8 +243,13 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
   }
 }
 
+// Where the engine runs in the page (WebAssembly) there is no undo and no redo yet. The buttons
+// stay in their place, switched off, and say so.
+const notInPage = (what: string) => `${what} is not available in WebAssembly for the moment. Coming soon.`
+
 // Undo, or redo: the step itself, and behind the caret the steps it can go back (or forward) to.
-const History: React.FC<{ command: Command }> = ({ command }) => {
+// `off` says why it cannot be used at all, if it cannot.
+const History: React.FC<{ command: Command; off?: string }> = ({ command, off }) => {
   const onClick = React.useCallback(
     (e: { key: string }) => {
       if (command.sub) {
@@ -266,11 +272,11 @@ const History: React.FC<{ command: Command }> = ({ command }) => {
 
   const menuProps = { items: menuItems, onClick }
 
-  const disabled = command.sub && command.sub.length > 0 ? false : true
+  const disabled = Boolean(off) || !(command.sub && command.sub.length > 0)
 
   return (
     <span className="rcad-split">
-      <Tooltip title={command.label} placement="bottom" mouseEnterDelay={0.35}>
+      <Tooltip title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
         {/* (a span: a tooltip does not show over a button that is disabled) */}
         <span style={{ display: 'inline-flex' }}>
           <button
@@ -300,6 +306,7 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
+  const inPage = runsInPage(drawingId)
 
   return (
     <>
@@ -310,8 +317,8 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
         </button>
       </Menu>
       <span className="rcad-tools-sep" />
-      <History command={undoCmd} />
-      <History command={redoCmd} />
+      <History command={undoCmd} off={inPage ? notInPage('Undo') : undefined} />
+      <History command={redoCmd} off={inPage ? notInPage('Redo') : undefined} />
     </>
   )
 }

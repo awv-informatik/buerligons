@@ -50,6 +50,8 @@ import {
   WorkPoint,
 } from '@buerli.io/react-cad'
 
+import { setRunsInPage } from './engine'
+
 export const initBuerli = (
   callback = (id: DrawingID): WASMClient | SocketIOClient => {
     throw new Error('Client factory not implemented')
@@ -61,6 +63,7 @@ export const initBuerli = (
   init(
     id => {
       const socket = callback(id)
+      setRunsInPage(id, socket instanceof WASMClient)
       // Init settings will be called after new drawing has been connected. This happens after new Part/Assembly or loading a model.
       // This mechanism allows the application (client) to individually override settings on the internal classcad database,
       // which have been initially made by the server.

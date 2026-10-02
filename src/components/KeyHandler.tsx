@@ -1,16 +1,21 @@
 import { useBuerli, useDrawing } from '@buerli.io/react'
 import React from 'react'
+import { runsInPage } from '../engine'
 import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './FileMenu'
 
 export const UndoRedoKeyHandler: React.FC = () => {
   const drId = useBuerli(buerli => buerli.drawing.active)!  
   const states = useDrawing(drId, d => d.cad.states)
 
+  // (where the engine runs in the page there is no undo and no redo yet: the keys do nothing there,
+  // as the buttons)
   const handleUndo = React.useCallback(() => {
+    if (runsInPage(drId)) return
     states && undoNext(drId, states, getFilteredUndoStack(states))
   }, [drId, states])
   
   const handleRedo = React.useCallback(() => {
+    if (runsInPage(drId)) return
     states && redoNext(drId, getFilteredRedoStack(states))
   }, [drId, states])
 
