@@ -1,23 +1,25 @@
 import { useBuerli, useDrawing } from '@buerli.io/react'
+import { sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
 import { runsInPage } from '../engine'
 import { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './FileMenu'
 
 export const UndoRedoKeyHandler: React.FC = () => {
-  const drId = useBuerli(buerli => buerli.drawing.active)!  
+  const drId = useBuerli(buerli => buerli.drawing.active)!
   const states = useDrawing(drId, d => d.cad.states)
+  const readOnly = sessionClient.useSessionRole() === 'view'
 
-  // (where the engine runs in the page there is no undo and no redo yet: the keys do nothing there,
-  // as the buttons)
+  // (a guest who can only view does not undo; and where the engine runs in the page there is no
+  // undo and no redo yet. The keys do nothing then, as the buttons)
   const handleUndo = React.useCallback(() => {
-    if (runsInPage(drId)) return
+    if (readOnly || runsInPage(drId)) return
     states && undoNext(drId, states, getFilteredUndoStack(states))
-  }, [drId, states])
-  
+  }, [drId, states, readOnly])
+
   const handleRedo = React.useCallback(() => {
-    if (runsInPage(drId)) return
+    if (readOnly || runsInPage(drId)) return
     states && redoNext(drId, getFilteredRedoStack(states))
-  }, [drId, states])
+  }, [drId, states, readOnly])
 
   useKeyHandler(['z'], true, false, false, undefined, handleUndo)
   useKeyHandler(['y'], true, false, false, undefined, handleRedo)
