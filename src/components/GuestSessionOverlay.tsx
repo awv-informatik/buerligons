@@ -3,6 +3,7 @@ import { useDrawing } from '@buerli.io/react'
 import { sessionClient } from '@buerli.io/react-cad'
 import React from 'react'
 import styled from 'styled-components'
+import { servedByEngine } from '../engine'
 
 /**
  * Blocking overlay shown to a GUEST when their shared session ends — the host
@@ -14,6 +15,10 @@ import styled from 'styled-components'
  * false, which suppresses the normal <Disconnected> overlay (it only fires
  * while still "active"). Without this, a kicked guest would silently freeze on
  * a stale model. This gives them a clear, interaction-blocking end state.
+ *
+ * An invite outlives a connection, though: a host that moved the session to
+ * another engine closes its guests and takes them back under the same invite.
+ * So the first thing offered is to join again.
  *
  * It looks as <Disconnected> does: a scrim over the whole app, and one card that says so.
  */
@@ -38,15 +43,23 @@ export const GuestSessionOverlay: React.FC<{ drawingId: DrawingID }> = ({ drawin
     <Scrim className="rcad" role="alert" aria-live="assertive">
       <Card>
         <Kicker>Session ended</Kicker>
-        <p>The host ended the shared session, or your access was revoked.</p>
-        <button
-          type="button"
-          onClick={() => {
-            // Drop the invite from the URL and reload into a clean welcome screen.
-            window.location.href = `${window.location.origin}${window.location.pathname}`
-          }}>
-          Leave
-        </button>
+        <p>The host ended the shared session, moved it, or your access was revoked.</p>
+        <Actions>
+          <button type="button" onClick={() => window.location.reload()}>
+            Join again
+          </button>
+          {/* An app that came with its session has no welcome screen to leave to. */}
+          {!servedByEngine && (
+            <button
+              type="button"
+              onClick={() => {
+                // Drop the invite from the URL and reload into a clean welcome screen.
+                window.location.href = `${window.location.origin}${window.location.pathname}`
+              }}>
+              Leave
+            </button>
+          )}
+        </Actions>
       </Card>
     </Scrim>
   )
@@ -94,6 +107,11 @@ const Card = styled.div`
     outline: 2px solid var(--rcad-accent-line);
     outline-offset: 2px;
   }
+`
+
+const Actions = styled.div`
+  display: flex;
+  gap: 8px;
 `
 
 const Kicker = styled.div`

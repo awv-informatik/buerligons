@@ -16,12 +16,14 @@ export default ({ mode }: { mode: string }) => {
 
   return defineConfig({
     resolve: {
-      dedupe: ['three', '@react-three/fiber', '@react-three/drei', 'react', 'react-dom'],
+      // One copy of each, the app's own: the linked buerli packages may have installs of their own next to them.
+      dedupe: ['three', '@react-three/fiber', '@react-three/drei', 'react', 'react-dom', 'antd', 'styled-components'],
     },
     define: {
-      'CLASSCAD_WASM_KEY': JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
-      'SOCKETIO_URL': JSON.stringify(env.SOCKETIO_URL ?? ''),
-      'WSCLIENT_URL': JSON.stringify(env.WSCLIENT_URL ?? ''),
+      CLASSCAD_WASM_KEY: JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
+      SOCKETIO_URL: JSON.stringify(env.SOCKETIO_URL ?? ''),
+      WSCLIENT_URL: JSON.stringify(env.WSCLIENT_URL ?? ''),
+      SESSION_URL: JSON.stringify(env.CLASSCAD_SESSION_URL ?? ''),
     },
     build: {
       outDir: './build',

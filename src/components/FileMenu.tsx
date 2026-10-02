@@ -33,11 +33,23 @@ type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
   const rfRef = React.useRef<HTMLInputElement>()
+  // What the host of a shared session offers its guests; a session that says nothing offers all.
+  const { saveFormats } = sessionClient.useSessionConfig()
 
   const createNewDrawing = React.useCallback(
     (type: 'Part' | 'Assembly') => {
       const run = async () => {
         try {
+          // A guest is in somebody else's session, and a session has one model: New starts it
+          // over there, for everyone in it. (A new drawing would be a new connection to the same
+          // session, and the part would land next to what is in it.)
+          if (sessionClient.getInviteFromUrl()) {
+            const api = createApi(drawingId)
+            await api.v1.common.clear()
+            if (type === 'Assembly') await api.v1.assembly.create({ name: 'Assembly' })
+            else await api.v1.part.create({ name: 'Part' })
+            return
+          }
           const oldDrawingId = drawingId
           const newDrawingId = await BuerliCadFacade.utils.connect(type)
           if (newDrawingId) {
@@ -96,6 +108,23 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   return React.useMemo(() => {
+    const formats = {
+      ofb: {
+        caption: format('ClassCAD', 'ofb') as any,
+        callback: () => save('ofb'),
+      },
+      stp: {
+        caption: format('STEP', 'stp') as any,
+        callback: () => save('stp'),
+      },
+      stl: {
+        caption: format('STL', 'stl') as any,
+        callback: () => save('stl'),
+      },
+    }
+    const offered = Object.fromEntries(
+      Object.entries(formats).filter(([type]) => !saveFormats || saveFormats.includes(type.toUpperCase())),
+    )
     return {
       new: {
         caption: 'New',
@@ -126,23 +155,10 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
       save: {
         caption: 'Save as',
         icon: <Icon name="download" size={16} />,
-        children: {
-          ofb: {
-            caption: format('ClassCAD', 'ofb') as any,
-            callback: () => save('ofb'),
-          },
-          stp: {
-            caption: format('STEP', 'stp') as any,
-            callback: () => save('stp'),
-          },
-          stl: {
-            caption: format('STL', 'stl') as any,
-            callback: () => save('stl'),
-          },
-        },
+        children: offered,
       },
     }
-  }, [createNewDrawing, save])
+  }, [createNewDrawing, save, saveFormats])
 }
 
 const getCaption = (state: string, states?: States): string => {

@@ -5,12 +5,14 @@ import React from 'react'
 import styled from 'styled-components'
 import { Buerligons } from './Buerligons'
 import { WelcomePage } from './WelcomePage'
+import { servedByEngine } from '../engine'
 
 export const Startup: React.FC = () => {
   const count = useBuerli(s => s.drawing.ids.length)
   const drawingId = useBuerli(s => s.drawing.active || '')
   const isGuest = Boolean(sessionClient.getInviteFromUrl())
   const joinedRef = React.useRef(false)
+  const [refused, setRefused] = React.useState(false)
 
   React.useEffect(() => void (document.title = 'buerligons'), [])
 
@@ -24,7 +26,8 @@ export const Startup: React.FC = () => {
       BuerliCadFacade.utils.connect().catch(e => {
         // eslint-disable-next-line no-console
         console.error('[buerligons] failed to join shared session', e)
-        joinedRef.current = false
+        // No session behind the invite (it is over, or the invite was taken back): say so, and stop trying.
+        setRefused(true)
       })
     }
   }, [isGuest, count])
@@ -32,19 +35,35 @@ export const Startup: React.FC = () => {
   const ready = count > 0 && drawingId
   return (
     <div style={{ height: '100%', width: '100%' }}>
-      {ready ? <Buerligons /> : isGuest ? <JoiningScreen /> : <WelcomePage />}
+      {ready ? <Buerligons /> : isGuest ? <JoiningScreen refused={refused} /> : <WelcomePage />}
     </div>
   )
 }
 
-/** What a guest sees until the shared session is there: the app's name, and that it is joining. */
-const JoiningScreen: React.FC = () => (
-  <Joining role="status">
+/**
+ * What a guest sees until the shared session is there: the app's name, and that it is joining — or
+ * that there is nothing to join, and what to do about it.
+ */
+const JoiningScreen: React.FC<{ refused: boolean }> = ({ refused }) => (
+  <Joining role={refused ? 'alert' : 'status'} data-refused={refused || undefined}>
     <AppStyle />
     <b>Buerligons</b>
-    <span>
-      <i aria-hidden="true" /> Joining the shared session
-    </span>
+    {refused ? (
+      <>
+        <span>This session cannot be joined</span>
+        <p>
+          It is over, or the invite was taken back.{' '}
+          {servedByEngine ? 'Ask your agent for the link again.' : 'Ask its host for a new link.'}
+        </p>
+        <button type="button" onClick={() => window.location.reload()}>
+          Try again
+        </button>
+      </>
+    ) : (
+      <span>
+        <i aria-hidden="true" /> Joining the shared session
+      </span>
+    )}
   </Joining>
 )
 
@@ -91,5 +110,31 @@ const Joining = styled.div`
     i {
       animation: none;
     }
+  }
+  p {
+    max-width: 320px;
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  button {
+    height: var(--rcad-ctl-h);
+    padding: 0 14px;
+    border: 1px solid var(--rcad-line);
+    border-radius: var(--rcad-r-ctl);
+    background: transparent;
+    color: var(--rcad-ink);
+    font: 600 10.5px/1 var(--rcad-font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  button:hover {
+    background: color-mix(in srgb, var(--rcad-ink) 8%, transparent);
+  }
+  button:focus-visible {
+    outline: 2px solid var(--rcad-accent-line);
+    outline-offset: 2px;
   }
 `
