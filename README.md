@@ -14,7 +14,7 @@ yarn
 
 In order for **buerligons** to work, you need to have a running ClassCAD. You can connect to a ClassCAD worker over WebSocket, run ClassCAD in the browser using WASM, or connect to a local or remote ClassCAD server using SocketIO.
 
-Which one is used is set in the .env file in the root of this project: the first of `WSCLIENT_URL`, `CLASSCAD_WASM_KEY` and `SOCKETIO_URL` that is set.
+Which one is used is set in the .env file in the root of this project: the first of `WSCLIENT_URL`, `CLASSCAD_TOKEN` (or `CLASSCAD_WASM_KEY`) and `SOCKETIO_URL` that is set.
 
 ### Running ClassCAD as a worker (the default)
 
@@ -28,15 +28,13 @@ A worker shares its session: the **Session Management** button in the dock opens
 
 ### Running ClassCAD using WASM
 
-Follow the instruction points 1-3 about **"Create an account and get your ClassCAD key"** on [Getting Started with WASM](https://buerli.io/docs/quickstart/wasm).
-
-Open the .env file, comment out `WSCLIENT_URL` and copy your created ClassCAD WASM key to `CLASSCAD_WASM_KEY=`. The variable `SOCKETIO_URL` is not relevant in this case.
+The engine needs a key, and buerligons carries none. Sign in on [classcad.ch/account](https://classcad.ch/account) (a new account comes with two weeks of Solo) and make a **public access token** there. Open the .env file, comment out `WSCLIENT_URL` and put the token into `CLASSCAD_TOKEN=`. When the page starts, it asks ClassCAD for the key your plan allows for this page's origin (`localhost` works on every plan; other domains are registered on the account page with Pro and Business), keeps it until shortly before it expires, and renews it. The menus save in the formats your plan includes. `CLASSCAD_WASM_KEY` takes a key of your own instead of a token. The variable `SOCKETIO_URL` is not relevant in this case.
 
 > The first time ClassCAD starts using WASM, loading may take some time depending on your internet speed.
 
 ```shell
 #WSCLIENT_URL=ws://localhost:9094
-CLASSCAD_WASM_KEY=MS4xLlZZUG51....
+CLASSCAD_TOKEN=ccpk_....
 SOCKETIO_URL=ws://localhost:9091
 ```
 
@@ -48,11 +46,11 @@ Follow the instruction points 1-3 about **"Create an account, get your ClassCAD 
 
 Start ClassCAD via SocketIO as described in the [Downloads](https://classcad.ch/downloads/) page
 
-Open the .env file and comment out `WSCLIENT_URL` and `CLASSCAD_WASM_KEY` to make sure ClassCAD is reached over SocketIO
+Open the .env file and comment out `WSCLIENT_URL` and `CLASSCAD_TOKEN` to make sure ClassCAD is reached over SocketIO
 
 ```shell
 #WSCLIENT_URL=ws://localhost:9094
-#CLASSCAD_WASM_KEY=MS4xLlZZUG51....
+#CLASSCAD_TOKEN=ccpk_....
 SOCKETIO_URL=ws://localhost:9091
 ```
 

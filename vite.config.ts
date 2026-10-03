@@ -21,6 +21,8 @@ export default ({ mode }: { mode: string }) => {
     },
     define: {
       CLASSCAD_WASM_KEY: JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
+      CLASSCAD_TOKEN: JSON.stringify(env.CLASSCAD_TOKEN ?? ''),
+      CLASSCAD_KEY_URL: JSON.stringify(env.CLASSCAD_KEY_URL ?? ''),
       SOCKETIO_URL: JSON.stringify(env.SOCKETIO_URL ?? ''),
       WSCLIENT_URL: JSON.stringify(env.WSCLIENT_URL ?? ''),
       SESSION_URL: JSON.stringify(env.CLASSCAD_SESSION_URL ?? ''),
