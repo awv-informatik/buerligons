@@ -28,7 +28,7 @@ A worker shares its session: the **Session Management** button in the dock opens
 
 ### Running ClassCAD using WASM
 
-The engine needs a key, and buerligons carries none. Sign in on [classcad.ch/account](https://classcad.ch/account) (a new account comes with three months of Solo) and make a **public access token** there. Open the .env file, comment out `WSCLIENT_URL` and put the token into `CLASSCAD_TOKEN=`. When the page starts, it asks ClassCAD for the key your plan allows for this page's origin (`localhost` works on every plan; other domains are registered on the account page with Pro and Business), keeps it until shortly before it expires, and renews it. The menus save in the formats your plan includes. `CLASSCAD_WASM_KEY` takes a key of your own instead of a token. The variable `SOCKETIO_URL` is not relevant in this case.
+The engine needs a key, and buerligons carries none. Sign in on [classcad.ch/account](https://classcad.ch/account) (a new account comes with two weeks of Solo) and make a **public access token** there. Open the .env file, comment out `WSCLIENT_URL` and put the token into `CLASSCAD_TOKEN=`. When the page starts, it asks ClassCAD for the key your plan allows for this page's origin (`localhost` works on every plan; other domains are registered on the account page with Pro and Business), keeps it until shortly before it expires, and renews it. The menus save in the formats your plan includes. `CLASSCAD_WASM_KEY` takes a key of your own instead of a token. The variable `SOCKETIO_URL` is not relevant in this case.
 
 > The first time ClassCAD starts using WASM, loading may take some time depending on your internet speed.
 
