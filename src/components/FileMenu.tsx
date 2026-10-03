@@ -83,7 +83,8 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
 
           const content = res?.result?.content
           if (content) {
-            const data = atob(content)
+            // Blob() UTF-8-encodes strings, which corrupts binary formats (STL/OFB); pass raw bytes instead.
+            const data = Uint8Array.from(atob(content), c => c.charCodeAt(0))
             const link = document.createElement('a')
             link.href = window.URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }))
             link.download = `${name}.${type}`
