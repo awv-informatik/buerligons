@@ -67,6 +67,18 @@ export type EditedPart = { id: ObjectID; name: string; kind: 'part' | 'assembly'
 /** An assembly of the drawing that uses a product: the root assembly or an assembly template. */
 export type ProductUser = { id: ObjectID; name: string; root: boolean }
 
+/** A product a host inserts into the assembly: where ClassCAD loads it from, and how the host recognises it. */
+export type InsertSource = {
+  /** Location the ClassCAD process reaches. */
+  url: string
+  /** `JSON`: an assembly definition, added as a sub-assembly (`importDefinition` with `asTemplate`). */
+  format: 'OFB' | 'STP' | 'SCG' | 'JSON'
+  /** Name of the product (template) in the drawing. */
+  name: string
+  /** The host's bookkeeping on the product (see `setUserData`). */
+  userData?: Record<string, string>
+}
+
 type EditedListener = (parts: EditedPart[]) => void
 
 /**
@@ -280,6 +292,82 @@ export class EditorController {
       .map(assembly => ({ id: assembly.id, name: assembly.name, root: assembly.id === root }))
   }
 
+  /** The products (templates) of the drawing: parts and sub-assemblies, without the root. */
+  products(): EditedPart[] {
+    const structure = this.status.drawingId ? getDrawing(this.status.drawingId)?.structure : undefined
+    if (!structure) return []
+    return Object.values(structure.tree).flatMap(object => {
+      const kind = productKind(object.class, object.id === structure.root)
+      return kind ? [{ id: object.id, name: object.name, kind }] : []
+    })
+  }
+
+  /**
+   * The assembly an inserted product goes into: the current product when it is an assembly (the root or a
+   * sub-assembly the user has gone into), else the root. `null` while the user works inside a part.
+   */
+  insertTarget(): ProductUser | null {
+    const structure = this.status.drawingId ? getDrawing(this.status.drawingId)?.structure : undefined
+    const root = structure?.root ? structure.tree[structure.root] : undefined
+    if (!structure || !root) return null
+    const current = structure.currentProduct ? structure.tree[structure.currentProduct] : undefined
+    if (!current || current.id === root.id) return { id: root.id, name: root.name, root: true }
+    if (ccUtils.base.isA(current.class, ScgClassType.CCAssembly)) return { id: current.id, name: current.name, root: false }
+    return null
+  }
+
+  /**
+   * Loads a product from a location the ClassCAD process reaches (a part with `v1/assembly/loadProduct`, an assembly
+   * definition with `v1/assembly/importDefinition` as a template), names it, puts the host's user data on it and adds one instance of it to the insert target. The name is made unique among the
+   * products, since a host recognises a template by it. The assembly that received the instance counts as edited,
+   * the loaded product does not.
+   */
+  async insertProduct(source: InsertSource): Promise<EditedPart> {
+    const drawingId = this.status.drawingId
+    const owner = this.insertTarget()
+    if (!drawingId || !owner) throw new Error('A product is inserted into an assembly; leave the part first.')
+    const facade = getApiFacade(drawingId)
+    const taken = new Set(this.products().map(p => p.name))
+    let name = source.name
+    for (let n = 2; taken.has(name); n++) name = `${source.name}_${n}`
+    const isAssembly = source.format === 'JSON'
+    const loaded = isAssembly
+      ? await facade.callSafeApiV(
+          'v1',
+          'assembly',
+          'importDefinition',
+          { url: source.url, format: 'JSON', asTemplate: true, name },
+          { undoable: true },
+        )
+      : await facade.callSafeApiV('v1', 'assembly', 'loadProduct', { url: source.url, format: source.format }, { undoable: true })
+    const result = loaded?.result as ObjectID | { id?: ObjectID } | undefined
+    const id = typeof result === 'object' ? result?.id : result
+    if (!id) throw new Error(errorsOf(loaded?.messages) || `ClassCAD could not load ${source.name}.`)
+    if (!isAssembly) await facade.callSafeApiV('v1', 'common', 'setObjectName', { id, name }, { undoable: true })
+    if (source.userData) await this.setUserData(id, source.userData)
+    await this.addInstance(id, owner)
+    return { id, name, kind: isAssembly ? 'assembly' : 'part' }
+  }
+
+  /** Adds an instance of a product of the drawing to the insert target (or to `owner`); returns the instance. */
+  async addInstance(productId: ObjectID, owner = this.insertTarget()): Promise<ObjectID> {
+    const drawingId = this.status.drawingId
+    if (!drawingId || !owner) throw new Error('An instance is added to an assembly; leave the part first.')
+    const res = await getApiFacade(drawingId).callSafeApiV(
+      'v1',
+      'assembly',
+      'instance',
+      { productId, ownerId: owner.id },
+      { undoable: true },
+    )
+    const instance = (Array.isArray(res?.result) ? res.result[0] : res?.result) as ObjectID | undefined
+    if (!instance) throw new Error(errorsOf(res?.messages) || 'ClassCAD could not create the instance.')
+    // Whatever product was current while the commands ran: the change belongs to the assembly that got the instance.
+    const others = this.edited.filter(p => p.id !== productId && p.id !== owner.id)
+    this.setEdited(owner.root ? others : [...others, { id: owner.id, name: owner.name, kind: 'assembly' }])
+    return instance
+  }
+
   /**
    * True when the part starts from imported geometry (`CC_Import`). Such a part has no feature tree that ClassCAD
    * could rebuild its geometry from, so a host that loaded it without its BRep (as SCG) must not save it.
@@ -288,8 +376,9 @@ export class EditorController {
     const tree = this.status.drawingId ? getDrawing(this.status.drawingId)?.structure.tree : undefined
     if (!tree) return false
     const pending = [id]
-    for (let i = 0; i < pending.length; i++) {
-      const object = tree[pending[i]]
+    // The list grows while it is walked; the loop reaches what is appended.
+    for (const next of pending) {
+      const object = tree[next]
       if (!object) continue
       if (ccUtils.base.isA(object.class, ScgClassType.CCImport)) return true
       pending.push(...(object.children ?? []))
