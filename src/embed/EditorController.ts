@@ -58,8 +58,14 @@ export type EditorStatus = {
 
 type Listener = (status: EditorStatus) => void
 
-/** A part of the drawing that was changed since it was opened (or since the host cleared it). */
-export type EditedPart = { id: ObjectID; name: string }
+/**
+ * A product of the drawing that was changed since it was opened (or since the host cleared it): a part, or a
+ * sub-assembly (an assembly template, never the root assembly).
+ */
+export type EditedPart = { id: ObjectID; name: string; kind: 'part' | 'assembly' }
+
+/** An assembly of the drawing that uses a product: the root assembly or an assembly template. */
+export type ProductUser = { id: ObjectID; name: string; root: boolean }
 
 type EditedListener = (parts: EditedPart[]) => void
 
@@ -252,6 +258,29 @@ export class EditorController {
   }
 
   /**
+   * The assemblies that use a product directly: those with an instance of it among their own children. A template
+   * that sits in two sub-assemblies has both as users; the root assembly is marked.
+   */
+  usersOf(productId: ObjectID): ProductUser[] {
+    const structure = this.status.drawingId ? getDrawing(this.status.drawingId)?.structure : undefined
+    if (!structure) return []
+    const { tree, root } = structure
+    return Object.values(tree)
+      .filter(object => object.id === root || ccUtils.base.isA(object.class, ScgClassType.CCAssembly))
+      .filter(assembly =>
+        (assembly.children ?? []).some(child => {
+          const instance = tree[child]
+          return (
+            instance &&
+            ccUtils.base.isA(instance.class, ScgClassType.IProductReference) &&
+            instance.members?.productId?.value === productId
+          )
+        }),
+      )
+      .map(assembly => ({ id: assembly.id, name: assembly.name, root: assembly.id === root }))
+  }
+
+  /**
    * True when the part starts from imported geometry (`CC_Import`). Such a part has no feature tree that ClassCAD
    * could rebuild its geometry from, so a host that loaded it without its BRep (as SCG) must not save it.
    */
@@ -312,9 +341,10 @@ export class EditorController {
       // The caption of a command is registered when it is issued, so the current product is still the one it acts on.
       if (added.every(key => NAVIGATION.has(captions[key]?.caption))) return
       const product = drawing.structure.tree[drawing.structure.currentProduct ?? -1]
-      if (!product || !ccUtils.base.isA(product.class, ScgClassType.CCPart)) return
+      const kind = product && productKind(product.class, product.id === drawing.structure.root)
+      if (!product || !kind) return
       if (this.edited.some(p => p.id === product.id)) return
-      this.setEdited([...this.edited, { id: product.id, name: product.name }])
+      this.setEdited([...this.edited, { id: product.id, name: product.name, kind }])
     })
   }
 
@@ -343,6 +373,17 @@ export class EditorController {
     this.status = status
     this.listeners.forEach(l => l(status))
   }
+}
+
+/**
+ * What a current product is for the host: a part, a sub-assembly (an assembly template), or nothing it tracks (the
+ * root assembly, or no product).
+ */
+export const productKind = (productClass: string | undefined, isRoot: boolean): EditedPart['kind'] | null => {
+  if (!productClass) return null
+  if (ccUtils.base.isA(productClass, ScgClassType.CCPart)) return 'part'
+  if (!isRoot && ccUtils.base.isA(productClass, ScgClassType.CCAssembly)) return 'assembly'
+  return null
 }
 
 /**

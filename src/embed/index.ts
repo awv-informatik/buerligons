@@ -30,5 +30,6 @@ export type {
   ExportDefinitionOptions,
   ExportedDefinition,
   ExportedFile,
+  ProductUser,
 } from './EditorController'
 export { useAutosave, useCurrentPart, useEditedParts, useEditorDirty, useEditorStatus } from './hooks'

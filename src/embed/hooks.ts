@@ -1,7 +1,7 @@
 import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { useDrawing } from '@buerli.io/react'
 import React from 'react'
-import { EditedPart, EditorController, EditorStatus, stateMarkerOf } from './EditorController'
+import { EditedPart, EditorController, EditorStatus, productKind, stateMarkerOf } from './EditorController'
 
 /** Current status of the controller, re-rendered on every change. */
 export const useEditorStatus = (controller: EditorController): EditorStatus => {
@@ -32,21 +32,22 @@ export const useEditedParts = (controller: EditorController): EditedPart[] => {
 }
 
 /**
- * The part template the user is working in while an assembly is open: the current product when it is a part and
- * the drawing is an assembly. `null` in the assembly itself and in a part drawing.
+ * The template the user is working in while an assembly is open: the current product when it is a part or a
+ * sub-assembly and the drawing is an assembly. `null` in the root assembly itself and in a part drawing.
  */
 export const useCurrentPart = (controller: EditorController): EditedPart | null => {
   const status = useEditorStatus(controller)
   const drawingId = status.drawingId ?? ''
   const id = useDrawing(drawingId, d => d.structure.currentProduct)
-  const partClass = useDrawing(drawingId, d => (id ? d.structure.tree[id]?.class : undefined))
+  const productClass = useDrawing(drawingId, d => (id ? d.structure.tree[id]?.class : undefined))
   const name = useDrawing(drawingId, d => (id ? d.structure.tree[id]?.name : undefined))
+  const rootId = useDrawing(drawingId, d => d.structure.root)
   const rootClass = useDrawing(drawingId, d => (d.structure.root ? d.structure.tree[d.structure.root]?.class : undefined))
   return React.useMemo(() => {
-    if (!id || !partClass || !rootClass) return null
-    if (!ccUtils.base.isA(partClass, ScgClassType.CCPart) || ccUtils.base.isA(rootClass, ScgClassType.CCPart)) return null
-    return { id, name: name ?? '' }
-  }, [id, name, partClass, rootClass])
+    if (!id || !rootClass || ccUtils.base.isA(rootClass, ScgClassType.CCPart)) return null
+    const kind = productKind(productClass, id === rootId)
+    return kind ? { id, name: name ?? '', kind } : null
+  }, [id, name, productClass, rootClass, rootId])
 }
 
 /**
