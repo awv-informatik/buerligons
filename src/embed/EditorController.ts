@@ -349,6 +349,32 @@ export class EditorController {
     return { id, name, kind: isAssembly ? 'assembly' : 'part' }
   }
 
+  /**
+   * Creates an empty part or sub-assembly (`v1/assembly/partTemplate` / `assemblyTemplate`) with a name that is
+   * unique among the products, and adds one instance of it to the insert target. The assembly that gets the instance
+   * counts as edited.
+   */
+  async createProduct(kind: EditedPart['kind'], wanted: string): Promise<EditedPart> {
+    const drawingId = this.status.drawingId
+    // Taken before the product exists: creating it may make it the current product.
+    const owner = this.insertTarget()
+    if (!drawingId || !owner) throw new Error('A product is created in an assembly; leave the part first.')
+    const taken = new Set(this.products().map(p => p.name))
+    let name = wanted
+    for (let n = 2; taken.has(name); n++) name = `${wanted}_${n}`
+    const res = await getApiFacade(drawingId).callSafeApiV(
+      'v1',
+      'assembly',
+      kind === 'part' ? 'partTemplate' : 'assemblyTemplate',
+      { name },
+      { undoable: true },
+    )
+    const id = res?.result as ObjectID | undefined
+    if (!id) throw new Error(errorsOf(res?.messages) || `ClassCAD could not create ${name}.`)
+    await this.addInstance(id, owner)
+    return { id, name, kind }
+  }
+
   /** Adds an instance of a product of the drawing to the insert target (or to `owner`); returns the instance. */
   async addInstance(productId: ObjectID, owner = this.insertTarget()): Promise<ObjectID> {
     const drawingId = this.status.drawingId
