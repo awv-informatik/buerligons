@@ -280,6 +280,22 @@ export class EditorController {
     return data
   }
 
+  /**
+   * Sets user data on an object of the drawing (`v1/common/setUserData`). It is the host's bookkeeping, not a change
+   * of the model: it is not undoable and does not make the drawing or a part edited.
+   *
+   * ClassCAD keeps the value of a key that exists already, so the key is removed before it is set.
+   */
+  async setUserData(id: ObjectID, data: Record<string, string>): Promise<void> {
+    const drawingId = this.status.drawingId
+    if (!drawingId) throw new Error('No drawing is open.')
+    const facade = getApiFacade(drawingId)
+    for (const [key, value] of Object.entries(data)) {
+      await facade.callSafeApiV('v1', 'common', 'removeUserData', { id, key }, { undoable: false })
+      await facade.callSafeApiV('v1', 'common', 'setUserData', { id, key, value }, { undoable: false })
+    }
+  }
+
   /** Follows the commands of the drawing and collects the parts they change. */
   private watchEdits(drawingId: DrawingID) {
     this.unwatch?.()
