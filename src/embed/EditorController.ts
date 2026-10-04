@@ -126,9 +126,11 @@ export class EditorController {
   async open(source?: EditorSource | EditorDefinition, name = 'Part'): Promise<DrawingID> {
     await this.close()
     this.set({ state: 'opening', drawingId: null, savedState: null })
+    let created: DrawingID | undefined
     try {
       const drawingId = await BuerliCadFacade.utils.connect(source?.name ?? name)
       if (!drawingId) throw new Error('Drawing could not be created.')
+      created = drawingId
       buerliApi.getState().api.setActiveDrawing(drawingId)
       if (source?.format === 'JSON') {
         // Called by name: importDefinition is newer than the typed client some hosts build against.
@@ -151,8 +153,18 @@ export class EditorController {
       this.watchEdits(drawingId)
       return drawingId
     } catch (error) {
-      this.set({ state: 'failed', drawingId: null, savedState: null, error: messageOf(error) })
-      throw error
+      // A drawing that could not be filled is of no use: it goes again, and its ClassCAD session with it.
+      if (created) {
+        try {
+          buerliApi.getState().api.removeDrawing(created)
+        } catch (removal) {
+          console.warn('[buerligons/embed] removing the failed drawing failed', removal)
+        }
+      }
+      // ClassCAD rejects with its response, not with an Error: the host gets the text of its messages.
+      const failure = error instanceof Error ? error : new Error(messageOf(error))
+      this.set({ state: 'failed', drawingId: null, savedState: null, error: failure.message })
+      throw failure
     }
   }
 
@@ -331,11 +343,19 @@ export const stateMarkerOf = (
   return -Object.values(states.captionMap ?? {}).filter(entry => !NAVIGATION.has(entry?.caption ?? '')).length
 }
 
-const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error))
+const messageOf = (error: unknown): string => {
+  if (error instanceof Error) return error.message
+  if (error && typeof error === 'object') {
+    const { messages, message } = error as { messages?: { message?: string }[]; message?: unknown }
+    const text = errorsOf(messages) || (typeof message === 'string' ? message : '')
+    if (text) return text
+  }
+  return String(error)
+}
 
-/** The error texts of a ClassCAD response, joined; empty without errors. */
-const errorsOf = (messages?: { message?: string; level?: number }[]): string =>
-  (messages ?? [])
-    .filter(m => (m.level ?? 0) >= 2 && m.message)
-    .map(m => m.message)
-    .join(' | ')
+/**
+ * The texts of the messages of a ClassCAD response, joined; empty without messages. The first ones name the cause,
+ * the rest follow from it, so two are enough.
+ */
+const errorsOf = (messages?: { message?: string }[]): string =>
+  [...new Set((messages ?? []).map(m => m.message).filter((text): text is string => Boolean(text)))].slice(0, 2).join(' | ')
