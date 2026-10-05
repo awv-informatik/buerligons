@@ -34,8 +34,10 @@ export const Rectangle = React.forwardRef<RectangleRefType, { enabled: boolean }
 
       divRef.current.style.position = 'fixed'
       divRef.current.style.pointerEvents = 'none'
-      divRef.current.style.border = '1px solid rgb(128, 128, 128)'
-      divRef.current.style.background = 'rgba(217, 217, 217, 0.3)'
+      // the marquee: the highlight's line over a thin wash of it
+      divRef.current.style.border = '1px solid var(--rcad-geo-select)'
+      divRef.current.style.borderRadius = '2px'
+      divRef.current.style.background = 'color-mix(in srgb, var(--rcad-geo-select) 9%, transparent)'
 
       update()
 

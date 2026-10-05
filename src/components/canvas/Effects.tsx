@@ -4,26 +4,28 @@ import React from 'react'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { DrawingID } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { Outline } from '@buerli.io/react-cad'
+import { Outline, useRCadThemeMode, useStage } from '@buerli.io/react-cad'
 
 import { useOutlinesStore } from './Interaction'
 import { AutoClear } from './AutoClear'
 
 type OutlineColorRepresentation = [THREE.ColorRepresentation, THREE.ColorRepresentation]
 
+// What is under the pointer is outlined in the highlight, held back; what is in hand, in the
+// highlight; what a feature's field has taken, in red. (The second of each pair stands in on a
+// body of nearly that colour.)
 const useOutlinesColor = (drawingId: DrawingID): { hColor: OutlineColorRepresentation, sColor: OutlineColorRepresentation } => {
   const isSelActive = useDrawing(drawingId, d => d.selection.active !== null) || false
+  const stage = useStage()
   return React.useMemo(() => {
-    return isSelActive
-      ? { hColor: ['#3280ff', '#194080'], sColor: ['#8040c0', '#402060'] }
-      : { hColor: ['#008000', '#00ff00'], sColor: ['#ff0000', '#ffa000'] }
-  }, [isSelActive])
+    return { hColor: [stage.hover, stage.alt], sColor: [isSelActive ? stage.pick : stage.select, stage.alt] }
+  }, [isSelActive, stage])
 }
 
 export function Composer({
   children,
   drawingId,
-  width = 5,
+  width = 4,
   ao = true,
   ...props
 }: any) {
@@ -44,9 +46,12 @@ export function Composer({
 // Make the effects chain a stable, memoized component
 const Chain = React.memo(
   ({ drawingId, width, ao = true, ...props }: any) => {
+    // (what faces shade each other with is ink; in the dark, the dark itself)
+    const shade = useRCadThemeMode() === 'dark' ? '#08090b' : '#0f1320'
     return (
       <EffectComposer enabled renderPriority={2} multisampling={8} autoClear={false} {...props}>
-        {ao && <N8AO aoRadius={50} halfRes intensity={2} distanceFalloff={1} screenSpaceRadius />}
+        {/* a little depth where faces meet: enough to read a corner, not enough to dirty a face */}
+        {ao && <N8AO aoRadius={36} halfRes intensity={1.1} distanceFalloff={1} screenSpaceRadius color={shade} />}
         <MultiOutline drawingId={drawingId} width={width} />
       </EffectComposer>
     )
@@ -55,7 +60,7 @@ const Chain = React.memo(
 
 // The outline component will update itself without disturbing the parental effect composer
 const MultiOutline = React.memo(
-  ({ drawingId, width = 5 }: any) => {
+  ({ drawingId, width = 4 }: any) => {
     const hoveredMeshes = useOutlinesStore(s => s.outlinedMeshes['hovered'])
     const selectedMeshes = useOutlinesStore(s => s.outlinedMeshes['selected'])
     const selections1 = React.useMemo(() => (hoveredMeshes ? Object.values(hoveredMeshes) : []), [hoveredMeshes])

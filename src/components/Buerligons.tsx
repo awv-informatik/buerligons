@@ -6,7 +6,9 @@ import {
   GeometryOverridesManager,
   HoveredConstraintDisplay,
   PluginGeometryBounds,
+  StageLook,
   useIsSketchActive,
+  sessionClient,
 } from '@buerli.io/react-cad'
 import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
 import React from 'react'
@@ -26,7 +28,17 @@ import {
 } from './canvas'
 import { Disconnected } from './Disconnected'
 import { FileMenu } from './FileMenu'
+import { GuestSessionOverlay } from './GuestSessionOverlay'
 import { UndoRedoKeyHandler } from './KeyHandler'
+import { FollowBanner } from './FollowBanner'
+import { ViewOnlyBadge } from './ViewOnlyBadge'
+import { BroadcastCursor, FollowedCursor } from './canvas/SharedCursor'
+import {
+  BroadcastViewpoint,
+  FollowCamera,
+  RemoteViewpoints,
+  SharedViewpointBounds,
+} from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 
 const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
@@ -88,29 +100,55 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-export const Buerligons: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App>{children}</App> : null
+type AppProps = {
+  /** What the footer opens with: where the engine runs, say. By default, whether it is connected. */
+  status?: React.ReactNode
+  /** What the bar ends with, before the theme switch. */
+  trail?: React.ReactNode
+  /** false where the page around the app has a theme switch of its own, and sets the app's theme from it. */
+  themeSwitch?: boolean
+  children?: React.ReactNode
 }
 
-export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+export const Buerligons: React.FC<AppProps> = props => {
+  const drawingId = useBuerli(s => s.drawing.active || '')
+  return drawingId ? <App {...props} /> : null
+}
+
+export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const curProdClass = useDrawing(drawingId, d => currentProduct && d.structure.tree[currentProduct]?.class) || ''
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
+  const readOnly = sessionClient.useSessionRole() === 'view'
   useInteractionReset(drawingId)
+  // what the view turns about when a drag begins beside the model: the middle of all of it
+  const center = React.useCallback(() => {
+    const structure = getDrawing(drawingId)?.structure
+    const product = isPart ? structure?.currentProduct : structure?.root
+    if (!product) return null
+    const bounds = getDrawing(drawingId).api.structure.calculateProductBounds(product)
+    return bounds.radius > 0 ? bounds.center : null
+  }, [drawingId, isPart])
   return (
     <>
       <PluginManager />
-      <Drawing drawingId={drawingId} Menu={<FileMenu drawingId={drawingId} />}>
+      <Drawing
+        drawingId={drawingId}
+        readOnly={readOnly}
+        Menu={<FileMenu drawingId={drawingId} />}
+        Trail={trail}
+        Status={status}
+        themeSwitch={themeSwitch}>
         <CanvasImpl drawingId={drawingId}>
-          <Controls makeDefault staticMoving rotateSpeed={2} />
-          <Lights drawingId={drawingId} />
+          <Controls makeDefault center={center} />
+          <Lights />
+          <StageLook />
           <Threshold />
           <GeometryOverridesManager drawingId={drawingId} />
           <Fit drawingId={drawingId}>
-            <Composer drawingId={drawingId} width={5}>
+            <Composer drawingId={drawingId} width={4}>
               <GeometryInteraction drawingId={drawingId}>
                 <BuerliGeometry
                   suspend=".Load"
@@ -128,11 +166,26 @@ export const App: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
+          {/* Shared session collaboration — always on, feature-based: each
+              piece is inert without a session client / peers and degrades
+              gracefully across clients (unknown presence channels are simply
+              ignored). Broadcast own camera + pointer, render the peers'
+              viewpoints, track a followed peer's camera (click its name tag)
+              and show its cursor while following. */}
+          <BroadcastViewpoint />
+          <RemoteViewpoints />
+          <FollowCamera />
+          <SharedViewpointBounds drawingId={drawingId} />
+          <BroadcastCursor />
+          <FollowedCursor />
           {children}
         </CanvasImpl>
         <UndoRedoKeyHandler />
       </Drawing>
       <Disconnected drawingId={drawingId} />
+      <GuestSessionOverlay drawingId={drawingId} />
+      {readOnly && <ViewOnlyBadge />}
+      <FollowBanner />
     </>
   )
 }
