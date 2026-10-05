@@ -47,7 +47,8 @@ const request = async (token: string, keyUrl: string): Promise<EnginePlan> => {
 /** The engine key: a key of one's own, or one for the access token. */
 export const engineKey = async (options: { key?: string; token?: string; keyUrl?: string }): Promise<EnginePlan> => {
   if (options.key) return { key: options.key, exp: Number.MAX_SAFE_INTEGER, plan: 'own key', exportFormats: ['*'] }
-  if (!options.token) throw new Error('Set CLASSCAD_TOKEN in .env to a public access token from classcad.ch/account.')
+  // The name is joined: vite's define replaces CLASSCAD_TOKEN inside a string too, which breaks the build.
+  if (!options.token) throw new Error(`Set ${['CLASSCAD', 'TOKEN'].join('_')} in .env to a public access token from classcad.ch/account.`)
   const keyUrl = options.keyUrl || DEFAULT_KEY_URL
   const k = kept(options.token)
   const now = Date.now()
