@@ -78,15 +78,16 @@ const root = createRoot(container!)
 // ClassCAD in the page starts with the key the account's plan allows (plan.ts); a worker or a
 // server holds its own.
 const wantsWasm = !wsClientUrl && !!(classcadToken || classcadWasmKey)
-;(wantsWasm ? engineKey({ key: classcadWasmKey, token: classcadToken, keyUrl }) : Promise.resolve(null))
-  .then(wasm => {
+void (async () => {
+  try {
+    const wasm = wantsWasm ? await engineKey({ key: classcadWasmKey, token: classcadToken, keyUrl }) : null
     start(wasm)
     root.render(<ThemedApp />)
-  })
-  .catch(error => {
+  } catch (error) {
     root.render(
       <p style={{ font: '15px/1.5 system-ui', padding: 24 }}>
-        ClassCAD cannot start in this page: {String(error?.message ?? error)}
+        ClassCAD cannot start in this page: {String((error as Error)?.message ?? error)}
       </p>,
     )
-  })
+  }
+})()
