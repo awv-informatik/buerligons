@@ -128,18 +128,19 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
       const knotsMemb = sketchObj.members?.knots as ScgArrayMem
       const weightsMemb = sketchObj.members?.weights as ScgArrayMem
 
-      const controlPoints = controlPointsMemb?.members.map(memb => convertToVector(memb as ScgPointMem))
+      const controlPoints = controlPointsMemb.members.map(memb => convertToVector(memb as ScgPointMem))
       const knots = knotsMemb.members.map(memb => memb.value as number)
       const weights = weightsMemb.members.map(memb => memb.value as number)
       const rational = weights !== undefined && !nurbsUtils.isUniformWeights(weights)
 
       const spans = []
       if (ccUtils.base.isA(sketchObj.class, ScgClassType.CCBezier)) {
+        // Bezier weights are always uniform for now
         const px = controlPoints.map(p => p.x)
         const py = controlPoints.map(p => p.y)
-        const pw = controlPoints.map((_, i) => (rational ? (weights as number[])[i] : 1))
-        const cx = nurbsUtils.getBezierCoefficients(...px.map((x, i) => x * pw[i]))
-        const cy = nurbsUtils.getBezierCoefficients(...py.map((y, i) => y * pw[i]))
+        const pw = controlPoints.map(() => 1)
+        const cx = nurbsUtils.getBezierCoefficients(...px)
+        const cy = nurbsUtils.getBezierCoefficients(...py)
         const cw = nurbsUtils.getBezierCoefficients(...pw)
 
         spans.push({ cx, cy, cw, px, py, pw, tMin: 0, tMax: 1 })
