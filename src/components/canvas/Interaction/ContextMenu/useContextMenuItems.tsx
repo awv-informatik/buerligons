@@ -39,14 +39,17 @@ import {
 import partURL from '@buerli.io/icons/SVG/part.svg'
 import arcURL from '@buerli.io/icons/SVG/arc-center.svg'
 import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
+import bezierURL from '@buerli.io/icons/SVG/bezier.svg'
 import circleURL from '@buerli.io/icons/SVG/circle-center-radius.svg'
 import constraintURL from '@buerli.io/icons/SVG/dimension.svg'
 import fastenedURL from '@buerli.io/icons/SVG/fastened.svg'
 import groupURL from '@buerli.io/icons/SVG/group.svg'
+import intsplineURL from '@buerli.io/icons/SVG/intspline.svg'
 import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
 import lineURL from '@buerli.io/icons/SVG/line.svg'
 import pointURL from '@buerli.io/icons/SVG/point.svg'
 import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
+import splineURL from '@buerli.io/icons/SVG/spline.svg'
 import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
 import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
 import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
@@ -115,8 +118,16 @@ const getIconURL = (drawingId: DrawingID, objectId: ObjectID | undefined) => {
     return circleURL
   }
 
-  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCNurbs)) {
-    return arcURL
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCSpline)) {
+    return splineURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCInterpolationSpline)) {
+    return intsplineURL
+  }
+
+  if (ccUtils.base.isA(treeObj.class, ScgClassType.CCBezier)) {
+    return bezierURL
   }
 
   if (ccUtils.base.isA(treeObj.class, ScgClassType.CC2DConstraint)) {
