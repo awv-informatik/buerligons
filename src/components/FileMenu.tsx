@@ -5,7 +5,6 @@ import { Icon, IconName, Menu, MenuItems, Readfile, sessionClient } from '@buerl
 import { Tooltip, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
-import { runsInPage } from '../engine'
 
 type States = {
   current: number
@@ -260,9 +259,6 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
   }
 }
 
-// Where the engine runs in the page (WebAssembly) there is no undo and no redo yet. The buttons
-// stay in their place, switched off, and say so.
-const notInPage = (what: string) => `${what} is not available in WebAssembly for the moment. Coming soon.`
 // A guest who can only view does not undo or redo either.
 const viewOnly = (what: string) => `${what} is not available in a view-only session.`
 
@@ -326,12 +322,11 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
-  const inPage = runsInPage(drawingId)
 
   // View-only guests keep export (save) but not create/open; undo/redo are off.
   const menuItems = readOnly ? { save: items.save } : items
   // why undo and redo cannot be used at all, if they cannot
-  const off = (what: string) => (readOnly ? viewOnly(what) : inPage ? notInPage(what) : undefined)
+  const off = (what: string) => (readOnly ? viewOnly(what) : undefined)
 
   return (
     <>
