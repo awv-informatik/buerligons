@@ -1,9 +1,9 @@
 /* eslint-disable max-lines */
 import * as THREE from 'three'
 
-import { BuerliScope, DrawingID, getDrawing, GraphicID, ObjectID, ScgPointMem, SelectorID } from '@buerli.io/core'
+import { BuerliScope, DrawingID, getDrawing, GraphicID, ObjectID, ScgArrayMem, ScgPointMem, SelectorID } from '@buerli.io/core'
 import { ccUtils, ScgClassType, ScgGraphicType } from '@buerli.io/classcad'
-import { sketchIntersectionUtils } from '@buerli.io/react-cad'
+import { nurbsUtils, sketchIntersectionUtils } from '@buerli.io/react-cad'
 
 type CommonInfo = { id: ObjectID }
 type CommonBBObjInfo = { bb: THREE.Box2; aabb: AABBInfo }
@@ -13,7 +13,8 @@ export type PointInfo = { pos: THREE.Vector3 } & CommonInfo
 export type LineInfo = sketchIntersectionUtils.CCLineInfo & CommonInfo
 export type ArcInfo = sketchIntersectionUtils.CCArcInfo & { startH: THREE.Vector3; endH: THREE.Vector3} & CommonInfo
 export type CircleInfo = sketchIntersectionUtils.CCCircleInfo & { pos1H: THREE.Vector3; pos2H: THREE.Vector3 } & CommonInfo
-export type SketchInfo = { points: PointInfo[]; lines: LineInfo[]; arcs: ArcInfo[]; circles: CircleInfo[]; sketchMatrixInv: THREE.Matrix4 }
+export type SplineInfo = sketchIntersectionUtils.CCSplineInfo & { startH: THREE.Vector3; endH: THREE.Vector3 } & CommonInfo
+export type SketchInfo = { points: PointInfo[]; lines: LineInfo[]; arcs: ArcInfo[]; circles: CircleInfo[]; splines: SplineInfo[]; sketchMatrixInv: THREE.Matrix4 }
 export type GrObjInfo =  CommonBBObjInfo & CommonGrObjInfo
 export type GrPointInfo = { pos: THREE.Vector3 } & CommonGrObjInfo
 export type GrObjectsInfo = { bbObjects: GrObjInfo[]; points: GrPointInfo[] }
@@ -53,6 +54,7 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
   const lines: LineInfo[] = []
   const arcs: ArcInfo[] = []
   const circles: CircleInfo[] = []
+  const splines: SplineInfo[] = []
   sketchDescendants.forEach(id => {
     const sketchObj = tree[id]
     if (!sketchObj) {
@@ -120,9 +122,80 @@ export const getSketchGeomInfo = (drawingId: DrawingID, sketchId: ObjectID, came
 
       return
     }
+
+    if (ccUtils.base.isA(objClass, ScgClassType.CCNurbs)) {
+      const controlPointsMemb = sketchObj.members?.controlPoints as ScgArrayMem
+      const knotsMemb = sketchObj.members?.knots as ScgArrayMem
+      const weightsMemb = sketchObj.members?.weights as ScgArrayMem
+
+      const controlPoints = controlPointsMemb.members.map(memb => convertToVector(memb as ScgPointMem))
+      const knots = knotsMemb.members.map(memb => memb.value as number)
+      const weights = weightsMemb.members.map(memb => memb.value as number)
+      const rational = weights !== undefined && !nurbsUtils.isUniformWeights(weights)
+
+      const spans = []
+      if (ccUtils.base.isA(sketchObj.class, ScgClassType.CCBezier)) {
+        // Bezier weights are always uniform for now
+        const px = controlPoints.map(p => p.x)
+        const py = controlPoints.map(p => p.y)
+        const pw = controlPoints.map(() => 1)
+        const cx = nurbsUtils.getBezierCoefficients(...px)
+        const cy = nurbsUtils.getBezierCoefficients(...py)
+        const cw = nurbsUtils.getBezierCoefficients(...pw)
+
+        spans.push({ cx, cy, cw, px, py, pw, tMin: 0, tMax: 1 })
+      }
+      else {
+        const degree = sketchObj.members?.degree.value as number
+        // Single Bézier segment when there are no interior knots.
+        const shortcut = controlPoints.length === degree + 1
+        // Distinct knot values are the segment boundaries after full decomposition.
+        const paramArr = Array.from(new Set(knots)).sort((a, b) => a - b)
+
+        if (rational) {
+          const controlPointsH = nurbsUtils.homogenize(controlPoints, weights as number[])
+          const beziers = shortcut ? [controlPointsH] : nurbsUtils.decomposeToBeziers(controlPointsH, degree, knots)
+          beziers.forEach((hpts, i) => {
+            const projected = nurbsUtils.projectHomogeneous(hpts)
+            const px = projected.map(p => p.x)
+            const py = projected.map(p => p.y)
+            const pw = hpts.map(p => p.w)
+            const cx = nurbsUtils.getBezierCoefficients(...hpts.map(p => p.x))
+            const cy = nurbsUtils.getBezierCoefficients(...hpts.map(p => p.y))
+            const cw = nurbsUtils.getBezierCoefficients(...pw)
+            spans.push({ cx, cy, cw, px, py, pw, tMin: paramArr[i], tMax: paramArr[i + 1] })
+          })
+        } else {
+          const beziers = shortcut ? [controlPoints] : nurbsUtils.decomposeToBeziers(controlPoints, degree, knots)
+          beziers.forEach((pts, i) => {
+            const px = pts.map(p => p.x)
+            const py = pts.map(p => p.y)
+            const pw = pts.map(() => 1)
+            const cx = nurbsUtils.getBezierCoefficients(...px)
+            const cy = nurbsUtils.getBezierCoefficients(...py)
+            const cw = nurbsUtils.getBezierCoefficients(...pw)
+
+            spans.push({ cx, cy, cw, px, py, pw, tMin: paramArr[i], tMax: paramArr[i + 1] })
+          })
+        }
+      }
+
+      const startH = controlPoints[0].clone()
+      const endH = controlPoints[controlPoints.length - 1].clone()
+      ;[startH, endH].forEach(pos => pos.applyMatrix4(sketchMatrix).project(camera).setZ(0.0))
+      
+      splines.push({
+        id,
+        spans,
+        startH,
+        endH,
+      })
+
+      return
+    }
   })
 
-  return { points, lines, arcs, circles, sketchMatrixInv }
+  return { points, lines, arcs, circles, splines, sketchMatrixInv }
 }
 
 export const getAllSketchesGeomInfo = (drawingId: DrawingID, camera: THREE.Camera) => {
@@ -373,6 +446,13 @@ const intersectsCircle = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, circ
   return intersections[1].length > 0
 }
 
+const intersectsSpline = (lineStart: THREE.Vector3, lineEnd: THREE.Vector3, splineInfo: SplineInfo) => {
+  __dir.copy(lineEnd).sub(lineStart)
+  const intersections = sketchIntersectionUtils.intersectLineSpline({ start: lineStart, end: lineEnd, dir: __dir }, splineInfo)
+
+  return intersections[1].length > 0
+}
+
 export const containsPoint = (bb: THREE.Box2, pos: THREE.Vector3) => {
   const { min, max } = bb
 
@@ -447,6 +527,30 @@ export const touchesSketchCircle = (bb: THREE.Box2, circleInfo: CircleInfo, bbPo
     intersectsCircle(bbPointsL[0], bbPointsL[2], circleInfo) ||
     intersectsCircle(bbPointsL[1], bbPointsL[3], circleInfo) ||
     intersectsCircle(bbPointsL[2], bbPointsL[3], circleInfo)
+}
+
+export const containsSketchSpline = (bb: THREE.Box2, splineInfo: SplineInfo, bbPointsL: THREE.Vector3[]) => {
+  const { min, max } = bb
+  const { startH: spH, endH: epH } = splineInfo
+
+  return (spH.x >= min.x && spH.x <= max.x && spH.y >= min.y && spH.y <= max.y) &&
+    (epH.x >= min.x && epH.x <= max.x && epH.y >= min.y && epH.y <= max.y) &&
+    !intersectsSpline(bbPointsL[0], bbPointsL[1], splineInfo) &&
+    !intersectsSpline(bbPointsL[0], bbPointsL[2], splineInfo) &&
+    !intersectsSpline(bbPointsL[1], bbPointsL[3], splineInfo) &&
+    !intersectsSpline(bbPointsL[2], bbPointsL[3], splineInfo)
+}
+
+export const touchesSketchSpline = (bb: THREE.Box2, splineInfo: SplineInfo, bbPointsL: THREE.Vector3[]) => {
+  const { min, max } = bb
+  const { startH: spH, endH: epH } = splineInfo
+
+  return (spH.x >= min.x && spH.x <= max.x && spH.y >= min.y && spH.y <= max.y) ||
+    (epH.x >= min.x && epH.x <= max.x && epH.y >= min.y && epH.y <= max.y) ||
+    intersectsSpline(bbPointsL[0], bbPointsL[1], splineInfo) ||
+    intersectsSpline(bbPointsL[0], bbPointsL[2], splineInfo) ||
+    intersectsSpline(bbPointsL[1], bbPointsL[3], splineInfo) ||
+    intersectsSpline(bbPointsL[2], bbPointsL[3], splineInfo)
 }
 
 export const containsBB = (bbRect: THREE.Box2, bbObj: THREE.Box2) => {
@@ -600,6 +704,15 @@ export const attemptSketchesGeomSelection = (
         !onlyEntireBB && touchesSketchCircle(bbRect, circleInfo, bbPointsL)
       ) {
         onSelectCB(circleInfo.id)
+      }
+    })
+
+    sketchInfo.splines.forEach(splineInfo => {
+      if (
+        onlyEntireBB && containsSketchSpline(bbRect, splineInfo, bbPointsL) ||
+        !onlyEntireBB && touchesSketchSpline(bbRect, splineInfo, bbPointsL)
+      ) {
+        onSelectCB(splineInfo.id)
       }
     })
   })
