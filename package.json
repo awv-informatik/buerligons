@@ -8,9 +8,9 @@
   "scripts": {
     "clean": "rimraf ./build",
     "dev": "npm run start",
-    "dev:cli": "vite --mode cli",
     "start": "vite",
     "build": "tsc && vite build",
+    "build:mcp": "tsc && vite build --mode mcp",
     "serve": "vite preview",
     "compile": "tsc",
     "lint": "eslint \"./src/**/*.ts?(x)\"",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@buerli.io/icons": "^1.0.19",
-    "@buerli.io/react-cad": "1.1.0",
+    "@buerli.io/react-cad": "1.2.0",
     "@react-three/drei": "9.92.3",
     "@react-three/fiber": "8.15.14",
     "@react-three/postprocessing": "2.15.0",

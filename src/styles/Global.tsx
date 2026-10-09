@@ -1,5 +1,6 @@
 import * as styled from 'styled-components'
 
+// What the page under the app is, where the app is the whole page: its ground, its face, its bars.
 export const Global: any = styled.createGlobalStyle<{ background: string; text: string; scrollbarThumb: string; scrollbarBorder: string }>`
   * {
     box-sizing: border-box;
@@ -29,13 +30,13 @@ export const Global: any = styled.createGlobalStyle<{ background: string; text: 
   body {
     position: fixed;
     overscroll-behavior-y: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif !important;
+    font-family: 'JetBrains Mono', 'RCad Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important;
     color: ${p => p.text};
     -webkit-font-smoothing: antialiased;
   }
 
   ::-webkit-scrollbar {
-    width: 18px;
+    width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-track {
@@ -43,7 +44,8 @@ export const Global: any = styled.createGlobalStyle<{ background: string; text: 
   }
   ::-webkit-scrollbar-thumb {
     background: ${p => p.scrollbarThumb};
-    border-radius: 9px;
-    border: 4px solid ${p => p.scrollbarBorder};
+    background-clip: padding-box;
+    border: 3px solid ${p => p.scrollbarBorder};
+    border-radius: 6px;
   }
 `

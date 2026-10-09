@@ -26,34 +26,8 @@ import {
 } from '@buerli.io/react-cad'
 import { useThree } from '@react-three/fiber'
 import { useBounds, BoundsApi } from '@react-three/drei'
-import {
-  ZoomInOutlined,
-  VerticalAlignTopOutlined,
-  BorderOuterOutlined,
-  DeleteOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
-  SelectOutlined,
-  BgColorsOutlined,
-} from '@ant-design/icons'
-
-import partURL from '@buerli.io/icons/SVG/part.svg'
-import arcURL from '@buerli.io/icons/SVG/arc-center.svg'
-import assemblyURL from '@buerli.io/icons/SVG/assembly.svg'
-import circleURL from '@buerli.io/icons/SVG/circle-center-radius.svg'
-import constraintURL from '@buerli.io/icons/SVG/dimension.svg'
-import fastenedURL from '@buerli.io/icons/SVG/fastened.svg'
-import groupURL from '@buerli.io/icons/SVG/group.svg'
-import isometricURL from '@buerli.io/icons/SVG/isometric.svg'
-import lineURL from '@buerli.io/icons/SVG/line.svg'
-import pointURL from '@buerli.io/icons/SVG/point.svg'
-import sketchURL from '@buerli.io/icons/SVG/sketch.svg'
-import workpointURL from '@buerli.io/icons/SVG/workpoint.svg'
-import workaxisURL from '@buerli.io/icons/SVG/workaxis.svg'
-import workplaneURL from '@buerli.io/icons/SVG/workplane.svg'
-import workcsysURL from '@buerli.io/icons/SVG/workCSys.svg'
-import solidlineURL from '@buerli.io/icons/SVG/solidline.svg'
-import constructionlineURL from '@buerli.io/icons/SVG/constructionline.svg'
+import { Icon, iconRef } from '@buerli.io/react-cad'
+import type { IconName } from '@buerli.io/react-cad'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
 import {
@@ -66,6 +40,28 @@ import {
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry } from '../utils'
+
+// the drawings of what a menu can be on, and of what its rows do
+const partURL = iconRef('part')
+const arcURL = iconRef('arcCenter')
+const assemblyURL = iconRef('assembly')
+const circleURL = iconRef('circleCenter')
+const constraintURL = iconRef('dimLinear')
+const fastenedURL = iconRef('fastened')
+const groupURL = iconRef('group')
+const isometricURL = iconRef('solid')
+const lineURL = iconRef('line')
+const pointURL = iconRef('point')
+const sketchURL = iconRef('sketch')
+const workpointURL = iconRef('workPoint')
+const workaxisURL = iconRef('workAxis')
+const workplaneURL = iconRef('workPlane')
+const workcsysURL = iconRef('workCSys')
+const solidlineURL = iconRef('solidLine')
+const constructionlineURL = iconRef('constructionLine')
+
+// a menu item's sign
+const sign = (name: IconName) => <Icon name={name} size={16} />
 
 type ControlsProto = {
   update(): void
@@ -573,7 +569,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   return React.useMemo(() => {
     const zoomToFitEl = {
       label: 'Zoom to fit',
-      icon: <ZoomInOutlined />,
+      icon: sign('zoomFit'),
       key: 'zoomToFit',
       onClick: (menuInfo: CanvasMenuInfo) => {
         zoomToFit(boundsControls)
@@ -582,7 +578,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const editAppearanceEl = {
       label: 'Edit appearance',
-      icon: <BgColorsOutlined />,
+      icon: sign('appearance'),
       key: 'editAppearance',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.containerId) {
@@ -615,7 +611,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const selectEl = {
       label: 'Select',
-      icon: <SelectOutlined />,
+      icon: sign('select'),
       key: 'select',
       children: (menuInfo: CanvasMenuInfo) => {
         const drawing_ = getDrawing(drawingId)
@@ -670,7 +666,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideEl = {
       label: 'Hide',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hide',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (isPartMode) {
@@ -683,7 +679,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideOtherFeaturesEl = {
       label: 'Hide other features',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideOtherFeatures',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (opSeqId) {
@@ -694,7 +690,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideOtherSolidsEl = {
       label: 'Hide other solids',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideOtherSolids',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.containerId) {
@@ -705,7 +701,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideOtherInstancesEl = {
       label: 'Hide other instances',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideOtherInstances',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.prodRefId) {
@@ -716,7 +712,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideAllFeatures = {
       label: 'Hide all features',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideAllFeatures',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (opSeqId) {
@@ -727,7 +723,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideAllSolidsEl = {
       label: 'Hide all solids',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideAllSolids',
       onClick: (menuInfo: CanvasMenuInfo) => {
         showOrHideAllSolids(drawingId, false)
@@ -736,7 +732,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideAllInstancesEl = {
       label: 'Hide all instances',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideAllInstances',
       onClick: (menuInfo: CanvasMenuInfo) => {
         showOrHideAllInstances(drawingId, false)
@@ -745,7 +741,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const showAllEl = {
       label: 'Show all',
-      icon: <EyeOutlined />,
+      icon: sign('eye'),
       key: 'showAll',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (isPartMode && opSeqId) {
@@ -758,7 +754,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const showMatesEl = {
       label: 'Show mates',
-      icon: <EyeOutlined />,
+      icon: sign('eye'),
       key: 'showMates',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.prodRefId) {
@@ -769,7 +765,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const hideMatesEl = {
       label: 'Hide mates',
-      icon: <EyeInvisibleOutlined />,
+      icon: sign('eyeOff'),
       key: 'hideMates',
       onClick: (menuInfo: CanvasMenuInfo) => {
         if (menuInfo.interactionInfo.prodRefId) {
@@ -797,7 +793,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         ? null
         : {
             label: 'Edit',
-            icon: <SelectOutlined />,
+            icon: sign('enter'),
             key: 'editProduct',
             onClick: (menuInfo: CanvasMenuInfo) => {
               if (menuInfo.interactionInfo.prodRefId) {
@@ -809,7 +805,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       zoomToFitEl,
       {
         label: 'View normal to',
-        icon: <VerticalAlignTopOutlined />,
+        icon: sign('viewNormal'),
         key: 'viewNormalToProduct',
         onClick: (menuInfo: CanvasMenuInfo) => {
           viewNormalToProduct(menuInfo, camera, controls, boundsControls)
@@ -818,7 +814,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       { type: 'divider' },
       {
         label: 'Delete',
-        icon: <DeleteOutlined />,
+        icon: sign('trash'),
         key: 'delete',
         onClick: (menuInfo: CanvasMenuInfo) => {
           if (isPartMode) {
@@ -841,7 +837,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       { type: 'divider' },
       {
         label: 'View normal to sketch',
-        icon: <VerticalAlignTopOutlined />,
+        icon: sign('viewNormal'),
         key: 'viewNormalToSketch',
         onClick: (menuInfo: CanvasMenuInfo) => {
           viewNormalToSketch(drawingId, menuInfo, camera, controls, boundsControls)
@@ -849,7 +845,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       },
       {
         label: 'Fit sketch',
-        icon: <BorderOuterOutlined />,
+        icon: sign('zoomFit'),
         key: 'fitSketch',
         onClick: (menuInfo: CanvasMenuInfo) => {
           fitSketch(drawingId, menuInfo, boundsControls)
@@ -997,7 +993,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           ...workGeometry,
           {
             label: 'View normal to plane',
-            icon: <VerticalAlignTopOutlined />,
+            icon: sign('viewNormal'),
             key: 'viewNormalToPlane',
             onClick: (menuInfo: CanvasMenuInfo) => {
               viewNormalToPlane(drawingId, menuInfo, camera, controls, boundsControls)

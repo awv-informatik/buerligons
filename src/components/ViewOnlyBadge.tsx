@@ -1,31 +1,37 @@
-import { EyeOutlined } from '@ant-design/icons'
+import { Icon } from '@buerli.io/react-cad'
 import React from 'react'
+import styled from 'styled-components'
 
 /**
  * Small fixed pill shown to a view-only guest, so it's always clear why the
  * editing controls are gone. Rendered only when read-only (the caller gates it).
+ * It sits at the head of the stage, under the bar.
  */
 export const ViewOnlyBadge: React.FC = () => (
-  <div
-    style={{
-      position: 'fixed',
-      top: 12,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      padding: '4px 12px',
-      borderRadius: 999,
-      background: 'rgba(0,0,0,0.72)',
-      color: '#fff',
-      font: '12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      pointerEvents: 'none',
-      userSelect: 'none',
-    }}
-  >
-    <EyeOutlined />
+  <Pill role="status">
+    <Icon name="eye" size={14} />
     <span>View only</span>
-  </div>
+  </Pill>
 )
+
+const Pill = styled.div`
+  position: fixed;
+  top: calc(var(--rcad-bar-h, 48px) + 12px);
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  background: var(--rcad-toast-bg);
+  box-shadow: var(--rcad-shadow);
+  color: var(--rcad-toast-strong);
+  font: 600 10.5px/1 var(--rcad-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+`

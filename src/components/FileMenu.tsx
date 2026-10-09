@@ -1,43 +1,52 @@
-import {
-  AppstoreOutlined,
-  FileOutlined,
-  FolderOpenOutlined,
-  MenuOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  DownOutlined,
-  SaveOutlined,
-} from '@ant-design/icons'
 import { createApi, BuerliCadFacade } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
-import { Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
-import { Button, Space, Tooltip, Typography, Dropdown, MenuProps } from 'antd'
+import { Icon, IconName, Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
+import { Tooltip, Dropdown, MenuProps } from 'antd'
 import 'antd/dist/antd.css'
 import React from 'react'
-
-import './FileMenu.css'
+import { runsInPage } from '../engine'
 import { getCaption, getFilteredRedoStack, getFilteredUndoStack, redoNext, States, undoNext } from './undoRedo'
 
 export { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './undoRedo'
 
 type Command = {
   label: string
-  icon?: any
+  icon?: IconName
   command: () => void
   sub?: Command[]
   stateId?: string
 }
 
+// a format a model is saved in, as a menu's row: what it is, and its file's ending
+const format = (name: string, ending: string) => (
+  <span className="rcad-menu-tool">
+    <span>{name}</span>
+    <code>.{ending}</code>
+  </span>
+)
+
 type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
   const rfRef = React.useRef<HTMLInputElement>()
+  // What the host of a shared session offers its guests; a session that says nothing offers all.
+  const { saveFormats } = sessionClient.useSessionConfig()
 
   const createNewDrawing = React.useCallback(
     (type: 'Part' | 'Assembly') => {
       const run = async () => {
         try {
+          // A guest is in somebody else's session, and a session has one model: New starts it
+          // over there, for everyone in it. (A new drawing would be a new connection to the same
+          // session, and the part would land next to what is in it.)
+          if (sessionClient.getInviteFromUrl()) {
+            const api = createApi(drawingId)
+            await api.v1.common.clear()
+            if (type === 'Assembly') await api.v1.assembly.create({ name: 'Assembly' })
+            else await api.v1.part.create({ name: 'Part' })
+            return
+          }
           const oldDrawingId = drawingId
           const newDrawingId = await BuerliCadFacade.utils.connect(type)
           if (newDrawingId) {
@@ -97,19 +106,36 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   return React.useMemo(() => {
+    const formats = {
+      ofb: {
+        caption: format('ClassCAD', 'ofb') as any,
+        callback: () => save('ofb'),
+      },
+      stp: {
+        caption: format('STEP', 'stp') as any,
+        callback: () => save('stp'),
+      },
+      stl: {
+        caption: format('STL', 'stl') as any,
+        callback: () => save('stl'),
+      },
+    }
+    const offered = Object.fromEntries(
+      Object.entries(formats).filter(([type]) => !saveFormats || saveFormats.includes(type.toUpperCase())),
+    )
     return {
       new: {
-        caption: 'new',
-        icon: <FileOutlined />,
+        caption: 'New',
+        icon: <Icon name="plus" size={16} />,
         children: {
           part: {
-            caption: 'part',
-            icon: <FileOutlined />,
+            caption: 'Part',
+            icon: <Icon name="part" size={16} />,
             callback: () => createNewDrawing('Part'),
           },
           assembly: {
-            caption: 'assembly',
-            icon: <AppstoreOutlined />,
+            caption: 'Assembly',
+            icon: <Icon name="assembly" size={16} />,
             callback: () => createNewDrawing('Assembly'),
           },
         },
@@ -117,33 +143,20 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
       open: {
         caption: (
           <>
-            open
+            Open …
             <Readfile ref={rfRef} singleDrawingApp />
           </>
         ),
-        icon: <FolderOpenOutlined />,
+        icon: <Icon name="open" size={16} />,
         callback: () => rfRef.current && rfRef.current.click(),
       },
       save: {
-        caption: 'save',
-        icon: <SaveOutlined />,
-        children: {
-          ofb: {
-            caption: 'ofb',
-            callback: () => save('ofb'),
-          },
-          stp: {
-            caption: 'stp',
-            callback: () => save('stp'),
-          },
-          stl: {
-            caption: 'stl',
-            callback: () => save('stl'),
-          },
-        },
+        caption: 'Save as',
+        icon: <Icon name="download" size={16} />,
+        children: offered,
       },
     }
-  }, [createNewDrawing, save])
+  }, [createNewDrawing, save, saveFormats])
 }
 
 const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
@@ -169,7 +182,7 @@ const undoCommand = (drawingId?: DrawingID, states?: States): Command => {
   return {
     label: 'Undo',
     sub: [...undoCommands],
-    icon: <ArrowLeftOutlined />,
+    icon: 'undo',
     command: () => drawingId && states && undoNext(drawingId, states, filteredStack),
   }
 }
@@ -196,22 +209,20 @@ const redoCommand = (drawingId?: DrawingID, states?: States): Command => {
   return {
     label: 'Redo',
     sub: [...redoCommands],
-    icon: <ArrowRightOutlined />,
+    icon: 'redo',
     command: () => drawingId && redoNext(drawingId, filteredStack),
   }
 }
 
-const { Text } = Typography
+// Where the engine runs in the page (WebAssembly) there is no undo and no redo yet. The buttons
+// stay in their place, switched off, and say so.
+const notInPage = (what: string) => `${what} is not available in WebAssembly for the moment. Coming soon.`
+// A guest who can only view does not undo or redo either.
+const viewOnly = (what: string) => `${what} is not available in a view-only session.`
 
-const FButton: React.FC<{ command: Command; disabled: boolean }> = ({ command, disabled }) => {
-  return (
-    <Tooltip title={command.label}>
-      <Button disabled={disabled} size="small" onClick={command.command} icon={command.icon} />
-    </Tooltip>
-  )
-}
-
-const SubGroup: React.FC<{ command: Command; forceDisabled?: boolean }> = ({ command, forceDisabled }) => {
+// Undo, or redo: the step itself, and behind the caret the steps it can go back (or forward) to.
+// `off` says why it cannot be used at all, if it cannot.
+const History: React.FC<{ command: Command; off?: string }> = ({ command, off }) => {
   const onClick = React.useCallback(
     (e: { key: string }) => {
       if (command.sub) {
@@ -227,49 +238,66 @@ const SubGroup: React.FC<{ command: Command; forceDisabled?: boolean }> = ({ com
     command.sub?.map(
       subCmd =>
         ({
-          label: <Text style={{ verticalAlign: 'middle' }}>{subCmd.label}</Text>,
+          label: subCmd.label,
           key: subCmd.stateId,
         }) as MenuItem,
     ) || []
 
   const menuProps = { items: menuItems, onClick }
 
-  // Read-only guests may not undo/redo; otherwise the dropdown is disabled when empty.
-  const dropdownDisabled = forceDisabled || !(command.sub && command.sub.length > 0)
+  const disabled = Boolean(off) || !(command.sub && command.sub.length > 0)
 
   return (
-    <>
-      <Button.Group style={{ top: '1px' }}>
-        <FButton command={command} disabled={Boolean(forceDisabled) || dropdownDisabled} />
-        <Dropdown overlayClassName="subgroup-dropdown" disabled={dropdownDisabled} menu={menuProps}>
-          <Button icon={<DownOutlined />} size="small" style={{ width: '14px' }} />
-        </Dropdown>
-      </Button.Group>
-    </>
+    <span className="rcad-split">
+      <Tooltip title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
+        {/* (a span: a tooltip does not show over a button that is disabled) */}
+        <span style={{ display: 'inline-flex' }}>
+          <button
+            type="button"
+            className="rcad-tool"
+            aria-label={command.label}
+            disabled={disabled}
+            onClick={command.command}>
+            {command.icon && <Icon name={command.icon} size={18} />}
+          </button>
+        </span>
+      </Tooltip>
+      <Dropdown disabled={disabled} menu={menuProps} trigger={['click']} placement="bottomLeft">
+        <button type="button" className="rcad-caret" aria-label={`${command.label}: steps`} disabled={disabled}>
+          <Icon name="caret" size={12} />
+        </button>
+      </Dropdown>
+    </span>
   )
 }
 
+/**
+ * What leads the app's bar: the file menu (new, open, save), then undo and redo.
+ */
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const items = useMenuItems(drawingId)
   const readOnly = sessionClient.useSessionRole() === 'view'
   const states = useDrawing(drawingId, d => d.cad.states)
   const undoCmd = React.useMemo(() => undoCommand(drawingId, states), [drawingId, states])
   const redoCmd = React.useMemo(() => redoCommand(drawingId, states), [drawingId, states])
+  const inPage = runsInPage(drawingId)
 
   // View-only guests keep export (save) but not create/open; undo/redo are off.
   const menuItems = readOnly ? { save: items.save } : items
+  // why undo and redo cannot be used at all, if they cannot
+  const off = (what: string) => (readOnly ? viewOnly(what) : inPage ? notInPage(what) : undefined)
 
   return (
-    <Space>
-      <Menu items={menuItems} trigger={['click']}>
-        <MenuOutlined
-          style={{
-            width: '30px',
-          }}
-        />
+    <>
+      <Menu items={menuItems} trigger={['click']} placement="bottomLeft">
+        <button type="button" className="rcad-tool rcad-tool-text" aria-label="File">
+          <Icon name="menu" size={18} />
+          <span>File</span>
+        </button>
       </Menu>
-      <SubGroup command={undoCmd} forceDisabled={readOnly} />
-      <SubGroup command={redoCmd} forceDisabled={readOnly} />
-    </Space>
+      <span className="rcad-tools-sep" />
+      <History command={undoCmd} off={off('Undo')} />
+      <History command={redoCmd} off={off('Redo')} />
+    </>
   )
 }

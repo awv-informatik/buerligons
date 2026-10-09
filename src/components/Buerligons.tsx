@@ -6,6 +6,7 @@ import {
   GeometryOverridesManager,
   HoveredConstraintDisplay,
   PluginGeometryBounds,
+  StageLook,
   useIsSketchActive,
   sessionClient,
 } from '@buerli.io/react-cad'
@@ -105,15 +106,21 @@ export type BuerligonsProps = {
    * `null`: no menu, for hosts that own the document lifecycle (e.g. an embedding PDM).
    */
   menu?: JSX.Element | null
+  /** What the footer opens with: where the engine runs, say. By default, whether it is connected. */
+  status?: React.ReactNode
+  /** What the bar ends with, before the theme switch. */
+  trail?: React.ReactNode
+  /** false where the page around the app has a theme switch of its own, and sets the app's theme from it. */
+  themeSwitch?: boolean
   children?: React.ReactNode
 }
 
-export const Buerligons: React.FC<BuerligonsProps> = ({ menu, children }) => {
+export const Buerligons: React.FC<BuerligonsProps> = props => {
   const drawingId = useBuerli(s => s.drawing.active || '')
-  return drawingId ? <App menu={menu}>{children}</App> : null
+  return drawingId ? <App {...props} /> : null
 }
 
-export const App: React.FC<BuerligonsProps> = ({ menu, children }) => {
+export const App: React.FC<BuerligonsProps> = ({ menu, status, trail, themeSwitch, children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
@@ -121,6 +128,14 @@ export const App: React.FC<BuerligonsProps> = ({ menu, children }) => {
   const isPart = ccUtils.base.isA(curProdClass, ScgClassType.CCPart)
   const readOnly = sessionClient.useSessionRole() === 'view'
   useInteractionReset(drawingId)
+  // what the view turns about when a drag begins beside the model: the middle of all of it
+  const center = React.useCallback(() => {
+    const structure = getDrawing(drawingId)?.structure
+    const product = isPart ? structure?.currentProduct : structure?.root
+    if (!product) return null
+    const bounds = getDrawing(drawingId).api.structure.calculateProductBounds(product)
+    return bounds.radius > 0 ? bounds.center : null
+  }, [drawingId, isPart])
   return (
     <>
       <PluginManager />
@@ -128,14 +143,17 @@ export const App: React.FC<BuerligonsProps> = ({ menu, children }) => {
         drawingId={drawingId}
         readOnly={readOnly}
         Menu={menu === undefined ? <FileMenu drawingId={drawingId} /> : (menu ?? undefined)}
-      >
+        Trail={trail}
+        Status={status}
+        themeSwitch={themeSwitch}>
         <CanvasImpl drawingId={drawingId}>
-          <Controls makeDefault staticMoving rotateSpeed={2} />
-          <Lights drawingId={drawingId} />
+          <Controls makeDefault center={center} />
+          <Lights />
+          <StageLook />
           <Threshold />
           <GeometryOverridesManager drawingId={drawingId} />
           <Fit drawingId={drawingId}>
-            <Composer drawingId={drawingId} width={5}>
+            <Composer drawingId={drawingId} width={4}>
               <GeometryInteraction drawingId={drawingId}>
                 <BuerliGeometry
                   suspend=".Load"

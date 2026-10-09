@@ -1,6 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 
+import { useRCadThemeMode, useStage } from '@buerli.io/react-cad'
 import { GizmoHelper, GizmoViewcube, GizmoViewport, useBounds } from '@react-three/drei'
 import { ThreeEvent, useThree } from '@react-three/fiber'
 
@@ -30,8 +31,49 @@ const getUpVector = (normal: THREE.Vector3) => {
   return new THREE.Vector3(0, 1, 0)
 }
 
+// The cube's faces are written with the page's own mono; they are drawn once, so they wait for it.
+const FACE_FONT = "600 21px 'JetBrains Mono', 'RCad Mono', ui-monospace, monospace"
+const AXIS_FONT = "700 19px 'JetBrains Mono', 'RCad Mono', ui-monospace, monospace"
+
+const useFont = (font: string) => {
+  const [ready, setReady] = React.useState(false)
+  React.useEffect(() => {
+    let live = true
+    const done = () => {
+      if (live) setReady(true)
+    }
+    const fonts = (document as any).fonts
+    if (!fonts?.load) {
+      done()
+      return
+    }
+    // (a face that never comes must not keep the cube away)
+    const late = window.setTimeout(done, 1500)
+    void (fonts.load(font, 'TOP') as Promise<unknown>).catch(() => undefined).finally(done)
+    return () => {
+      live = false
+      window.clearTimeout(late)
+    }
+  }, [font])
+  return ready
+}
+
+// The cube is a thing on the stage, not a piece of it: its faces are a step off the ground (darker
+// on paper, lighter on graphite, and well short of a body's grey), its edges a step further.
+const cubeColors = {
+  light: { face: '#dde0e7', stroke: '#9aa1af', text: '#2a2f3a', hover: '#ffffff' },
+  dark: { face: '#353a43', stroke: '#5a606c', text: '#dcdee3', hover: '#4b515d' },
+}
+
+/**
+ * The view, in the stage's top right corner: a cube with the views' names on it, and the
+ * part's three axes in the triad's colours. A face, an edge or a corner turns the view to it.
+ */
 export const ViewCube: React.FC = () => {
   const bounds = useBounds()
+  const mode = useRCadThemeMode()
+  const stage = useStage()
+  const fontReady = useFont(FACE_FONT)
 
   const { camera, invalidate } = useThree()
   const controls = useThree(s => s.controls as unknown as ControlsProto)
@@ -59,21 +101,33 @@ export const ViewCube: React.FC = () => {
     return null
   }, [bounds, camera, controls, invalidate])
 
+  // the faces are textures: a new theme, or the face arriving, draws them again
+  const key = `${mode}-${fontReady}`
+
   return (
-    <GizmoHelper renderPriority={2} alignment="top-right" margin={[80, 80]}>
-      <group scale={0.8}>
+    <GizmoHelper renderPriority={2} alignment="top-right" margin={[76, 76]}>
+      <group scale={0.74}>
         <group scale={2.25} position={[-30, -30, -30]} rotation={[0, 0, 0]}>
           <GizmoViewport
+            key={key}
             disabled
-            axisScale={[0.8, 0.02, 0.02]}
-            axisHeadScale={0.45}
+            axisScale={[0.8, 0.014, 0.014]}
+            axisHeadScale={0.42}
             hideNegativeAxes
-            labelColor="black"
+            axisColors={[stage.axisX, stage.axisY, stage.axisZ]}
+            labelColor={mode === 'dark' ? '#16181d' : '#ffffff'}
+            font={AXIS_FONT}
           />
         </group>
         <GizmoViewcube
-          font="24px Inter var, Arial, sans-serif"
+          key={key}
+          font={FACE_FONT}
           faces={['Right', 'Left', 'Back', 'Front', 'Top', 'Bottom']}
+          color={cubeColors[mode].face}
+          textColor={cubeColors[mode].text}
+          strokeColor={cubeColors[mode].stroke}
+          hoverColor={cubeColors[mode].hover}
+          opacity={1}
           onClick={onClick}
         />
       </group>
