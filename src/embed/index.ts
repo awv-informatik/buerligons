@@ -34,3 +34,5 @@ export type {
   ProductUser,
 } from './EditorController'
 export { useAutosave, useCurrentPart, useEditedParts, useEditorDirty, useEditorStatus } from './hooks'
+export { setLooks, setPbr, useLooks } from '../looks'
+export type { Look } from '../looks'

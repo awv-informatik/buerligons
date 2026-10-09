@@ -21,6 +21,7 @@ import {
   GlobalCSysDisplay,
   HighlightedObjects,
   Lights,
+  PbrLook,
   raycastFilter,
   RectangleSelection,
   Threshold,
@@ -149,6 +150,7 @@ export const App: React.FC<BuerligonsProps> = ({ menu, status, trail, themeSwitc
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault center={center} />
           <Lights />
+          <PbrLook drawingId={drawingId} />
           <StageLook />
           <Threshold />
           <GeometryOverridesManager drawingId={drawingId} />
