@@ -932,13 +932,13 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         objType: ScgClassType.CCPart,
         headerName: 'Part',
         headerIcon: <MenuHeaderIcon url={partURL} />,
-        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl, pbrEl],
       },
       {
         objType: ScgClassType.CCAssembly,
         headerName: 'Assembly',
         headerIcon: <MenuHeaderIcon url={assemblyURL} />,
-        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl, pbrEl],
       },
       {
         objType: ScgClassType.CCSketch,
