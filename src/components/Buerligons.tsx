@@ -1,6 +1,7 @@
 import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { DrawingID, getDrawing } from '@buerli.io/core'
 import { BuerliGeometry, BuerliPluginsGeometry, PluginManager, useBuerli, useDrawing } from '@buerli.io/react'
+import { PmiLayer } from '../plugins/pmi'
 import {
   Drawing,
   GeometryOverridesManager,
@@ -172,6 +173,7 @@ export const App: React.FC<BuerligonsProps> = ({ menu, status, trail, themeSwitc
           <BuerliPluginsGeometry drawingId={drawingId} />
           <GlobalCSysDisplay drawingId={drawingId} />
           <HighlightedObjects drawingId={drawingId} />
+          <PmiLayer drawingId={drawingId} />
           <RectangleSelection drawingId={drawingId} />
           {/* Shared session collaboration — always on, feature-based: each
               piece is inert without a session client / peers and degrades

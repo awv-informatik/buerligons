@@ -7,6 +7,7 @@ import 'antd/dist/antd.css'
 import React from 'react'
 import { runsInPage } from '../engine'
 import { getCaption, getFilteredRedoStack, getFilteredUndoStack, redoNext, States, undoNext } from './undoRedo'
+import { PMI_PLUGIN_NAME } from '../plugins/pmi'
 
 export { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './undoRedo'
 
@@ -274,6 +275,27 @@ const History: React.FC<{ command: Command; off?: string }> = ({ command, off })
 /**
  * What leads the app's bar: the file menu (new, open, save), then undo and redo.
  */
+/** Opens / closes the window of the GD&T (PMI) plugin: the inspection table of the part. */
+const PmiButton: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
+  const pluginId = useDrawing(drawingId, d => d.plugin.global.find(id => d.plugin.refs[id]?.name === PMI_PLUGIN_NAME))
+  const active = useDrawing(drawingId, d => (pluginId !== undefined ? d.plugin.active.global.includes(pluginId) : false))
+  const toggle = React.useCallback(() => {
+    if (pluginId !== undefined) getDrawing(drawingId).api.plugin.setActiveGlobal(pluginId, !active)
+  }, [drawingId, pluginId, active])
+  return (
+    <Tooltip title="GD&T: datums, dimensions and tolerances of the part">
+      <button
+        type="button"
+        className={'rcad-tool rcad-tool-text' + (active ? ' rcad-tool-on' : '')}
+        aria-pressed={active}
+        disabled={pluginId === undefined}
+        onClick={toggle}>
+        <span>GD&amp;T</span>
+      </button>
+    </Tooltip>
+  )
+}
+
 export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   const items = useMenuItems(drawingId)
   const readOnly = sessionClient.useSessionRole() === 'view'
@@ -298,6 +320,8 @@ export const FileMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
       <span className="rcad-tools-sep" />
       <History command={undoCmd} off={off('Undo')} />
       <History command={redoCmd} off={off('Redo')} />
+      <span className="rcad-tools-sep" />
+      <PmiButton drawingId={drawingId} />
     </>
   )
 }

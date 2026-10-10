@@ -50,6 +50,7 @@ import {
   WorkPlane,
   WorkPoint,
 } from '@buerli.io/react-cad'
+import { Pmi } from './plugins/pmi'
 
 import { setRunsInPage } from './engine'
 
@@ -100,7 +101,7 @@ export const initBuerli = (
         },
       },
       elements,
-      globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor, SessionManagement],
+      globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor, SessionManagement, Pmi],
       plugins: {
         [ScgClassType.CCSketch]: Sketch,
         [ScgClassType.CCExtrusion]: Extrusion,
