@@ -14,6 +14,7 @@ import {
   getGeometryNormal,
   getInteractionInfo,
   getObjType,
+  getSketchDimensionHit,
   getSuitableIntersections,
 } from './utils'
 
@@ -96,6 +97,16 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       const currentInstance = drawing.structure.currentInstance
       const defaultInfo = createInfo({ objectId: currentProduct, prodRefId: currentInstance })
 
+      // the value of a sketch dimension (drawn without an object id): the menu of its dimension constraint
+      const dimensionId = getSketchDimensionHit(drawingId, e.eventObject, e.pointer, e.camera, size)
+      if (dimensionId !== undefined) {
+        setMenuInfo({
+          interactionInfo: createInfo({ objectId: dimensionId, prodRefId: currentInstance }),
+          clickInfo: { clickPos: e.point.clone(), intersections: e.intersections },
+        })
+        return
+      }
+
       const intersections = getSuitableIntersections(e.intersections, drawingId)
 
       const firstIntersection = getFirstIntersection(intersections, lineThreshold, pointThreshold)
@@ -137,7 +148,7 @@ export const CanvasContextMenu: React.FC<{ drawingId: DrawingID; menuContent: Me
       // If an object couldn't be identified for whatever reason, consider the current product being clicked
       setMenuInfo({ interactionInfo: defaultInfo, clickInfo: { clickPos, intersections } })
     },
-    [drawingId, lineThreshold, menuContent, pointThreshold],
+    [drawingId, lineThreshold, menuContent, pointThreshold, size],
   )
 
   const { menuItems, caption, icon } = React.useMemo(() => {

@@ -102,4 +102,37 @@ export type PmiPluginState = {
   hovered: number | null
   /** the item picked in the table or in the view */
   selected: number | null
+  /** the design dimension whose tolerance form is open (from the context menu of a sketch dimension) */
+  promoteTarget?: number | null
+  /** the creation form that is open (from the context menu of a face): what to make and on which faces */
+  create?: PmiCreateRequest | null
+}
+
+export type PmiCreateMode = 'datum' | 'dimension' | 'tolerance'
+
+export type PmiCreateRequest = {
+  mode: PmiCreateMode
+  /** faces: element id (= graphic id) and surface type */
+  elements: { id: number; surface: string }[]
+}
+
+/** The window title of the plugin, also used to find it among the global plugins. */
+export const PMI_PLUGIN_NAME = 'GD&T'
+
+/** A design dimension of the part as `api.v1.pmi.listDesignDimensions` returns it. */
+export type DesignDimension = {
+  /** the sketch dimension constraint or the extrusion */
+  id: number
+  name: string
+  /** the sketch or the feature it belongs to */
+  owner: string
+  kind: 'sketch' | 'feature'
+  value: number
+  /** what promotion makes of it (PMI dimension type); missing when it cannot be promoted yet */
+  type?: string
+  /** why it cannot be promoted yet */
+  reason?: string
+  /** the PMI dimension that stands for it */
+  promoted?: number
+  promotedName?: string
 }

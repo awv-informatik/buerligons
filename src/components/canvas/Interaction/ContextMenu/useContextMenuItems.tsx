@@ -41,6 +41,7 @@ import {
 import { MenuHeaderIcon } from './MenuHeaderIcon'
 import { MenuItemIcon } from './MenuItemIcon'
 import { attemptSSelection, getBuerliGeometry } from '../utils'
+import { promoteDesignDimension, startPmiCreate } from '../../../../plugins/pmi'
 
 // the drawings of what a menu can be on, and of what its rows do
 const partURL = iconRef('part')
@@ -842,6 +843,26 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       menuElements: graphic,
     }
 
+    // GD&T on a face (part mode): datum, dimension or tolerance on the selected faces and the clicked one
+    const pmiCreate = (mode: 'datum' | 'dimension' | 'tolerance') => (menuInfo: CanvasMenuInfo) =>
+      startPmiCreate(drawingId, mode, menuInfo.interactionInfo.graphicId as number | undefined)
+    const pmiFace = isPartMode
+      ? ([
+          {
+            key: 'pmi',
+            label: 'GD&T',
+            icon: sign('dimLinear'),
+            children: [
+              { key: 'pmiDatum', label: 'Add datum ...', onClick: pmiCreate('datum') },
+              { key: 'pmiDimension', label: 'Add dimension ...', onClick: pmiCreate('dimension') },
+              { key: 'pmiTolerance', label: 'Add tolerance ...', onClick: pmiCreate('tolerance') },
+            ],
+          },
+          { type: 'divider' },
+        ] as MenuElement[])
+      : []
+    const faceDescriptor = { ...grDescriptor, menuElements: [...pmiFace, ...graphic] as MenuElement[] }
+
     const sketch = [
       zoomToFitEl,
       pbrEl,
@@ -921,13 +942,14 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
               }
             : null,
           isPartMode ? { type: 'divider' } : null,
+          ...pmiFace,
           ...graphic,
         ],
       } as MenuDescriptor,
-      { objType: ScgGraphicType.CYLINDER, ...grDescriptor },
-      { objType: ScgGraphicType.CONE, ...grDescriptor },
-      { objType: ScgGraphicType.SPHERE, ...grDescriptor },
-      { objType: ScgGraphicType.NURBSSURFACE, ...grDescriptor },
+      { objType: ScgGraphicType.CYLINDER, ...faceDescriptor },
+      { objType: ScgGraphicType.CONE, ...faceDescriptor },
+      { objType: ScgGraphicType.SPHERE, ...faceDescriptor },
+      { objType: ScgGraphicType.NURBSSURFACE, ...faceDescriptor },
       {
         objType: ScgClassType.CCPart,
         headerName: 'Part',
@@ -969,6 +991,27 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         headerName: 'Circle',
         headerIcon: <MenuHeaderIcon url={sketchURL} />,
         menuElements: curve,
+      },
+      {
+        // a sketch dimension: "Tolerance ..." makes it an inspection dimension (GD&T, Phase 4b)
+        objType: ScgClassType.CC2DDimensionConstraint,
+        headerName: 'Dimension',
+        headerIcon: <MenuHeaderIcon url={constraintURL} />,
+        menuElements: [
+          isPartMode
+            ? {
+                label: 'Tolerance ...',
+                icon: sign('dimLinear'),
+                key: 'pmiTolerance',
+                onClick: (menuInfo: CanvasMenuInfo) => {
+                  const id = menuInfo.interactionInfo.objectId
+                  if (id !== undefined && id !== null) promoteDesignDimension(drawingId, Number(id))
+                },
+              }
+            : null,
+          isPartMode ? { type: 'divider' } : null,
+          ...sketchItem,
+        ] as MenuElement[],
       },
       {
         objType: ScgClassType.CC2DConstraint,

@@ -339,3 +339,74 @@ export function getWCSystems(drawingId: DrawingID, productId: ObjectID) {
     id => ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCSys) || ccUtils.base.isA(tree[id].class, ScgClassType.CCWorkCoordSystem)
   )
 }
+
+const isShown = (o: THREE.Object3D) => {
+  for (let p: THREE.Object3D | null = o; p; p = p.parent) if (!p.visible) return false
+  return true
+}
+
+/**
+ * A right click on the value of a sketch dimension: the dimension constraint it shows. The value texts of sketch
+ * dimensions are drawn by react-cad on a HUD layer without an object id, and their raycast boxes do not match the
+ * drawn labels, so the label is found on screen: the shown value text whose anchor is nearest to the click, within
+ * `radius` pixels. It is matched with the displayed dimension (CC_*FeatureDimension) whose text point it sits on;
+ * the constraint is that dimension's master.
+ * @param scene - any object of the scene (its root is searched)
+ * @param pointer - the click in normalized device coordinates
+ * @param size - the canvas size in pixels
+ */
+export const getSketchDimensionHit = (
+  drawingId: DrawingID,
+  scene: THREE.Object3D,
+  pointer: THREE.Vector2,
+  camera: THREE.Camera,
+  size: { width: number; height: number },
+  radius = 18,
+): ObjectID | undefined => {
+  let root: THREE.Object3D = scene
+  while (root.parent) root = root.parent
+
+  let hit: THREE.Object3D | undefined
+  let hitPx = radius
+  root.traverse(o => {
+    if (typeof (o as any).text !== 'string' || !o.userData?.onHUD || o.userData?.objId || !isShown(o)) return
+    const ndc = o.getWorldPosition(new THREE.Vector3()).project(camera)
+    if (ndc.z < -1 || ndc.z > 1) return
+    const px = Math.hypot(((ndc.x - pointer.x) * size.width) / 2, ((ndc.y - pointer.y) * size.height) / 2)
+    if (px < hitPx) {
+      hitPx = px
+      hit = o
+    }
+  })
+  if (!hit) return undefined
+  const tree = getDrawing(drawingId).structure.tree
+  const textPos = hit.getWorldPosition(new THREE.Vector3())
+
+  // the frames of the sketches, from their scene objects
+  const frames = new Map<ObjectID, THREE.Matrix4>()
+  root.traverse(o => {
+    const id = o.userData?.objId as ObjectID | undefined
+    if (id && !frames.has(id)) frames.set(id, o.matrixWorld)
+  })
+
+  let best: ObjectID | undefined
+  let bestDist = Infinity
+  Object.values(tree).forEach(obj => {
+    if (!obj?.class?.endsWith('FeatureDimension')) return
+    const master = obj.members?.master?.value as ObjectID | undefined
+    const pt = obj.members?.dimPt?.value as { x: number; y: number; z: number } | undefined
+    if (!master || !pt || !ccUtils.base.isA(tree[master]?.class, ScgClassType.CC2DDimensionConstraint)) return
+    const sketch = tree[obj.parent ?? -1]?.members?.owner?.value as ObjectID | undefined
+    const local = new THREE.Vector3(pt.x, pt.y, pt.z)
+    const frame = sketch ? frames.get(sketch) : undefined
+    const candidates = frame ? [local, local.clone().applyMatrix4(frame)] : [local]
+    candidates.forEach(c => {
+      const d = c.distanceTo(textPos)
+      if (d < bestDist) {
+        bestDist = d
+        best = master
+      }
+    })
+  })
+  return bestDist < 1e-3 * Math.max(1, textPos.length()) ? best : undefined
+}

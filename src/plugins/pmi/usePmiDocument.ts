@@ -20,10 +20,11 @@ export type PmiDocumentState = { doc?: PmiDocument; error?: string; loading: boo
 /**
  * The PMI document of the current part (or of `partId`), kept up to date: it is fetched with `api.v1.pmi.get`
  * (through the facade, the typed client API has no pmi namespace yet) whenever the PMI set changes or a
- * command was executed (cad state counter), so regenerations update statuses and positions.
+ * command was executed (cad state counter), so regenerations update statuses and positions; `revision` lets the
+ * caller ask for a reload (after its own PMI commands).
  * Usable in any app that has a drawing: no plugin needed.
  */
-export const usePmiDocument = (drawingId: DrawingID, partId?: ObjectID): PmiDocumentState => {
+export const usePmiDocument = (drawingId: DrawingID, partId?: ObjectID, revision = 0): PmiDocumentState => {
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
   const part = partId ?? currentProduct
   const setId = usePmiSetId(drawingId)
@@ -44,11 +45,11 @@ export const usePmiDocument = (drawingId: DrawingID, partId?: ObjectID): PmiDocu
         const res = await getApiFacade(drawingId).callSafeApiV('v1', 'pmi', 'get', { id: part })
         if (ticket === request.current) setState({ doc: res?.result as PmiDocument, loading: false })
       } catch (e: any) {
-        if (ticket === request.current) setState({ error: String(e?.message ?? e), loading: false })
+        if (ticket === request.current) setState({ error: String(e?.messages?.[0]?.message ?? e?.message ?? e), loading: false })
       }
     }, 150)
     return () => clearTimeout(timer)
-  }, [drawingId, part, setId, setObject, stateCounter])
+  }, [drawingId, part, setId, setObject, stateCounter, revision])
 
   return state
 }

@@ -2,6 +2,7 @@ import { DrawingID } from '@buerli.io/core'
 import { Overlay, useDrawing } from '@buerli.io/react'
 import { useRCadTheme } from '@buerli.io/react-cad'
 import { Html, Line } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 import React from 'react'
 import * as THREE from 'three'
 import { entriesOf, featuresOf, formatDimension, formatFrame, statusColor } from './format'
@@ -98,6 +99,72 @@ const ToleranceFrame: React.FC<{ entry: PmiEntry & { kind: 'tolerance' }; decima
   )
 }
 
+/**
+ * Dragging a label: the label follows the pointer on the plane through its position that faces the camera; on
+ * release the new position is reported (a release without movement is a click). Returns the position to show
+ * while dragging and the mouse-down handler for the label.
+ */
+const useLabelDrag = (
+  textPos: Vec3 | undefined,
+  onDrop: ((p: Vec3) => void) | undefined,
+  onClick: (() => void) | undefined,
+) => {
+  const camera = useThree(s => s.camera)
+  const gl = useThree(s => s.gl)
+  const controls = useThree(s => s.controls) as any
+  const invalidate = useThree(s => s.invalidate)
+  const [dragPos, setDragPos] = React.useState<THREE.Vector3 | null>(null)
+  // a dropped label keeps its dragged position until the new document arrives
+  React.useEffect(() => setDragPos(null), [textPos?.x, textPos?.y, textPos?.z])
+
+  const onMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0 || !textPos) return
+      e.stopPropagation()
+      e.preventDefault()
+      const start = { x: e.clientX, y: e.clientY }
+      const normal = camera.getWorldDirection(new THREE.Vector3()).negate()
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, toV(textPos))
+      const raycaster = new THREE.Raycaster()
+      let moved = false
+      let last: THREE.Vector3 | null = null
+      const wasEnabled = controls?.enabled
+      if (onDrop && controls) controls.enabled = false
+      const pointAt = (x: number, y: number) => {
+        const r = gl.domElement.getBoundingClientRect()
+        const ndc = new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1)
+        raycaster.setFromCamera(ndc, camera)
+        return raycaster.ray.intersectPlane(plane, new THREE.Vector3())
+      }
+      const move = (ev: MouseEvent) => {
+        if (!onDrop) return
+        if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return
+        moved = true
+        const p = pointAt(ev.clientX, ev.clientY)
+        if (p) {
+          last = p
+          setDragPos(p.clone())
+          invalidate()
+        }
+      }
+      const up = () => {
+        window.removeEventListener('mousemove', move)
+        window.removeEventListener('mouseup', up)
+        if (controls && wasEnabled !== undefined) controls.enabled = wasEnabled
+        if (moved && last && onDrop) onDrop({ x: last.x, y: last.y, z: last.z })
+        else {
+          setDragPos(null)
+          onClick?.()
+        }
+      }
+      window.addEventListener('mousemove', move)
+      window.addEventListener('mouseup', up)
+    },
+    [textPos, onDrop, onClick, camera, gl, controls, invalidate],
+  )
+  return { dragPos, onMouseDown }
+}
+
 /** One annotation (datum symbol, dimension or feature control frame) with its leaders (canvas component). */
 export const PmiAnnotation: React.FC<{
   entry: PmiEntry
@@ -107,18 +174,24 @@ export const PmiAnnotation: React.FC<{
   text?: string
   onHover?: (id: number | null) => void
   onSelect?: (id: number) => void
-}> = ({ entry, decimals = 3, highlighted = false, background = '#ffffff', text = '#000000', onHover, onSelect }) => {
+  /** called with the new label position when the label was dragged; without it labels cannot be moved */
+  onMove?: (id: number, textPosition: Vec3) => void
+}> = ({ entry, decimals = 3, highlighted = false, background = '#ffffff', text = '#000000', onHover, onSelect, onMove }) => {
   const d = entry.item.display
+  const id = entry.item.id
+  const onDrop = React.useMemo(() => (onMove ? (p: Vec3) => onMove(id, p) : undefined), [onMove, id])
+  const onClick = React.useMemo(() => (onSelect ? () => onSelect(id) : undefined), [onSelect, id])
+  const { dragPos, onMouseDown } = useLabelDrag(d?.textPos, onDrop, onClick)
   if (!d?.textPos) return null
   const color = highlighted ? HIGHLIGHT : statusColor(entry.item.status, text)
   const anchors = d.anchors ?? (d.anchor ? [d.anchor] : [])
-  const id = entry.item.id
+  const textPos = dragPos ?? toV(d.textPos)
   return (
     <group>
       {anchors.map((a, i) => (
         <Line
           key={i}
-          points={[toV(d.textPos as Vec3), toV(a)]}
+          points={[textPos, toV(a)]}
           color={color}
           lineWidth={highlighted ? 2 : 1}
           depthTest={false}
@@ -130,12 +203,13 @@ export const PmiAnnotation: React.FC<{
           <DatumTriangle size={10} />
         </Html>
       )}
-      <Html position={toV(d.textPos)} center zIndexRange={[30, 0]}>
+      <Html position={textPos} center zIndexRange={[30, 0]}>
         <div
           data-pmi-item={id}
+          title={onMove ? 'Drag to move, click to select' : undefined}
           onMouseEnter={() => onHover?.(id)}
           onMouseLeave={() => onHover?.(null)}
-          onClick={() => onSelect?.(id)}
+          onMouseDown={onMouseDown}
           style={{
             color,
             background,
@@ -143,7 +217,7 @@ export const PmiAnnotation: React.FC<{
             padding: entry.kind === 'tolerance' ? 0 : '1px 4px',
             border: entry.kind === 'datum' ? '1px solid currentColor' : 'none',
             borderRadius: 1,
-            cursor: onSelect ? 'pointer' : 'default',
+            cursor: onMove ? 'move' : onSelect ? 'pointer' : 'default',
             userSelect: 'none',
             whiteSpace: 'nowrap',
             boxShadow: highlighted ? `0 0 0 1px ${HIGHLIGHT}` : 'none',
@@ -169,7 +243,8 @@ export const PmiAnnotations: React.FC<{
   active?: number | null
   onHover?: (id: number | null) => void
   onSelect?: (id: number) => void
-}> = ({ drawingId, doc, show = true, active = null, onHover, onSelect }) => {
+  onMove?: (id: number, textPosition: Vec3) => void
+}> = ({ drawingId, doc, show = true, active = null, onHover, onSelect, onMove }) => {
   const colors = useRCadTheme()
   const entries = React.useMemo(() => entriesOf(doc), [doc])
   if (!doc) return null
@@ -188,6 +263,7 @@ export const PmiAnnotations: React.FC<{
             text={colors.ink}
             onHover={onHover}
             onSelect={onSelect}
+            onMove={onMove}
           />
         ))}
       {activeEntry && <PmiFeatureHighlight drawingId={drawingId} doc={doc} entry={activeEntry} />}
