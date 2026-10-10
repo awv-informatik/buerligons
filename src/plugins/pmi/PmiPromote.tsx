@@ -6,6 +6,7 @@ import React from 'react'
 import { dimensionName } from './format'
 import { pmiCommand, setPmiState, usePmiState } from './store'
 import { DesignDimension } from './types'
+import { emptyTolerance, ToleranceEditor, toleranceArgs, ToleranceState } from './PmiTolerance'
 
 // Phase 4b: promotion of design dimensions. A sketch dimension or the height of an extrusion becomes an
 // inspection dimension on the faces it produced (api.v1.pmi.promoteDimension); it stays linked to its source, so
@@ -107,61 +108,35 @@ export const useDesignDimensions = (drawingId: DrawingID, partId?: ObjectID, rev
   return { part, ...state }
 }
 
-/** The tolerance form of one design dimension. */
+/** The tolerance form of one design dimension: the structured tolerance with min and max of the design value. */
 const ToleranceForm: React.FC<{
+  drawingId: DrawingID
   item: DesignDimension
   busy: boolean
   error?: string
-  onSubmit: (tolerance: Tolerance | undefined, qualifier: string) => void
+  onSubmit: (tolerance: any, qualifier: string) => void
   onCancel: () => void
-}> = ({ item, busy, error, onSubmit, onCancel }) => {
+}> = ({ drawingId, item, busy, error, onSubmit, onCancel }) => {
   const colors = useRCadTheme()
-  const [text, setText] = React.useState('')
-  const [qualifier, setQualifier] = React.useState('')
-  const parsed = qualifier === 'basic' ? {} : parseTolerance(text)
-  const input = React.useRef<HTMLInputElement>(null)
-  React.useEffect(() => input.current?.focus(), [])
+  const [tol, setTol] = React.useState<ToleranceState>(emptyTolerance())
+  const args = toleranceArgs(tol)
+  const [tried, setTried] = React.useState(false)
   const submit = () => {
-    if (!parsed.error && !busy) onSubmit(parsed.value, qualifier)
-  }
-  const field = {
-    font: 'inherit',
-    color: colors.ink,
-    background: colors.panel,
-    border: `1px solid ${colors.line}`,
-    borderRadius: 3,
-    padding: '2px 4px',
+    setTried(true)
+    if (!args.error && !busy) onSubmit(args.tolerance, args.qualifier)
   }
   return (
     <div
       data-pmi-promote-form={item.id}
+      onKeyDown={e => e.key === 'Escape' && onCancel()}
       style={{ display: 'grid', gap: 4, padding: '4px 4px 6px 22px', borderBottom: `1px solid ${colors.line}` }}>
-      <div style={{ display: 'flex', gap: 4 }}>
-        <input
-          ref={input}
-          aria-label="Tolerance"
-          placeholder="0.1, +0.1/-0.05, H7"
-          value={text}
-          disabled={qualifier === 'basic'}
-          onChange={e => setText(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') submit()
-            if (e.key === 'Escape') onCancel()
-          }}
-          style={{ ...field, flex: 1, minWidth: 0 }}
-        />
-        <select aria-label="Qualifier" value={qualifier} onChange={e => setQualifier(e.target.value)} style={field}>
-          <option value="">toleranced</option>
-          <option value="basic">basic</option>
-          <option value="reference">reference</option>
-        </select>
-      </div>
-      {(parsed.error || error) && <ErrorLine text={(parsed.error ?? error) as string} />}
+      <ToleranceEditor drawingId={drawingId} value={tol} onChange={setTol} nominal={item.value} onSubmit={submit} autoFocus />
+      {((tried && args.error) || error) && <ErrorLine text={(error ?? args.error) as string} />}
       <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
         <ThemedButton onClick={onCancel} disabled={busy}>
           Cancel
         </ThemedButton>
-        <ThemedButton primary onClick={submit} disabled={busy || !!parsed.error}>
+        <ThemedButton primary onClick={submit} disabled={busy}>
           {busy ? 'Promoting ...' : 'Promote'}
         </ThemedButton>
       </div>
@@ -193,7 +168,7 @@ export const DesignDimensionList: React.FC<{ drawingId: DrawingID; partId?: Obje
     listRef.current?.querySelector(`[data-pmi-design="${open}"]`)?.scrollIntoView({ block: 'nearest' })
   }, [open, items])
 
-  const promote = async (item: DesignDimension, tolerance: Tolerance | undefined, qualifier: string) => {
+  const promote = async (item: DesignDimension, tolerance: any, qualifier: string) => {
     if (!part) return
     setBusy(true)
     setFormError(undefined)
@@ -263,6 +238,7 @@ export const DesignDimensionList: React.FC<{ drawingId: DrawingID; partId?: Obje
           </div>
           {open === item.id && !item.promoted && item.type && (
             <ToleranceForm
+              drawingId={drawingId}
               item={item}
               busy={busy}
               error={formError}

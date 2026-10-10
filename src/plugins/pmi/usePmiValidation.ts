@@ -9,6 +9,8 @@ export type PmiIssue = {
   message: string
   /** syntax | semantics | model (the three levels of the validation) */
   category?: string
+  /** a stable name of the rule for clients that offer a fix, e.g. "locationWithoutDatum" */
+  rule?: string
   /** the PMI item it is about */
   id?: number
   name?: string

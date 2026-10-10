@@ -205,24 +205,35 @@ const dimensionLines = (anchors: THREE.Vector3[], textPos: THREE.Vector3, normal
   ] as THREE.Vector3[][]
 }
 
+/** Gap between a dimension line and its value, in label pixels (the label is 12 px high). */
+const TEXT_GAP = 2
+
 /**
  * A label lying in its annotation plane. It is turned to the viewer's side of the plane and so that the text
- * reads from left to right; seen almost edge-on it fades out.
+ * reads from left to right; seen almost edge-on it fades out. `above`: the label sits on the upper side of its
+ * position instead of centred on it (ISO 129-1: the value of a dimension stands above the dimension line, which
+ * runs through the stored text position). "Upper" is taken in the label's own frame after the turning, so the
+ * text stays above the line from either side of the plane.
  */
-const PlaneLabel: React.FC<{ position: THREE.Vector3; plane: PmiPlane; partSize: number; children: React.ReactNode }> = ({
-  position,
-  plane,
-  partSize,
-  children,
-}) => {
+const PlaneLabel: React.FC<{
+  position: THREE.Vector3
+  plane: PmiPlane
+  partSize: number
+  above?: boolean
+  children: React.ReactNode
+}> = ({ position, plane, partSize, above = false, children }) => {
   const group = React.useRef<THREE.Group>(null)
   const fade = React.useRef<HTMLDivElement>(null)
+  // the orientation is set per frame; with frames on demand a new or moved label asks for one, else it would
+  // show unturned until the next camera move
+  const invalidate = useThree(s => s.invalidate)
+  React.useEffect(() => invalidate(), [invalidate, plane, position.x, position.y, position.z])
   const basis = React.useMemo(() => {
     const z = toV(plane.normal).normalize()
     const x = toV(plane.xDir).normalize()
     return { x, z, y: new THREE.Vector3().crossVectors(z, x) }
   }, [plane])
-  useFrame(({ camera }) => {
+  useFrame(({ camera, invalidate: nextFrame }) => {
     const g = group.current
     if (!g) return
     const toCamera = camera.position.clone().sub(position).normalize()
@@ -238,7 +249,13 @@ const PlaneLabel: React.FC<{ position: THREE.Vector3; plane: PmiPlane; partSize:
       y = y.clone().negate()
     }
     const m = new THREE.Matrix4().makeBasis(x, new THREE.Vector3().crossVectors(z, x), z)
-    g.quaternion.setFromRotationMatrix(m)
+    const q = new THREE.Quaternion().setFromRotationMatrix(m)
+    if (g.quaternion.angleTo(q) > 1e-6) {
+      // the Html child has already placed itself in this frame with the old turn: one more frame shows the new one
+      g.quaternion.copy(q)
+      g.updateMatrixWorld()
+      nextFrame()
+    }
     if (fade.current) {
       const facing = Math.abs(z.dot(toCamera))
       fade.current.style.opacity = String(Math.min(1, Math.max(0.12, (facing - 0.08) / 0.25)))
@@ -247,7 +264,9 @@ const PlaneLabel: React.FC<{ position: THREE.Vector3; plane: PmiPlane; partSize:
   return (
     <group ref={group} position={position}>
       <Html transform center distanceFactor={Math.max(1, partSize)} zIndexRange={[30, 0]}>
-        <div ref={fade}>{children}</div>
+        <div ref={fade} style={above ? { transform: `translateY(calc(-50% - ${TEXT_GAP}px))` } : undefined}>
+          {children}
+        </div>
       </Html>
     </group>
   )
@@ -330,7 +349,11 @@ export const PmiAnnotation: React.FC<{
             <DatumTriangle size={10} />
           </Html>
         )}
-        <PlaneLabel position={textPos} plane={plane} partSize={partSize}>
+        <PlaneLabel
+          position={textPos}
+          plane={plane}
+          partSize={partSize}
+          above={entry.kind === 'dimension' && anchors.length === 2}>
           {label}
         </PlaneLabel>
       </group>

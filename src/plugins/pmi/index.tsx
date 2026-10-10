@@ -80,6 +80,7 @@ const PmiPluginRoot: React.FC<Props> = ({ drawingId }) => {
         {state.doc && <span style={{ color: colors.dim }}>{state.doc.standard}</span>}
       </label>
       <PmiCreateForm drawingId={drawingId} doc={state.doc} />
+      <div style={{ color: colors.dim, margin: '4px 0' }}>Inspection table</div>
       <PmiTable
         doc={state.doc}
         error={state.error}
@@ -96,12 +97,24 @@ const PmiPluginRoot: React.FC<Props> = ({ drawingId }) => {
           </a>
           {showIssues && (
             <div style={{ marginTop: 4 }}>
-              <PmiIssueList validation={validation} onSelect={id => setPmiState(drawingId, { selected: id })} />
+              <PmiIssueList
+                validation={validation}
+                onSelect={id => setPmiState(drawingId, { selected: id, editFocus: null })}
+                onFix={i => setPmiState(drawingId, { selected: i.id ?? null, editFocus: 'datum' })}
+              />
             </div>
           )}
         </div>
       )}
-      {selectedEntry && <PmiItemEditor key={selectedEntry.item.id} drawingId={drawingId} entry={selectedEntry} />}
+      {selectedEntry && (
+        <PmiItemEditor
+          key={selectedEntry.item.id}
+          drawingId={drawingId}
+          entry={selectedEntry}
+          doc={state.doc}
+          focusDatum={state.editFocus === 'datum'}
+        />
+      )}
       <div style={{ color: colors.dim, margin: '10px 0 4px' }}>Design dimensions</div>
       <DesignDimensionList drawingId={drawingId} />
     </div>
@@ -124,6 +137,8 @@ export { PmiTable, PmiIssueList } from './PmiPanel'
 export { usePmiValidation } from './usePmiValidation'
 export type { PmiIssue, PmiValidation } from './usePmiValidation'
 export { DesignDimensionList, useDesignDimensions, parseTolerance } from './PmiPromote'
+export { ToleranceEditor, toleranceArgs, toleranceFromText, toleranceOf, emptyTolerance } from './PmiTolerance'
+export type { ToleranceState, ToleranceType } from './PmiTolerance'
 export { PmiCreateForm, PmiItemEditor, proposeDimension, proposeTolerance } from './PmiCreate'
 export { pickedFaces, faceSurface } from './selection'
 export { hasPmi, stepExportOptions } from './step'

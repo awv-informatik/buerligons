@@ -120,6 +120,8 @@ export type PmiPluginState = {
   promoteTarget?: number | null
   /** the creation form that is open (from the context menu of a face): what to make and on which faces */
   create?: PmiCreateRequest | null
+  /** the part of the item editor to bring into view and mark (a fix offered by a finding) */
+  editFocus?: 'datum' | null
 }
 
 export type PmiCreateMode = 'datum' | 'dimension' | 'tolerance'

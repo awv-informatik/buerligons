@@ -22,7 +22,10 @@ const valueText = (entry: PmiEntry, decimals: number): string => {
   if (entry.kind === 'datum') return entry.item.letter
   if (entry.kind === 'dimension') {
     const t = formatDimension(entry.item, decimals)
-    return [t.main, t.upper !== undefined ? `${t.upper}/${t.lower}` : ''].filter(Boolean).join(' ')
+    const text = [t.main, t.upper !== undefined ? `${t.upper}/${t.lower}` : ''].filter(Boolean).join(' ')
+    if (t.basic) return `${text} basic`
+    if (t.reference) return `(${text})`
+    return text
   }
   const f = formatFrame(entry.item, decimals)
   return [f.tolerance, ...f.datums].join(' | ')
@@ -52,6 +55,13 @@ export const PmiTable: React.FC<{
   const colors = useRCadTheme()
   const entries = React.useMemo(() => entriesOf(doc), [doc])
   const decimals = Math.max(doc?.decimals ?? 2, 3)
+  const limitText = (e: PmiEntry, which: 'min' | 'max') => {
+    if (e.kind !== 'dimension') return ''
+    const v = e.item.value
+    if (!v || v.type === 'none' || e.item.qualifier === 'basic' || e.item.qualifier === 'reference') return ''
+    return (which === 'min' ? v.lowerLimit : v.upperLimit).toFixed(decimals)
+  }
+  const grid = '18px minmax(0, 1fr) minmax(0, 1fr) 54px 54px 8px'
   const counts = React.useMemo(() => {
     const c = { check: 0, unresolved: 0 }
     entries.forEach(e => {
@@ -83,6 +93,23 @@ export const PmiTable: React.FC<{
         ref={listRef}
         style={{ maxHeight, overflowY: 'auto', borderTop: `1px solid ${colors.line}` }}
         onMouseLeave={() => onHover?.(null)}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: grid,
+            gap: 6,
+            padding: '2px 4px',
+            color: colors.dim,
+            fontSize: 11,
+            borderBottom: `1px solid ${colors.line}`,
+          }}>
+          <span />
+          <span>Item</span>
+          <span>Value</span>
+          <span style={{ textAlign: 'right' }}>Min</span>
+          <span style={{ textAlign: 'right' }}>Max</span>
+          <span />
+        </div>
         {entries.map(e => {
           const id = e.item.id
           const isActive = id === active || id === selected
@@ -98,7 +125,7 @@ export const PmiTable: React.FC<{
               title={[`${e.item.name}: ${statusLabel(e.item.status)}`, ...(rowIssues ?? []).map(i => i.message)].join('\n')}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '18px 1fr 1.2fr 8px',
+                gridTemplateColumns: grid,
                 alignItems: 'center',
                 gap: 6,
                 padding: '3px 4px',
@@ -123,6 +150,12 @@ export const PmiTable: React.FC<{
               </span>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {valueText(e, decimals)}
+              </span>
+              <span data-pmi-min style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>
+                {limitText(e, 'min')}
+              </span>
+              <span data-pmi-max style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 11 }}>
+                {limitText(e, 'max')}
               </span>
               <span
                 data-pmi-mark={markCol ? (markCol === ISSUE_COLOR.error ? 'error' : 'warning') : e.item.status}
@@ -149,10 +182,12 @@ const CATEGORY_NAMES: Record<string, string> = { syntax: 'Syntax', semantics: 'R
  * standard (allowed combinations) and model (geometry and relations, e.g. a +/- location without datum). A click
  * on a finding selects its item.
  */
-export const PmiIssueList: React.FC<{ validation: PmiValidation; onSelect?: (id: number) => void }> = ({
-  validation,
-  onSelect,
-}) => {
+export const PmiIssueList: React.FC<{
+  validation: PmiValidation
+  onSelect?: (id: number) => void
+  /** offers the fix of a finding with a known rule (locationWithoutDatum: relate the dimension to a datum) */
+  onFix?: (issue: PmiIssue) => void
+}> = ({ validation, onSelect, onFix }) => {
   const colors = useRCadTheme()
   if (validation.issues.length === 0) return <div style={{ color: colors.dim }}>No findings.</div>
   const groups = ['syntax', 'semantics', 'model']
@@ -181,6 +216,19 @@ export const PmiIssueList: React.FC<{ validation: PmiValidation; onSelect?: (id:
               <span>
                 {i.name && <b>{i.name}: </b>}
                 {i.message}
+                {onFix && i.rule === 'locationWithoutDatum' && typeof i.id === 'number' && (
+                  <>
+                    {' '}
+                    <a
+                      data-pmi-fix={i.rule}
+                      onClick={ev => {
+                        ev.stopPropagation()
+                        onFix(i)
+                      }}>
+                      Relate to a datum ...
+                    </a>
+                  </>
+                )}
               </span>
             </div>
           ))}

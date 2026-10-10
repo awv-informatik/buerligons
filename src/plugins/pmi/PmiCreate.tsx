@@ -4,7 +4,8 @@ import { useDrawing } from '@buerli.io/react'
 import { useRCadTheme } from '@buerli.io/react-cad'
 import React from 'react'
 import { dimensionName, toleranceName } from './format'
-import { ErrorLine, errorText, parseTolerance, ThemedButton } from './PmiPromote'
+import { ErrorLine, errorText, ThemedButton } from './PmiPromote'
+import { emptyTolerance, ToleranceEditor, toleranceArgs, toleranceOf, ToleranceState } from './PmiTolerance'
 import { pickedFaces, PmiPick } from './selection'
 import { pmiCommand, setPmiState, usePmiState } from './store'
 import { PmiCreateMode, PmiDimension, PmiDocument, PmiEntry } from './types'
@@ -14,7 +15,6 @@ import { PmiCreateMode, PmiDimension, PmiDocument, PmiEntry } from './types'
 // the table. The forms call the existing api.v1.pmi.* functions. A cylinder stands for its axis where the type
 // relates an axis (a distance to a hole, the position of a hole).
 
-const SIZE_TYPES = ['diameter', 'radius', 'sphericalDiameter', 'sphericalRadius', 'thickness']
 const LOCATION_TYPES = ['linearDistance', 'angular']
 const TOLERANCE_TYPES = [
   'flatness',
@@ -135,8 +135,7 @@ export const PmiCreateForm: React.FC<{ drawingId: DrawingID; doc: PmiDocument | 
   const [picks, setPicks] = React.useState<PmiPick[]>(request?.elements ?? [])
   const [letter, setLetter] = React.useState('')
   const [dimType, setDimType] = React.useState('')
-  const [tolText, setTolText] = React.useState('')
-  const [qualifier, setQualifier] = React.useState('')
+  const [tol, setTol] = React.useState<ToleranceState>(emptyTolerance())
   const [tolType, setTolType] = React.useState('')
   const [magnitude, setMagnitude] = React.useState('')
   const [datums, setDatums] = React.useState('')
@@ -175,14 +174,13 @@ export const PmiCreateForm: React.FC<{ drawingId: DrawingID; doc: PmiDocument | 
         res = await pmiCommand(drawingId, 'datum', args)
       } else if (mode === 'dimension') {
         if (!dimTypeNow) throw new Error(dimProposal.hint ?? 'No dimension type fits the selection.')
-        const tol = qualifier === 'basic' ? {} : parseTolerance(tolText)
-        if (tol.error) throw new Error(tol.error)
+        const ta = toleranceArgs(tol)
+        if (ta.error) throw new Error(ta.error)
         const location = LOCATION_TYPES.includes(dimTypeNow)
         const features: number[] = []
         for (const p of picks) features.push(await featureOf(drawingId, part, p, location && isRound(p)))
-        const args: any = { id: part, type: dimTypeNow, features }
-        if (tol.value !== undefined) args.tolerance = tol.value
-        if (qualifier) args.qualifier = qualifier
+        const args: any = { id: part, type: dimTypeNow, features, tolerance: ta.tolerance }
+        if (ta.qualifier) args.qualifier = ta.qualifier
         res = await pmiCommand(drawingId, 'dimension', args)
       } else {
         const m = parseFloat(magnitude.replace(',', '.'))
@@ -270,23 +268,7 @@ export const PmiCreateForm: React.FC<{ drawingId: DrawingID; doc: PmiDocument | 
               </select>
             </Row>
           )}
-          <Row label="Tolerance">
-            <div style={{ display: 'flex', gap: 4 }}>
-              <input
-                aria-label="Tolerance"
-                placeholder="0.1, +0.1/-0.05, H7"
-                value={tolText}
-                disabled={qualifier === 'basic'}
-                onChange={e => setTolText(e.target.value)}
-                style={{ ...field, flex: 1 }}
-              />
-              <select aria-label="Qualifier" value={qualifier} onChange={e => setQualifier(e.target.value)} style={field}>
-                <option value="">toleranced</option>
-                <option value="basic">basic</option>
-                <option value="reference">reference</option>
-              </select>
-            </div>
-          </Row>
+          <ToleranceEditor drawingId={drawingId} value={tol} onChange={setTol} onSubmit={submit} />
         </>
       )}
 
@@ -347,12 +329,36 @@ export const PmiCreateForm: React.FC<{ drawingId: DrawingID; doc: PmiDocument | 
  * Editing of the item selected in the table (DOM component): tolerance and qualifier of a dimension, value and
  * datum system of a geometric tolerance, and deleting any item.
  */
-export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> = ({ drawingId, entry }) => {
+export const PmiItemEditor: React.FC<{
+  drawingId: DrawingID
+  entry: PmiEntry
+  /** the document the entry comes from: its features and datums give the datum buttons of a dimension */
+  doc?: PmiDocument
+  /** bring the datum buttons into view and mark them (the fix of a "relates no datum" finding) */
+  focusDatum?: boolean
+}> = ({ drawingId, entry, doc, focusDatum = false }) => {
   const colors = useRCadTheme()
   const field = useField()
   const item: any = entry.item
-  const [tolText, setTolText] = React.useState(entry.kind === 'dimension' ? toleranceText(item) : '')
-  const [qualifier, setQualifier] = React.useState(entry.kind === 'dimension' ? item.qualifier ?? '' : '')
+  const box = React.useRef<HTMLDivElement>(null)
+  const datumRow = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    ;(focusDatum ? datumRow.current : box.current)?.scrollIntoView({ block: 'nearest' })
+  }, [focusDatum, item.id])
+
+  // the datum buttons: one per feature of the dimension; a hole's axis gets its datum on the cylinder face
+  const datumTargets = React.useMemo(() => {
+    if (entry.kind !== 'dimension' || !doc) return []
+    return (item.features as number[]).map(fid => {
+      const f = doc.features.find(x => x.id === fid)
+      const target = f && f.kind === 'axis' && f.parents?.length ? f.parents[0] : fid
+      const tf = doc.features.find(x => x.id === target)
+      const datum = doc.datums.find(d => d.feature === target || d.feature === fid)
+      const surface = (tf?.geometryType || tf?.kind || '').toLowerCase()
+      return { target, name: tf?.name ?? f?.name ?? String(fid), surface, datum }
+    })
+  }, [entry.kind, doc, item.features])
+  const [tol, setTol] = React.useState<ToleranceState>(entry.kind === 'dimension' ? toleranceOf(item) : emptyTolerance())
   const [magnitude, setMagnitude] = React.useState(entry.kind === 'tolerance' ? String(item.magnitude) : '')
   const [datums, setDatums] = React.useState(entry.kind === 'tolerance' ? datumSystemText(item.datumSystem) : '')
   const [busy, setBusy] = React.useState(false)
@@ -360,8 +366,7 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
   const planeMode = item.display?.plane?.mode ?? (item.display ? 'screen' : 'auto')
 
   React.useEffect(() => {
-    setTolText(entry.kind === 'dimension' ? toleranceText(item) : '')
-    setQualifier(entry.kind === 'dimension' ? item.qualifier ?? '' : '')
+    setTol(entry.kind === 'dimension' ? toleranceOf(item) : emptyTolerance())
     setMagnitude(entry.kind === 'tolerance' ? String(item.magnitude) : '')
     setDatums(entry.kind === 'tolerance' ? datumSystemText(item.datumSystem) : '')
     setError(undefined)
@@ -382,11 +387,9 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
 
   const save = () => {
     if (entry.kind === 'dimension') {
-      const tol = qualifier === 'basic' ? {} : parseTolerance(tolText)
-      if (tol.error) return setError(tol.error)
-      const args: any = { id: item.id, qualifier }
-      if (tol.value !== undefined) args.tolerance = tol.value
-      run('updateDimension', args)
+      const ta = toleranceArgs(tol)
+      if (ta.error) return setError(ta.error)
+      run('updateDimension', { id: item.id, qualifier: ta.qualifier, tolerance: ta.tolerance })
     } else if (entry.kind === 'tolerance') {
       const m = parseFloat(magnitude.replace(',', '.'))
       if (!(m > 0)) return setError('Enter the tolerance value, e.g. 0.05.')
@@ -398,6 +401,7 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
 
   return (
     <div
+      ref={box}
       data-pmi-edit={item.id}
       style={{ display: 'grid', gap: 6, padding: 6, marginTop: 6, border: `1px solid ${colors.line}`, borderRadius: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -410,24 +414,7 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
         </ThemedButton>
       </div>
       {entry.kind === 'dimension' && (
-        <Row label="Tolerance">
-          <div style={{ display: 'flex', gap: 4 }}>
-            <input
-              aria-label="Tolerance"
-              placeholder="0.1, +0.1/-0.05, H7"
-              value={tolText}
-              disabled={qualifier === 'basic'}
-              onChange={e => setTolText(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && save()}
-              style={{ ...field, flex: 1 }}
-            />
-            <select aria-label="Qualifier" value={qualifier} onChange={e => setQualifier(e.target.value)} style={field}>
-              <option value="">toleranced</option>
-              <option value="basic">basic</option>
-              <option value="reference">reference</option>
-            </select>
-          </div>
-        </Row>
+        <ToleranceEditor drawingId={drawingId} value={tol} onChange={setTol} nominal={item.nominal} onSubmit={save} />
       )}
       {entry.kind === 'tolerance' && (
         <>
@@ -452,6 +439,44 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
             </Row>
           )}
         </>
+      )}
+      {datumTargets.length > 0 && (
+        <div
+          ref={datumRow}
+          data-pmi-datum-row
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '70px 1fr',
+            alignItems: 'start',
+            gap: 6,
+            padding: focusDatum ? 4 : 0,
+            borderRadius: 3,
+            outline: focusDatum ? '1px solid #1677ff' : 'none',
+          }}>
+          <span style={{ color: colors.dim, paddingTop: 2 }}>Datum on</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {datumTargets.map(t =>
+              t.datum ? (
+                <span
+                  key={t.target}
+                  title={`${t.name} is datum ${t.datum.letter}`}
+                  style={{ border: '1px solid currentColor', padding: '0 5px', borderRadius: 2, fontWeight: 600 }}>
+                  {t.datum.letter} <span style={{ fontWeight: 400, color: colors.dim }}>{t.name}</span>
+                </span>
+              ) : (
+                <ThemedButton
+                  key={t.target}
+                  data-pmi-datum-target={t.target}
+                  title={`Make ${t.name} a datum feature (next free letter)`}
+                  disabled={busy || !doc?.part}
+                  onClick={() => run('datum', { id: doc!.part, feature: t.target }, () => setPmiState(drawingId, { editFocus: null }))}>
+                  {t.name}
+                  {t.surface ? ` (${t.surface})` : ''}
+                </ThemedButton>
+              ),
+            )}
+          </div>
+        </div>
       )}
       <Row label="Plane">
         <select
