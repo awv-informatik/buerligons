@@ -5,11 +5,23 @@ export type Vec3 = { x: number; y: number; z: number }
 
 export type PmiStatus = 'valid' | 'check' | 'unresolved' | 'imported' | string
 
+/** The annotation plane of an item (Phase 4c): the label, leaders and dimension lines lie in it. */
+export type PmiPlane = {
+  origin: Vec3
+  normal: Vec3
+  /** reading direction of the text */
+  xDir: Vec3
+  /** auto (chosen by ClassCAD) | XY | XZ | YZ (fixed by the user) */
+  mode: string
+}
+
 export type PmiDisplay = {
   anchor?: Vec3
   anchors?: Vec3[]
   dir?: Vec3
   textPos?: Vec3
+  /** missing when the label faces the viewer */
+  plane?: PmiPlane
 }
 
 export type PmiElement = { id: number; reference: number; status: string }
@@ -98,6 +110,8 @@ export type PmiEntry =
 export type PmiPluginState = {
   /** annotations shown in the 3D view */
   showAnnotations: boolean
+  /** annotations drawn in their annotation planes (Phase 4c); otherwise all labels face the viewer */
+  inPlanes?: boolean
   /** the item (datum, dimension, tolerance) under the mouse, in the table or in the view */
   hovered: number | null
   /** the item picked in the table or in the view */

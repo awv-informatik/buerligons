@@ -7,7 +7,7 @@ import 'antd/dist/antd.css'
 import React from 'react'
 import { runsInPage } from '../engine'
 import { getCaption, getFilteredRedoStack, getFilteredUndoStack, redoNext, States, undoNext } from './undoRedo'
-import { PMI_PLUGIN_NAME } from '../plugins/pmi'
+import { PMI_PLUGIN_NAME, stepExportOptions } from '../plugins/pmi'
 
 export { getFilteredRedoStack, getFilteredUndoStack, redoNext, undoNext } from './undoRedo'
 
@@ -86,6 +86,8 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
           const res = await createApi(drawingId).v1.common.save({
             format: type.toUpperCase() as 'OFB' | 'STP' | 'STL',
             encoding: 'base64',
+            // GD&T is written to AP242 files only
+            ...(type === 'stp' ? stepExportOptions(drawingId) : {}),
           })
 
           const content = res?.result?.content

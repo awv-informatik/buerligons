@@ -357,6 +357,7 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
   const [datums, setDatums] = React.useState(entry.kind === 'tolerance' ? datumSystemText(item.datumSystem) : '')
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState<string>()
+  const planeMode = item.display?.plane?.mode ?? (item.display ? 'screen' : 'auto')
 
   React.useEffect(() => {
     setTolText(entry.kind === 'dimension' ? toleranceText(item) : '')
@@ -452,6 +453,20 @@ export const PmiItemEditor: React.FC<{ drawingId: DrawingID; entry: PmiEntry }> 
           )}
         </>
       )}
+      <Row label="Plane">
+        <select
+          aria-label="Annotation plane"
+          value={planeMode}
+          disabled={busy}
+          onChange={e => run('setPlacement', { id: item.id, plane: e.target.value })}
+          style={field}>
+          <option value="auto">Automatic</option>
+          <option value="XY">XY plane</option>
+          <option value="XZ">XZ plane</option>
+          <option value="YZ">YZ plane</option>
+          <option value="screen">Facing the viewer</option>
+        </select>
+      </Row>
       {error && <ErrorLine text={error} />}
       {entry.kind !== 'datum' && (
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

@@ -1,5 +1,6 @@
 import { BuerliCadFacade, ccUtils, createApi, getApiFacade, ScgClassType } from '@buerli.io/classcad'
 import { api as buerliApi, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
+import { stepExportOptions } from '../plugins/pmi/step'
 
 /** Formats `v1/common/load` accepts. */
 export type EditorLoadFormat = 'OFB' | 'STP' | 'IWP'
@@ -193,7 +194,9 @@ export class EditorController {
     const before = this.status
     this.set({ ...before, state: 'saving', error: undefined })
     try {
-      const res = await createApi(drawingId).v1.common.save({ format, encoding: 'base64' })
+      // GD&T is written to AP242 files only
+      const stp = format === 'STP' ? stepExportOptions(drawingId) : {}
+      const res = await createApi(drawingId).v1.common.save({ format, encoding: 'base64', ...stp })
       const content = res?.result?.content as string | undefined
       if (!content) throw new Error('ClassCAD returned no content.')
       const bytes = decodeBase64(content)

@@ -14,7 +14,7 @@ export type PmiViewState = PmiPluginState & {
   revision: number
 }
 
-const initial: PmiViewState = { showAnnotations: true, hovered: null, selected: null, revision: 0 }
+const initial: PmiViewState = { showAnnotations: true, inPlanes: true, hovered: null, selected: null, revision: 0 }
 
 type Store = {
   states: Record<string, PmiViewState>

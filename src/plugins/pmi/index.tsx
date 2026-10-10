@@ -44,6 +44,7 @@ export const PmiLayer: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
       onMove={(id, p) => {
         pmiCommand(drawingId, 'setPlacement', { id, textPosition: [p.x, p.y, p.z] }).catch(console.warn)
       }}
+      inPlanes={state.inPlanes ?? true}
     />
   )
 }
@@ -67,6 +68,14 @@ const PmiPluginRoot: React.FC<Props> = ({ drawingId }) => {
           onChange={e => setPmiState(drawingId, { showAnnotations: e.target.checked })}
         />
         Show annotations
+        <input
+          type="checkbox"
+          style={{ marginLeft: 10 }}
+          checked={state.inPlanes ?? true}
+          disabled={!state.showAnnotations}
+          onChange={e => setPmiState(drawingId, { inPlanes: e.target.checked })}
+        />
+        In planes
         <span style={{ flex: 1 }} />
         {state.doc && <span style={{ color: colors.dim }}>{state.doc.standard}</span>}
       </label>
@@ -117,6 +126,7 @@ export type { PmiIssue, PmiValidation } from './usePmiValidation'
 export { DesignDimensionList, useDesignDimensions, parseTolerance } from './PmiPromote'
 export { PmiCreateForm, PmiItemEditor, proposeDimension, proposeTolerance } from './PmiCreate'
 export { pickedFaces, faceSurface } from './selection'
+export { hasPmi, stepExportOptions } from './step'
 export type { PmiPick } from './selection'
 export { usePmiDocument, usePmiSetId } from './usePmiDocument'
 export {
