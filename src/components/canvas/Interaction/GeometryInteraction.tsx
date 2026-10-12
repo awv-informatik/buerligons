@@ -5,7 +5,8 @@ import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { CameraHelper, useDrawing } from '@buerli.io/react'
 import { sketchUtils, sessionClient } from '@buerli.io/react-cad'
-import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
+import { extend, ThreeEvent, useThree } from '@react-three/fiber'
+import type { ThreeElement } from '@react-three/fiber'
 
 import { Gizmo, getGizmoInfo } from '../Gizmo'
 import { findGeometryIntersection, attemptSSelection, getBuerliGeometry } from './utils'
@@ -26,11 +27,9 @@ class Background extends THREE.Object3D {
 
 extend({ Background })
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      background: Object3DNode<Background, typeof Background>
-    }
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    background: ThreeElement<typeof Background>
   }
 }
 
@@ -178,7 +177,7 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       }
 
       e.stopPropagation()
-      
+
       drawing.api.interaction.setSelected([])
       drawing.api.selection?.unselectAll()
     },
@@ -197,7 +196,9 @@ export const GeometryInteraction: React.FC<{ drawingId: DrawingID; children?: Re
       <group onPointerMove={onGeometryMove} onClick={onGeometryClick}>
         {children}
       </group>
-      {!readOnly && gizmoInfo && <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />}
+      {!readOnly && gizmoInfo && (
+        <Gizmo drawingId={drawingId} productId={gizmoInfo.productId} matrix={gizmoInfo.matrix} />
+      )}
       <background onPointerMove={onBackgroundMove} onClick={onBackgroundClick} />
     </>
   )

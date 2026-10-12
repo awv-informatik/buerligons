@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import React from 'react'
 import * as THREE from 'three'
 
@@ -405,9 +404,7 @@ const deleteSolid = (drawingId: DrawingID, menuInfo: CanvasMenuInfo) => {
   const ids = getSelectedSolids(drawingId, solidId, true)
   const targets = conversionUtils.solidsV1(drawingId, ids)
 
-  createApi(drawingId)
-    .v1.part.entityDeletion({ id: curProdId, name: 'Entity Deletion', targets })
-    .catch(console.warn)
+  createApi(drawingId).v1.part.entityDeletion({ id: curProdId, name: 'Entity Deletion', targets }).catch(console.warn)
 
   drawing.api.interaction.setSelected([])
 }
@@ -527,15 +524,23 @@ const convertConstruction = (drawingId: DrawingID, menuInfo: CanvasMenuInfo, val
     ids.push(menuInfo.interactionInfo.objectId)
   }
 
-  const lineIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCLine) && sketchUtils.isConstruction(tree[id]) !== value)
-  const arcIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCArc) && sketchUtils.isConstruction(tree[id]) !== value)
-  const circleIds = ids.filter(id => ccUtils.base.isA(tree[id].class, ScgClassType.CCCircle) && sketchUtils.isConstruction(tree[id]) !== value)
-  createApi(drawingId).v1.sketch.updateGeometry({
-    id: sketchId,
-    lines: lineIds.map(id => ({ id, isConstruction: value })),
-    arcsByCenter: arcIds.map(id => ({ id, isConstruction: value })),
-    circles: circleIds.map(id => ({ id, isConstruction: value })),
-  }).catch(console.warn)
+  const lineIds = ids.filter(
+    id => ccUtils.base.isA(tree[id].class, ScgClassType.CCLine) && sketchUtils.isConstruction(tree[id]) !== value,
+  )
+  const arcIds = ids.filter(
+    id => ccUtils.base.isA(tree[id].class, ScgClassType.CCArc) && sketchUtils.isConstruction(tree[id]) !== value,
+  )
+  const circleIds = ids.filter(
+    id => ccUtils.base.isA(tree[id].class, ScgClassType.CCCircle) && sketchUtils.isConstruction(tree[id]) !== value,
+  )
+  createApi(drawingId)
+    .v1.sketch.updateGeometry({
+      id: sketchId,
+      lines: lineIds.map(id => ({ id, isConstruction: value })),
+      arcsByCenter: arcIds.map(id => ({ id, isConstruction: value })),
+      circles: circleIds.map(id => ({ id, isConstruction: value })),
+    })
+    .catch(console.warn)
 }
 
 export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
@@ -873,7 +878,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         },
       },
       { type: 'divider' },
-      ...sketchItem
+      ...sketchItem,
     ] as MenuElement[]
 
     const workGeometry = [

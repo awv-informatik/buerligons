@@ -3,7 +3,6 @@ import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Icon, IconName, Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
 import { Tooltip, Dropdown, MenuProps } from 'antd'
-import 'antd/dist/antd.css'
 import React from 'react'
 import { runsInPage } from '../engine'
 
@@ -32,7 +31,7 @@ const format = (name: string, ending: string) => (
 type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
-  const rfRef = React.useRef<HTMLInputElement>()
+  const rfRef = React.useRef<HTMLInputElement>(null)
   // What the host of a shared session offers its guests; a session that says nothing offers all.
   const { saveFormats } = sessionClient.useSessionConfig()
 
@@ -295,7 +294,7 @@ const History: React.FC<{ command: Command; off?: string }> = ({ command, off })
 
   return (
     <span className="rcad-split">
-      <Tooltip title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
+      <Tooltip arrow={false} title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
         {/* (a span: a tooltip does not show over a button that is disabled) */}
         <span style={{ display: 'inline-flex' }}>
           <button

@@ -1,3 +1,4 @@
+import type * as THREE from 'three'
 import {
   DrawingID,
   ObjectID,
@@ -24,10 +25,15 @@ export const getBuerliGeometry = (intersection: THREE.Intersection | undefined) 
   const index = intersection?.index ?? -1
   const faceIndex = intersection?.faceIndex ?? -1
 
-  return (uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]) as GeometryElement | undefined
+  return (uData?.pointMap?.[index] || uData?.lineMap?.[index] || uData?.meshMap?.[faceIndex]) as
+    GeometryElement | undefined
 }
 
-export const findGeometryIntersection = (intersections: THREE.Intersection[], lineThreshold: number, pointThreshold: number) => {
+export const findGeometryIntersection = (
+  intersections: THREE.Intersection[],
+  lineThreshold: number,
+  pointThreshold: number,
+) => {
   if (intersections.some(i => i.object.userData?.onHUD && i.object.userData?.objId)) {
     // If there is a tree object on HUD within intersections, consider there are no geometry intersections
     return undefined
@@ -41,7 +47,7 @@ export const findGeometryIntersection = (intersections: THREE.Intersection[], li
 
   const minDist = intersection.distance
   const maxThreshold = Math.max(lineThreshold, pointThreshold)
-  
+
   while (intersections[index].distance - minDist < maxThreshold) {
     const intersectionNext = intersections[index]
     if (isBPoint(intersectionNext) && intersectionNext.distance - minDist < pointThreshold) {
@@ -102,8 +108,7 @@ export const attemptSSelection = (drawingId: DrawingID, productId: ObjectID, obj
     prodElements = container ? edges.map(n => ({ ...container.map[n], productId })) : []
   } else if (selection.isSelectable(BuerliScope, object.type)) {
     prodElements = [{ ...object, productId }]
-  }
-  else {
+  } else {
     // If the object can't be selected, consider it a 'miss', and unselect everything
     selApi.unselectAll()
     return

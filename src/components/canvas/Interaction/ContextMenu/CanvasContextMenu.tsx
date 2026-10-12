@@ -5,7 +5,8 @@ import { createInfo, DrawingID, getDrawing, ObjectID } from '@buerli.io/core'
 import { ccUtils, ScgClassType } from '@buerli.io/classcad'
 import { CameraHelper } from '@buerli.io/react'
 import { ContextMenu, getCADState } from '@buerli.io/react-cad'
-import { extend, Object3DNode, ThreeEvent, useThree } from '@react-three/fiber'
+import { extend, ThreeEvent, useThree } from '@react-three/fiber'
+import type { ThreeElement } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 
 import { CanvasMenuInfo, MenuDescriptor } from './types'
@@ -33,12 +34,9 @@ class ContextMenuTrigger extends THREE.Object3D {
 
 extend({ ContextMenuTrigger })
 
-declare global {
-  namespace JSX {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    interface IntrinsicElements {
-      contextMenuTrigger: Object3DNode<ContextMenuTrigger, typeof ContextMenuTrigger>
-    }
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    contextMenuTrigger: ThreeElement<typeof ContextMenuTrigger>
   }
 }
 
