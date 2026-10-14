@@ -37,6 +37,7 @@ const FORMAT_NAMES: Record<string, string> = {
   stl: 'STL',
   glb: 'glTF',
   obj: 'OBJ',
+  usda: 'USD',
   smb: 'SMLib',
 }
 const OWN_FORMATS = ['ofb', 'stp', 'stl']
