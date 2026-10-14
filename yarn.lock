@@ -562,10 +562,10 @@
   resolved "https://registry.yarnpkg.com/@buerli.io/icons/-/icons-1.0.19.tgz#1a7a63394026c036d823b4340b843e9794c170fe"
   integrity sha512-9A2pOQhCmvNLkgKuwgsqWMYu9GsaT6qSjOhG3DAFnl/3ElCFSpvLt5zLBktgNHgFyhIu/ipPk3IYGx0T6sLIww==
 
-"@buerli.io/react-cad@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.2.0.tgz#095bb21f003dce7441edc5249eae4277288d5ff3"
-  integrity sha512-bUmEX1WoPYv/X9cEjNnocRFLt5zD1AIZ2M31GWQwcETDgEh2m1lxqu+XBDbladTUTm73zVnPxL3XIjdIm+jEvA==
+"@buerli.io/react-cad@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@buerli.io/react-cad/-/react-cad-1.2.1.tgz#5aa3d2881504636a622f56a15ca49da9534026c1"
+  integrity sha512-xsKsXn17PZdQJM+g+/EjOVj9jPC9fHm09UjD8RWN3Jxo9Ja9rtiWdRutW5r6eBPs91CJ3phTdPqTHdjbg4Mduw==
   dependencies:
     "@buerli.io/classcad" "1.2.0"
     "@buerli.io/react" "1.2.0"
