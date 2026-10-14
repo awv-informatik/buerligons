@@ -29,11 +29,25 @@ const format = (name: string, ending: string) => (
   </span>
 )
 
+// What the formats are called, by their file's ending: ClassCAD's own first, then some that the host of a
+// session may offer beyond them (its engine saves them); any other is called by its ending.
+const FORMAT_NAMES: Record<string, string> = {
+  ofb: 'ClassCAD',
+  stp: 'STEP',
+  stl: 'STL',
+  glb: 'glTF',
+  obj: 'OBJ',
+  usda: 'USD',
+  smb: 'SMLib',
+}
+const OWN_FORMATS = ['ofb', 'stp', 'stl']
+
 type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
   const rfRef = React.useRef<HTMLInputElement>()
-  // What the host of a shared session offers its guests; a session that says nothing offers all.
+  // What the host of a shared session offers its guests: fewer formats than ClassCAD's, or more where its
+  // engine saves them; a session that says nothing offers ClassCAD's.
   const { saveFormats } = sessionClient.useSessionConfig()
 
   const createNewDrawing = React.useCallback(
@@ -77,7 +91,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   const save = React.useCallback(
-    (type: 'ofb' | 'stp' | 'stl') => {
+    (type: string) => {
       const run = async () => {
         try {
           const drawing = getDrawing(drawingId)
@@ -109,22 +123,17 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   return React.useMemo(() => {
-    const formats = {
-      ofb: {
-        caption: format('ClassCAD', 'ofb') as any,
-        callback: () => save('ofb'),
-      },
-      stp: {
-        caption: format('STEP', 'stp') as any,
-        callback: () => save('stp'),
-      },
-      stl: {
-        caption: format('STL', 'stl') as any,
-        callback: () => save('stl'),
-      },
-    }
+    const types = saveFormats
+      ? [
+          ...OWN_FORMATS.filter(type => saveFormats.includes(type.toUpperCase())),
+          ...saveFormats.map(f => f.toLowerCase()).filter(type => !OWN_FORMATS.includes(type)),
+        ]
+      : OWN_FORMATS
     const offered = Object.fromEntries(
-      Object.entries(formats).filter(([type]) => !saveFormats || saveFormats.includes(type.toUpperCase())),
+      types.map(type => [
+        type,
+        { caption: format(FORMAT_NAMES[type] ?? type.toUpperCase(), type) as any, callback: () => save(type) },
+      ]),
     )
     return {
       new: {
