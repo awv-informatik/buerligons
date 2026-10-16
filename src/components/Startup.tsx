@@ -24,7 +24,6 @@ export const Startup: React.FC = () => {
     if (isGuest && count === 0 && !joinedRef.current) {
       joinedRef.current = true
       BuerliCadFacade.utils.connect().catch(e => {
-        // eslint-disable-next-line no-console
         console.error('[buerligons] failed to join shared session', e)
         // No session behind the invite (it is over, or the invite was taken back): say so, and stop trying.
         setRefused(true)

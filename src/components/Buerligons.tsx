@@ -10,7 +10,7 @@ import {
   useIsSketchActive,
   sessionClient,
 } from '@buerli.io/react-cad'
-import { Canvas, ReactThreeFiber, events } from '@react-three/fiber'
+import { Canvas, events } from '@react-three/fiber'
 import React from 'react'
 import {
   CanvasContextMenu,
@@ -34,17 +34,10 @@ import { UndoRedoKeyHandler } from './KeyHandler'
 import { FollowBanner } from './FollowBanner'
 import { ViewOnlyBadge } from './ViewOnlyBadge'
 import { BroadcastCursor, FollowedCursor } from './canvas/SharedCursor'
-import {
-  BroadcastViewpoint,
-  FollowCamera,
-  RemoteViewpoints,
-  SharedViewpointBounds,
-} from './canvas/SharedViewpoints'
+import { BroadcastViewpoint, FollowCamera, RemoteViewpoints, SharedViewpointBounds } from './canvas/SharedViewpoints'
 import { ViewCube } from './canvas/ViewCube'
 
-const CAMERA = { position: [0, 0, 10], zoom: 50 } as ReactThreeFiber.CameraProps &
-  ReactThreeFiber.PerspectiveCameraProps &
-  ReactThreeFiber.OrthographicCameraProps
+const CAMERA = { position: [0, 0, 10] as [number, number, number], zoom: 50 }
 const EVENTS = (store: any) => ({ ...events(store), filter: raycastFilter })
 
 const CanvasImpl: React.FC<{ drawingId: DrawingID; children?: React.ReactNode }> = React.memo(function CanvasImpl({

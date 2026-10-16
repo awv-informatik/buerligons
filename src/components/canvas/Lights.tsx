@@ -30,8 +30,9 @@ export function Lights() {
 
   return (
     <>
-      <ambientLight intensity={0.68} />
-      <directionalLight ref={lamp} intensity={0.42} />
+      {/* three counts light in physical units: π times what the same light was before r155 */}
+      <ambientLight intensity={0.68 * Math.PI} />
+      <directionalLight ref={lamp} intensity={0.42 * Math.PI} />
     </>
   )
 }

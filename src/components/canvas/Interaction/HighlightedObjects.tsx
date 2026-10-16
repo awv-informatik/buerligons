@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React from 'react'
 
 import { DrawingID, InteractionInfo } from '@buerli.io/core'
@@ -36,7 +35,8 @@ export function HighlightedObjects({ drawingId }: { drawingId: DrawingID }) {
         <React.Fragment key={hovered.uniqueIdent + 'h'}>
           <OutlinedObjects drawingId={drawingId} info={hovered} group="hovered" />
           <OverlayedObjects drawingId={drawingId} info={hovered} type="hovered" />
-        </React.Fragment>)}
+        </React.Fragment>
+      )}
       {selected?.map(info => (
         <React.Fragment key={info.uniqueIdent + 's'}>
           <OutlinedObjects drawingId={drawingId} info={info} group="selected" />

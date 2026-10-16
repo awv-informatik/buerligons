@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { ObjectID } from '@buerli.io/core'
 

@@ -30,7 +30,6 @@ const isDrawn = (object: THREE.Object3D) => {
 }
 
 /** The stage's camera control (see StageControls), as the canvas' default controls. */
-// eslint-disable-next-line react/display-name
 export const Controls = React.forwardRef<StageControls, ControlsProps>(
   ({ makeDefault, camera, regress, center, onChange, onStart, onEnd, ...restProps }, ref) => {
     const { invalidate, camera: defaultCamera, gl, set, get, performance } = useThree()

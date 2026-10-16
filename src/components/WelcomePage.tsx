@@ -12,7 +12,7 @@ type Start = { key: string; icon: IconName; name: string; note: string; run: () 
  * three ways a drawing starts.
  */
 export const WelcomePage: React.FC = () => {
-  const rfRef = React.useRef<HTMLInputElement>()
+  const rfRef = React.useRef<HTMLInputElement>(null)
 
   const createPart = React.useCallback(async () => {
     const newDrawingId = await BuerliCadFacade.utils.connect()

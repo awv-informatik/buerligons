@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { createApi, init, ScgClassType, SocketIOClient, WASMClient, WSClient } from '@buerli.io/classcad'
 import { DrawingID } from '@buerli.io/core'
 import {
@@ -100,7 +99,15 @@ export const initBuerli = (
         },
       },
       elements,
-      globalPlugins: [Dimensions, Measure, BoundingBoxInfo, Expressions, ProductManagement, AppearanceEditor, SessionManagement],
+      globalPlugins: [
+        Dimensions,
+        Measure,
+        BoundingBoxInfo,
+        Expressions,
+        ProductManagement,
+        AppearanceEditor,
+        SessionManagement,
+      ],
       plugins: {
         [ScgClassType.CCSketch]: Sketch,
         [ScgClassType.CCExtrusion]: Extrusion,

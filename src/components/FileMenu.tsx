@@ -3,7 +3,6 @@ import { api as buerliApi, DrawingID, getDrawing } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
 import { Icon, IconName, Menu, MenuItems, Readfile, sessionClient } from '@buerli.io/react-cad'
 import { Tooltip, Dropdown, MenuProps } from 'antd'
-import 'antd/dist/antd.css'
 import React from 'react'
 import { runsInPage } from '../engine'
 import { getCaption, getFilteredRedoStack, getFilteredUndoStack, redoNext, States, undoNext } from './undoRedo'
@@ -26,11 +25,25 @@ const format = (name: string, ending: string) => (
   </span>
 )
 
+// What the formats are called, by their file's ending: ClassCAD's own first, then some that the host of a
+// session may offer beyond them (its engine saves them); any other is called by its ending.
+const FORMAT_NAMES: Record<string, string> = {
+  ofb: 'ClassCAD',
+  stp: 'STEP',
+  stl: 'STL',
+  glb: 'glTF',
+  obj: 'OBJ',
+  usda: 'USD',
+  smb: 'SMLib',
+}
+const OWN_FORMATS = ['ofb', 'stp', 'stl']
+
 type MenuItem = Required<MenuProps>['items'][number]
 
 function useMenuItems(drawingId: DrawingID): MenuItems {
-  const rfRef = React.useRef<HTMLInputElement>()
-  // What the host of a shared session offers its guests; a session that says nothing offers all.
+  const rfRef = React.useRef<HTMLInputElement>(null)
+  // What the host of a shared session offers its guests: fewer formats than ClassCAD's, or more where its
+  // engine saves them; a session that says nothing offers ClassCAD's.
   const { saveFormats } = sessionClient.useSessionConfig()
 
   const createNewDrawing = React.useCallback(
@@ -74,7 +87,7 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   const save = React.useCallback(
-    (type: 'ofb' | 'stp' | 'stl') => {
+    (type: string) => {
       const run = async () => {
         try {
           const drawing = getDrawing(drawingId)
@@ -106,22 +119,17 @@ function useMenuItems(drawingId: DrawingID): MenuItems {
   )
 
   return React.useMemo(() => {
-    const formats = {
-      ofb: {
-        caption: format('ClassCAD', 'ofb') as any,
-        callback: () => save('ofb'),
-      },
-      stp: {
-        caption: format('STEP', 'stp') as any,
-        callback: () => save('stp'),
-      },
-      stl: {
-        caption: format('STL', 'stl') as any,
-        callback: () => save('stl'),
-      },
-    }
+    const types = saveFormats
+      ? [
+          ...OWN_FORMATS.filter(type => saveFormats.includes(type.toUpperCase())),
+          ...saveFormats.map(f => f.toLowerCase()).filter(type => !OWN_FORMATS.includes(type)),
+        ]
+      : OWN_FORMATS
     const offered = Object.fromEntries(
-      Object.entries(formats).filter(([type]) => !saveFormats || saveFormats.includes(type.toUpperCase())),
+      types.map(type => [
+        type,
+        { caption: format(FORMAT_NAMES[type] ?? type.toUpperCase(), type) as any, callback: () => save(type) },
+      ]),
     )
     return {
       new: {
@@ -249,7 +257,7 @@ const History: React.FC<{ command: Command; off?: string }> = ({ command, off })
 
   return (
     <span className="rcad-split">
-      <Tooltip title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
+      <Tooltip arrow={false} title={off ?? command.label} placement="bottom" mouseEnterDelay={0.35}>
         {/* (a span: a tooltip does not show over a button that is disabled) */}
         <span style={{ display: 'inline-flex' }}>
           <button

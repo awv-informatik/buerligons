@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { DEFAULT_SESSION_URL, SocketIOClient, syncSelection, WASMClient, WSClient } from '@buerli.io/classcad'
-import 'antd/dist/antd.less'
+import 'antd/dist/reset.css'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { useRCadTheme, sessionClient, viewpoints } from '@buerli.io/react-cad'

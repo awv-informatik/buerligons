@@ -31,7 +31,7 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
   }, [matrix])
 
   const onDragStart = React.useCallback(
-    ({ component }: { component: 'Arrow' | 'Slider' | 'Rotator' }) => {
+    ({ component }: { component: 'Arrow' | 'Slider' | 'Rotator' | 'Sphere' }) => {
       if (isBlocked.current) {
         return
       }
@@ -85,7 +85,9 @@ export const Gizmo: React.FC<{ drawingId: DrawingID; productId: ObjectID; matrix
       }
       const offset = [mdL_.elements[12], mdL_.elements[13], mdL_.elements[14]]
 
-      promise = createApi(drawingId).v1.assembly.moveUnderConstraints({ id: curProdId, rotation: rot, offset }).catch(console.warn)
+      promise = createApi(drawingId)
+        .v1.assembly.moveUnderConstraints({ id: curProdId, rotation: rot, offset })
+        .catch(console.warn)
       await promise
 
       // Artificial slowdown to lessen network/server burden
