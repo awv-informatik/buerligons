@@ -13,6 +13,7 @@ import {
   GeometryElement,
 } from '@buerli.io/core'
 import { useDrawing } from '@buerli.io/react'
+import { useLooks } from '../../../../looks'
 import {
   MenuElement,
   TreeObjScope,
@@ -550,6 +551,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   const prodClass = drawing.structure.tree[currentProduct]?.class || ''
   const isPartMode = ccUtils.base.isA(prodClass, ScgClassType.CCPart)
   const readOnly = sessionClient.useSessionRole() === 'view'
+  const pbr = useLooks(s => s.pbr)
 
   const camera = useThree(state => state.camera)
   const controls = useThree(state => state.controls as unknown as ControlsProto)
@@ -572,6 +574,13 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
   })
 
   return React.useMemo(() => {
+    const pbrEl = {
+      label: pbr ? 'Flat shading' : 'Realistic look',
+      icon: sign('appearance'),
+      key: 'pbr',
+      onClick: () => useLooks.getState().togglePbr(),
+    } as MenuElement
+
     const zoomToFitEl = {
       label: 'Zoom to fit',
       icon: sign('zoomFit'),
@@ -808,6 +817,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
           },
       { type: 'divider' },
       zoomToFitEl,
+      pbrEl,
       {
         label: 'View normal to',
         icon: sign('viewNormal'),
@@ -839,6 +849,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
 
     const sketch = [
       zoomToFitEl,
+      pbrEl,
       { type: 'divider' },
       {
         label: 'View normal to sketch',
@@ -890,6 +901,7 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
       showAllEl,
       { type: 'divider' },
       zoomToFitEl,
+      pbrEl,
     ] as MenuElement[]
 
     const descriptors: MenuDescriptor[] = [
@@ -925,13 +937,13 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
         objType: ScgClassType.CCPart,
         headerName: 'Part',
         headerIcon: <MenuHeaderIcon url={partURL} />,
-        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl, pbrEl],
       },
       {
         objType: ScgClassType.CCAssembly,
         headerName: 'Assembly',
         headerIcon: <MenuHeaderIcon url={assemblyURL} />,
-        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl],
+        menuElements: [showAllEl, { type: 'divider' }, zoomToFitEl, pbrEl],
       },
       {
         objType: ScgClassType.CCSketch,
@@ -1026,5 +1038,5 @@ export const useContextMenuItems = (drawingId: DrawingID): MenuDescriptor[] => {
     // View-only guest: keep the view items (select, hide/show, zoom, view-normal),
     // drop everything that mutates the model.
     return descriptors.map(d => ({ ...d, menuElements: stripMutatingItems(d.menuElements) }))
-  }, [isPartMode, boundsControls, drawingId, opSeqId, camera, controls, readOnly])
+  }, [isPartMode, boundsControls, drawingId, opSeqId, camera, controls, readOnly, pbr])
 }

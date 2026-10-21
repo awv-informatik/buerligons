@@ -21,6 +21,7 @@ import {
   GlobalCSysDisplay,
   HighlightedObjects,
   Lights,
+  PbrLook,
   raycastFilter,
   RectangleSelection,
   Threshold,
@@ -93,7 +94,12 @@ const ContextMenu: React.FC<{ drawingId: DrawingID }> = ({ drawingId }) => {
   return <CanvasContextMenu drawingId={drawingId} menuContent={menuContent} />
 }
 
-type AppProps = {
+export type BuerligonsProps = {
+  /**
+   * Header menu of the drawing. Omitted: the built-in file menu (new/open/save, undo/redo).
+   * `null`: no menu, for hosts that own the document lifecycle (e.g. an embedding PDM).
+   */
+  menu?: JSX.Element | null
   /** What the footer opens with: where the engine runs, say. By default, whether it is connected. */
   status?: React.ReactNode
   /** What the bar ends with, before the theme switch. */
@@ -103,12 +109,12 @@ type AppProps = {
   children?: React.ReactNode
 }
 
-export const Buerligons: React.FC<AppProps> = props => {
+export const Buerligons: React.FC<BuerligonsProps> = props => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   return drawingId ? <App {...props} /> : null
 }
 
-export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }) => {
+export const App: React.FC<BuerligonsProps> = ({ menu, status, trail, themeSwitch, children }) => {
   const drawingId = useBuerli(s => s.drawing.active || '')
   const currentInstance = useDrawing(drawingId, d => d.structure.currentInstance) || undefined
   const currentProduct = useDrawing(drawingId, d => d.structure.currentProduct)
@@ -130,13 +136,14 @@ export const App: React.FC<AppProps> = ({ status, trail, themeSwitch, children }
       <Drawing
         drawingId={drawingId}
         readOnly={readOnly}
-        Menu={<FileMenu drawingId={drawingId} />}
+        Menu={menu === undefined ? <FileMenu drawingId={drawingId} /> : (menu ?? undefined)}
         Trail={trail}
         Status={status}
         themeSwitch={themeSwitch}>
         <CanvasImpl drawingId={drawingId}>
           <Controls makeDefault center={center} />
           <Lights />
+          <PbrLook drawingId={drawingId} />
           <StageLook />
           <Threshold />
           <GeometryOverridesManager drawingId={drawingId} />
