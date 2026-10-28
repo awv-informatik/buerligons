@@ -111,3 +111,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Personal env values (access tokens), loaded by Vite on top of .env
+.env.local
+.env.*.local

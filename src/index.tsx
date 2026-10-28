@@ -9,7 +9,7 @@ import { initBuerli } from './initBuerli'
 import { Global } from './styles/Global'
 
 // @ts-ignore
-const classcadWasmKey = CLASSCAD_WASM_KEY
+const classcadToken = CLASSCAD_TOKEN
 // @ts-ignore
 const socketIoUrl = SOCKETIO_URL
 // @ts-ignore
@@ -27,15 +27,20 @@ initBuerli(id => {
     // arrive right after SessionJoined, typically before any React component
     // mounts. Attaching here avoids losing them.
     viewpoints.syncViewpoints(client)
+    console.info('Using WSClient with URL:', wsClientUrl)
     return client
   }
-  if (classcadWasmKey) {
-    // In-page engine: sharing works through MCP bridge tokens (WASMClient.createInvite);
-    // register it as the session client so the Session Management panel shows them.
-    const client = new WASMClient(id, { classcadKey: classcadWasmKey, app: 'buerligons' })
+  if (classcadToken) {
+    // In-page engine, unlocked with a public ClassCAD access token (ccpk_…): the client
+    // exchanges it for an engine key and renews that key by itself.
+    // Sharing works through MCP bridge tokens (WASMClient.createInvite); register it as the
+    // session client so the Session Management panel shows them.
+    const client = new WASMClient(id, { token: classcadToken })
     sessionClient.setSessionClient(client)
+    console.info('Using WASMClient with a ClassCAD access token')
     return client
   } else {
+    console.info('Falling back to SocketIOClient with URL:', socketIoUrl)
     return new SocketIOClient(socketIoUrl, id)
   }
 })

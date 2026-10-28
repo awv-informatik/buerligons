@@ -10,35 +10,38 @@ cd buerligons
 yarn
 ```
 
-### Create an account and get your ClassCAD key
+### Create an account and get your ClassCAD access token
 
-In order for **buerligons** to work, you need to have a running ClassCAD. You can either run it in the browser using WASM or connect to a local or remote ClassCAD server using SocketIO.
+In order for **buerligons** to work, you need to have a running ClassCAD. By default buerligons connects to a local or remote ClassCAD server using SocketIO. Alternatively it can run ClassCAD in the browser using WASM.
 
-### Running ClassCAD using WASM
+The connection is configured in the `.env` file in the root of this project. Put personal values such as your access token into an untracked `.env.local` next to it; Vite loads it on top of `.env`, so your token never ends up in git.
 
-Follow the instruction points 1-3 about **"Create an account and get your ClassCAD key"** on [Getting Started with WASM](https://buerli.io/docs/quickstart/wasm).
-
-Copy your created ClassCAD WASM key into the .env file at `CLASSCAD_WASM_KEY=` in the root of this project. The variable `SOCKETIO_URL` is not relevant in this case.
-
-> The first time ClassCAD starts using WASM, loading may take some time depending on your internet speed.
-
-```shell
-CLASSCAD_WASM_KEY=MS4xLlZZUG51....
-SOCKETIO_URL=ws://localhost:9091
-```
-
-### Running ClassCAD using SocketIO
+### Running ClassCAD using SocketIO (default)
 
 Follow the instruction points 1-3 about **"Create an account, get your ClassCAD key, download ClassCAD"** on [Getting Started with SocketIO](https://buerli.io/docs/quickstart/socketio)
 
 Start ClassCAD via SocketIO as described in the [Downloads](https://classcad.ch/downloads/) page
 
-Open the .env file in the root of this project and comment out `CLASSCAD_WASM_KEY` to make sure ClassCAD is not running using WASM
+Make sure `CLASSCAD_TOKEN` stays commented out in `.env` and `SOCKETIO_URL` points to your server:
 
 ```shell
-#CLASSCAD_WASM_KEY=MS4xLlZZUG51....
+#CLASSCAD_TOKEN=ccpk_....
 SOCKETIO_URL=ws://localhost:9091
 ```
+
+### Running ClassCAD using WASM
+
+Create an account on [classcad.ch](https://classcad.ch) and create a **public** access token (`ccpk_...`) on your [account page](https://classcad.ch/account). See [Getting Started with WASM](https://buerli.io/docs/quickstart/wasm) for details.
+
+Create a `.env.local` file in the root of this project and set your token there. It takes precedence over the commented out line in `.env`, and `SOCKETIO_URL` is not relevant in this case.
+
+```shell
+CLASSCAD_TOKEN=ccpk_....
+```
+
+The token is exchanged for a short-lived engine key by the client and renewed automatically, so it does not expire like the former WASM keys. A public token works on localhost and on the domains registered in your account. Never put a secret token (`ccsk_...`) into this file, it would end up in the web page.
+
+> The first time ClassCAD starts using WASM, loading may take some time depending on your internet speed.
 
 ### Run buerligons
 

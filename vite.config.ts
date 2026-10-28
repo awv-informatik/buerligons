@@ -18,7 +18,7 @@ export default ({ mode }: { mode: string }) => {
       dedupe: ['three', '@react-three/fiber', '@react-three/drei', 'react', 'react-dom'],
     },
     define: {
-      'CLASSCAD_WASM_KEY': JSON.stringify(env.CLASSCAD_WASM_KEY ?? ''),
+      'CLASSCAD_TOKEN': JSON.stringify(env.CLASSCAD_TOKEN ?? ''),
       'SOCKETIO_URL': JSON.stringify(env.SOCKETIO_URL ?? ''),
       'WSCLIENT_URL': JSON.stringify(env.WSCLIENT_URL ?? ''),
     },
